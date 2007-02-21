@@ -8,7 +8,6 @@ using System.Runtime.Remoting.Channels.Tcp;
 
 namespace PractiSES
 {
-
     class Server
     {
         static void Main(string[] args)
@@ -16,10 +15,9 @@ namespace PractiSES
             TcpChannel channel = new TcpChannel(8080);
             ChannelServices.RegisterChannel(channel,false);
 
-            // Register as an available service with the name HelloWorld
             RemotingConfiguration.RegisterWellKnownServiceType(
                 typeof(PractiSES.ServerObject),
-                "GetPublicKey",
+                "PractiSES",
                 WellKnownObjectMode.SingleCall);
             System.Console.ReadLine();
 

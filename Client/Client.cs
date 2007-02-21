@@ -14,7 +14,7 @@ namespace PractiSES
             HttpClientChannel chan = new HttpClientChannel();
             ChannelServices.RegisterChannel(chan, false);
 
-            ServerObject obj = (ServerObject)Activator.GetObject(typeof(PractiSES.ServerObject), "http://" + host + "/HelloWorld");
+            ServerObject obj = (ServerObject)Activator.GetObject(typeof(PractiSES.ServerObject), "http://" + host + "/PractiSES");
             
             if (obj.Equals(null))
             {
@@ -22,7 +22,7 @@ namespace PractiSES
             }
             else
             {
-                Console.WriteLine(obj.GetPublicKey("cbguder@su.sabanciuniv.edu"));
+                Console.WriteLine(obj.GetPublicKey("cbgder@su.sabanciuniv.edu"));
             }
 
             Console.ReadLine();
