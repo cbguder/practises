@@ -12,7 +12,7 @@ namespace PractiSES
             HttpClientChannel chan = new HttpClientChannel();
             ChannelServices.RegisterChannel(chan, true);
 
-            ServerObject obj = (ServerObject)Activator.GetObject(typeof(PractiSES.ServerObject), "http://10.90.10.62/HelloWorld");
+            ServerObject obj = (ServerObject)Activator.GetObject(typeof(PractiSES.ServerObject), "http://10.90.10.72/HelloWorld");
 
             if (obj.Equals(null))
             {
