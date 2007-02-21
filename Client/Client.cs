@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
-using System.Runtime.Remoting.Channels.Tcp;
+using System.Runtime.Remoting.Channels.Http;
 
 namespace PractiSES
 {
@@ -9,10 +9,10 @@ namespace PractiSES
     {
         static void Main(string[] args)
         {
-            TcpChannel chan = new TcpChannel();
+            HttpClientChannel chan = new HttpClientChannel();
             ChannelServices.RegisterChannel(chan, false);
 
-            ServerObject obj = (ServerObject)Activator.GetObject(typeof(PractiSES.ServerObject), "tcp://10.90.10.72:8080/HelloWorld");
+            ServerObject obj = (ServerObject)Activator.GetObject(typeof(PractiSES.ServerObject), "http://10.90.10.72/HelloWorld");
             
             if (obj.Equals(null))
             {
