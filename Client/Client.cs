@@ -7,12 +7,14 @@ namespace PractiSES
 {
     class Client
     {
+        static string host = "10.90.10.72";
+
         static void Main(string[] args)
         {
             HttpClientChannel chan = new HttpClientChannel();
             ChannelServices.RegisterChannel(chan, false);
 
-            ServerObject obj = (ServerObject)Activator.GetObject(typeof(PractiSES.ServerObject), "http://10.90.10.72/HelloWorld");
+            ServerObject obj = (ServerObject)Activator.GetObject(typeof(PractiSES.ServerObject), "http://" + host + "/HelloWorld");
             
             if (obj.Equals(null))
             {
@@ -20,8 +22,10 @@ namespace PractiSES
             }
             else
             {
-                Console.WriteLine(obj.HelloWorld());
+                Console.WriteLine(obj.HelloWorld("cbguder@su.sabanciuniv.edu"));
             }
+
+            obj.GetPublicKey("cbguder@su.sabanciuniv.edu");
 
             Console.ReadLine();
         }
