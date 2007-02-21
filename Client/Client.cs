@@ -16,10 +16,10 @@ namespace PractiSES
             ChannelServices.RegisterChannel(chan, false);
 
             ServerObject obj = (ServerObject)Activator.GetObject(typeof(PractiSES.ServerObject), "http://" + host + "/PractiSES");
-            
+
             if (obj.Equals(null))
             {
-                System.Console.WriteLine("Error: unable to locate server");
+                Console.WriteLine("Error: unable to locate server");
             }
             else
             {

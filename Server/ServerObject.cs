@@ -18,19 +18,21 @@ namespace PractiSES
             }
         }
 
-        public void KeyRem(string email)
+        public bool KeyRem(string userID, string email, string signedMessage)
+        {
+            return true;
+        }
+
+        public bool KeyUpdate(string userID, string email, string signedMessage)
+        {
+            return true;
+        }
+
+        public void USKeyRem(string userID, string email)
         {
         }
 
-        public void KeyUpdate(string email, string newKey)
-        {
-        }
-
-        public void USKeyRem(string email)
-        {
-        }
-
-        public void USKeyUpdate(string email, string newKey)
+        public void USKeyUpdate(string userID, string email, string newKey)
         {
         }
 
