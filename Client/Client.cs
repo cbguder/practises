@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
-using System.Runtime.Remoting.Channels.Http;
+using System.Runtime.Remoting.Channels.Tcp;
 
 namespace PractiSES
 {
@@ -9,11 +9,11 @@ namespace PractiSES
     {
         static void Main(string[] args)
         {
-            HttpClientChannel chan = new HttpClientChannel();
-            ChannelServices.RegisterChannel(chan, true);
+            TcpChannel chan = new TcpChannel();
+            ChannelServices.RegisterChannel(chan, false);
 
-            ServerObject obj = (ServerObject)Activator.GetObject(typeof(PractiSES.ServerObject), "http://10.90.10.72/HelloWorld");
-
+            ServerObject obj = (ServerObject)Activator.GetObject(typeof(PractiSES.ServerObject), "tcp://10.90.10.72:8080/HelloWorld");
+            
             if (obj.Equals(null))
             {
                 System.Console.WriteLine("Error: unable to locate server");
@@ -22,6 +22,8 @@ namespace PractiSES
             {
                 Console.WriteLine(obj.HelloWorld());
             }
+
+            Console.ReadLine();
         }
     }
 }
