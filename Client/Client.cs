@@ -2,6 +2,7 @@
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Http;
+using System.Security.Cryptography;
 
 namespace PractiSES
 {
@@ -22,7 +23,7 @@ namespace PractiSES
             }
             else
             {
-                Console.WriteLine(obj.GetPublicKey("cbgder@su.sabanciuniv.edu"));
+                Console.WriteLine(obj.GetPublicKey("cbguder@su.sabanciuniv.edu"));
             }
 
             Console.ReadLine();

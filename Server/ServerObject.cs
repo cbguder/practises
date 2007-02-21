@@ -6,7 +6,7 @@ namespace PractiSES
 {
     public class ServerObject : MarshalByRefObject
     {
-        public string GetPublicKey(String email)
+        public string KeyObt(String email)
         {
             if (email == "cbguder@su.sabanciuniv.edu")
             {
@@ -17,5 +17,22 @@ namespace PractiSES
                 return "No public key exists for " + email;
             }
         }
+
+        public void KeyRem(string email)
+        {
+        }
+
+        public void KeyUpdate(string email, string newKey)
+        {
+        }
+
+        public void USKeyRem(string email)
+        {
+        }
+
+        public void USKeyUpdate(string email, string newKey)
+        {
+        }
+
     }
 }
