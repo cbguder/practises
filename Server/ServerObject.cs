@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Server
+namespace PractiSES
 {
-    class ServerObject
+    public class ServerObject
     {
     }
 }
