@@ -13,7 +13,7 @@ namespace PractiSES
     {
         static void Main(string[] args)
         {
-            HttpChannel channel = new HttpChannel(80);
+            HttpChannel channel = new HttpChannel();
             ChannelServices.RegisterChannel(channel,true);
 
             // Register as an available service with the name HelloWorld

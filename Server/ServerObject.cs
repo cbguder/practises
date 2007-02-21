@@ -4,7 +4,7 @@ using System.Text;
 
 namespace PractiSES
 {
-    public class ServerObject
+    public class ServerObject : MarshalByRefObject
     {
         public string HelloWorld()
         {
