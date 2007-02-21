@@ -19,7 +19,7 @@ namespace PractiSES
             // Register as an available service with the name HelloWorld
             RemotingConfiguration.RegisterWellKnownServiceType(
                 typeof(PractiSES.ServerObject),
-                "HelloWorld",
+                "GetPublicKey",
                 WellKnownObjectMode.SingleCall);
             System.Console.ReadLine();
 

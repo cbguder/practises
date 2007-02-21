@@ -6,7 +6,7 @@ namespace PractiSES
 {
     public class ServerObject : MarshalByRefObject
     {
-        public string HelloWorld(String email)
+        public string GetPublicKey(String email)
         {
             if (email == "cbguder@su.sabanciuniv.edu")
             {

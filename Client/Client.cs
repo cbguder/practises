@@ -22,10 +22,8 @@ namespace PractiSES
             }
             else
             {
-                Console.WriteLine(obj.HelloWorld("cbguder@su.sabanciuniv.edu"));
+                Console.WriteLine(obj.GetPublicKey("cbguder@su.sabanciuniv.edu"));
             }
-
-            obj.GetPublicKey("cbguder@su.sabanciuniv.edu");
 
             Console.ReadLine();
         }
