@@ -58,9 +58,11 @@ namespace PractiSES
 
             ServerObject server = (ServerObject)Activator.GetObject(typeof(PractiSES.ServerObject), "http://" + host + "/PractiSES");
 
+            RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
+
             try
             {
-                Console.WriteLine(server.KeyObt("cbgude@su.sabanciuniv.edu"));
+                Console.WriteLine(server.KeyObt("cbguder@su.sabanciuniv.edu"));
             }
             catch (Exception e)
             {

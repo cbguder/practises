@@ -31,8 +31,6 @@ namespace PractiSES
 
 		public String EncryptString(String inputString)
 		{
-			// TODO: Add Proper Exception Handlers
-
 			int keySize = dwKeySize / 8;
 			byte[] bytes = Encoding.UTF32.GetBytes(inputString);
 			int maxLength = keySize - 42;
@@ -53,8 +51,6 @@ namespace PractiSES
 
 		public String DecryptString(String inputString)
 		{
-			// TODO: Add Proper Exception Handlers
-
 			int base64BlockSize = ((dwKeySize / 8) % 3 != 0) ?
 			  (((dwKeySize / 8) / 3) * 4) + 4 : ((dwKeySize / 8) / 3) * 4;
 
@@ -70,5 +66,13 @@ namespace PractiSES
 
 			return Encoding.UTF32.GetString(arrayList.ToArray(Type.GetType("System.Byte")) as byte[]);
 		}
+
+        public String SignString(String inputString)
+        {
+            ArrayList arrayList = new ArrayList();
+            byte[] bytes = Encoding.UTF32.GetBytes(inputString);
+            byte[] signature = rsa.SignData(bytes, new SHA1CryptoServiceProvider());
+            return Convert.ToBase64String(signature);
+        }
 	}
 }
