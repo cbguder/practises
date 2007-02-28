@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
-using System.Runtime.Remoting.Channels.Tcp;
+using System.Runtime.Remoting.Channels.Http;
 
 
 namespace PractiSES
@@ -12,7 +12,7 @@ namespace PractiSES
     {
         static void Main(string[] args)
         {
-            TcpChannel channel = new TcpChannel(8080);
+            HttpServerChannel channel = new HttpServerChannel(80);
             ChannelServices.RegisterChannel(channel,false);
 
             RemotingConfiguration.RegisterWellKnownServiceType(
