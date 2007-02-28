@@ -20,13 +20,13 @@ namespace PractiSES
             conn = new MySqlConnection(connectionstring);
             conn.Open();
         }
-        public string getPublicKey(string email)
+        public string getPublicKey(string email) //return public key (complete)
         {
             string query = "SELECT k.key from users u, `keys` k WHERE u.email='" + email + "';";
             
             cmd = new MySqlCommand(query, conn);
             read = cmd.ExecuteReader();
-            // Always call Read before accessing data.
+
             if(read.Read())
             {
                 return read.GetString(0);
@@ -34,7 +34,28 @@ namespace PractiSES
             return "No records exist";
 
         }
-        //public void insertEntry( 
+        public void insertEntry()
+        {
+
+        }
+        public bool removeEntry(string email, string userID) //remove entry (complete)
+        {
+            try
+            {
+                string query = "DELETE FROM users WHERE email='" + email + "';";
+                cmd = new MySqlCommand(query, conn);
+                cmd.ExecuteNonQuery();
+                query = "DELETE FROM users WHERE userID='" + userID + "';";
+                cmd.CommandText = query;
+                cmd.ExecuteNonQuery();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Exception: " + ex.Message);
+                return false; 
+            }
+        }
         public void close()
         {
             if (conn != null)

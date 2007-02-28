@@ -7,17 +7,23 @@ namespace PractiSES
     public class ServerObject : MarshalByRefObject
     {
         
-        public string KeyObt(String email)
+        public string KeyObt(String email) //get public key of a user ( complete )
         {
             Console.WriteLine("Connected");
             DatabaseConnection connection = new DatabaseConnection();
-            return connection.getPublicKey(email);
+            string result = connection.getPublicKey(email);
+            connection.close();
+            return result;
             
         }
 
         public bool KeyRem(string userID, string email, string signedMessage)
         {
-            return true;
+            Console.WriteLine("Connected");
+            DatabaseConnection connection = new DatabaseConnection();
+            bool result = connection.removeEntry(email, userID);
+            connection.close();
+            return result;
         }
 
         public bool KeyUpdate(string userID, string email, string signedMessage)
