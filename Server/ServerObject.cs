@@ -9,6 +9,7 @@ namespace PractiSES
         
         public string KeyObt(String email)
         {
+            Console.WriteLine("Connected");
             DatabaseConnection connection = new DatabaseConnection();
             return connection.getPublicKey(email);
             
