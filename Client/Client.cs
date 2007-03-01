@@ -14,7 +14,7 @@ namespace PractiSES
 {
     class Client
     {
-        private const String host = "10.90.12.89";
+        private const String host = "practises.no-ip.org";
 
         static void Main(string[] args)
         {

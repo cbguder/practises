@@ -10,37 +10,40 @@ namespace PractiSES
     public class Core
     {
         public Encryption encryption;
-        public String keyFilePath;
+        private String keyFile;
+        private String settingsFile;
+        private String appDataFolder;
 
         public Core()
         {
-            String appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             appDataFolder = Path.Combine(appDataFolder, "PractiSES");
+
+            keyFile = Path.Combine(appDataFolder, "key.xml");
+            settingsFile = Path.Combine(appDataFolder, "settings.xml");
 
             if (!Directory.Exists(appDataFolder))
             {
                 Directory.CreateDirectory(appDataFolder);
             }
 
-            keyFilePath = Path.Combine(appDataFolder, "key.xml");
-
-            if (!File.Exists(keyFilePath))
+            if (!File.Exists(keyFile))
             {
                 encryption = new Encryption();
 
-                StreamWriter keyWriter = new StreamWriter(keyFilePath);
+                StreamWriter keyWriter = new StreamWriter(keyFile);
                 String xmlString = encryption.ToXmlString(true);
                 keyWriter.Write(xmlString);
                 keyWriter.Close();
-                Console.WriteLine("Public/Private key pair written to " + keyFilePath);
+                Console.WriteLine("Public/Private key pair written to " + keyFile);
             }
             else
             {
-                StreamReader keyReader = new StreamReader(keyFilePath);
+                StreamReader keyReader = new StreamReader(keyFile);
                 String xmlString = keyReader.ReadToEnd();
                 keyReader.Close();
                 encryption = new Encryption(xmlString);
-                Console.WriteLine("Public/Private key pair read from " + keyFilePath);
+                Console.WriteLine("Public/Private key pair read from " + keyFile);
             }
         }
     }
