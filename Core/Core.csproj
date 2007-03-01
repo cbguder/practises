@@ -4,11 +4,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.50727</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{866C0B6F-2C33-4796-9157-47074DD3836B}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <ProjectGuid>{1C4E70E3-AEBF-4534-9179-6B4EB80FBE4E}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Client</RootNamespace>
-    <AssemblyName>Client</AssemblyName>
+    <RootNamespace>Core</RootNamespace>
+    <AssemblyName>Core</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -28,31 +28,18 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="MySql.Data, Version=5.0.3.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Libraries\MySQL\MySql.Data.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Runtime.Remoting" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Client.cs" />
+    <Compile Include="Core.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Core\Core.csproj">
-      <Project>{1C4E70E3-AEBF-4534-9179-6B4EB80FBE4E}</Project>
-      <Name>Core</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Crypto\Crypto.csproj">
       <Project>{FEAD5076-6DBF-4A17-8935-CA810964A835}</Project>
       <Name>Crypto</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Server\Server.csproj">
-      <Project>{7C362F60-8C16-4C39-B222-9F5D73A6656E}</Project>
-      <Name>Server</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
