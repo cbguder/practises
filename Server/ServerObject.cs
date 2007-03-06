@@ -10,7 +10,7 @@ namespace PractiSES
         public string InitKeySet_AskQuestions(String userID, string email)
         {
             Core core = new Core();
-            string questions = core.ReadQuestionsFromSettingsFile();
+            String questions = core.ReadQuestionsFromSettingsFile();
 
             Encryption encryption = new Encryption();
             string signQuestions = encryption.SignString(questions);
