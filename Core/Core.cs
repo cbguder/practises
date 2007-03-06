@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using System.Xml;
 
 namespace PractiSES
 {
@@ -11,7 +12,7 @@ namespace PractiSES
     {
         public Encryption encryption;
         private String keyFile;
-        private String settingsFile;
+        private String settingsPath;
         private String appDataFolder;
 
         public Core()
@@ -19,13 +20,15 @@ namespace PractiSES
             appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             appDataFolder = Path.Combine(appDataFolder, "PractiSES");
 
-            keyFile = Path.Combine(appDataFolder, "key.xml");
-            settingsFile = Path.Combine(appDataFolder, "settings.xml");
-
             if (!Directory.Exists(appDataFolder))
             {
                 Directory.CreateDirectory(appDataFolder);
             }
+        }
+
+        public void ReadWriteKeyFile()
+        {
+            keyFile = Path.Combine(appDataFolder, "key.xml");
 
             if (!File.Exists(keyFile))
             {
@@ -46,5 +49,48 @@ namespace PractiSES
                 Console.WriteLine("Public/Private key pair read from " + keyFile);
             }
         }
+
+        public string ReadQuestionsFromSettingsFile()
+        {
+            settingsPath = Path.Combine(appDataFolder, "settings.xml");
+
+            if (!File.Exists(settingsPath))
+            {
+                XmlDocument settingsDocument;
+
+                settingsDocument = new XmlDocument();
+
+                settingsDocument.CreateNode(XmlNodeType.Element, "settings", settingsPath.ToString());
+                settingsDocument.CreateNode(XmlNodeType.EndElement, "settings", settingsPath.ToString());
+
+                /*encryption = new Encryption();
+
+                StreamWriter settingsWriter = new StreamWriter(settingsFile);
+                String xmlString = encryption.ToXmlString(true);
+                settingsWriter.Write(xmlString);
+                settingsWriter.Close();*/
+                Console.WriteLine(settingsPath + " has been created. No question has been found.");
+                return null;
+            }
+            else
+            {
+                XmlNode questionNode;
+                XmlDocument settingsDocument;
+
+                settingsDocument = new XmlDocument();
+                settingsDocument.Load(settingsPath);
+
+                questionNode = settingsDocument.SelectSingleNode("descendant::question");
+                Console.WriteLine(questionNode.Value + " has been read from " + settingsPath);
+                return questionNode.Value;
+
+                /*StreamReader settingsReader = new StreamReader(settingsFile);
+                String xmlString = settingsReader.ReadToEnd();
+                settingsReader.Close();
+                encryption = new Encryption(xmlString);*/
+                
+            }
+        }
+
     }
 }

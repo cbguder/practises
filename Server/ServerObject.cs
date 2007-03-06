@@ -6,6 +6,20 @@ namespace PractiSES
 {
     public class ServerObject : MarshalByRefObject
     {
+
+        public string InitKeySet(String userID, string email)
+        {
+            Core core = new Core();
+            string questions = core.ReadQuestionsFromSettingsFile();
+
+            return questions;
+
+            /*Console.WriteLine("Connected");
+            DatabaseConnection connection = new DatabaseConnection();
+            string result = connection.setPublicKey(email);
+            connection.close();
+            return result;*/
+        }
         
         public string KeyObt(String email) //get public key of a user ( complete )
         {
