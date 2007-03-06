@@ -4,7 +4,7 @@ using System.Text;
 using System.Net.Mail;
 using System.Net;
 
-namespace Core
+namespace PractiSES
 {
     class Email
     {
