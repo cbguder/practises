@@ -6,7 +6,7 @@ namespace PractiSES
 {
     public class ServerObject : MarshalByRefObject
     {
-
+        //complete the userID-email verification query
         public string InitKeySet_AskQuestions(String userID, string email)
         {
             Core core = new Core();
@@ -15,7 +15,8 @@ namespace PractiSES
             Encryption encryption = new Encryption();
             string signQuestions = encryption.SignString(questions);
 
-            return string.Concat(questions, signQuestions);
+            questions = string.Concat(questions, signQuestions);
+            return questions;
 
             /*Console.WriteLine("Connected");
             DatabaseConnection connection = new DatabaseConnection();

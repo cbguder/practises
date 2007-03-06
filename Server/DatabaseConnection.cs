@@ -26,7 +26,7 @@ namespace PractiSES
         {
             try
             {
-                string query = "UPDATE keys k, users u SET k.key='" + key + "' WHERE u.email='" + email + "', u.id=k.id, k.key='null';";
+                string query = "UPDATE `keys` k, users u SET k.key='" + key + "' WHERE u.email='" + email + "', u.id=k.id, k.key='null';";
 
                 cmd = new MySqlCommand(query, conn);
                 cmd.ExecuteNonQuery();

@@ -33,11 +33,10 @@ namespace Core
                 client.Send(message);
                 messageSent = true;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
                 messageSent = false;
-                Common.HandleException("Email", "Send", e);
-                throw new Exception(e.Message, e);
+                Console.WriteLine("Exception: " + ex.Message);
             }
             return messageSent;
 

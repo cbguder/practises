@@ -81,7 +81,7 @@ namespace PractiSES
                 settingsDocument.Load(settingsPath);
 
                 questionNode = settingsDocument.SelectSingleNode("descendant::question");
-                Console.WriteLine(questionNode.Value + " has been read from " + settingsPath);
+                Console.WriteLine(questionNode.Attributes.GetNamedItem("one").Value + " has been read from " + settingsPath);
                 return questionNode.Value;
 
                 /*StreamReader settingsReader = new StreamReader(settingsFile);
