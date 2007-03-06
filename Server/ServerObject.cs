@@ -7,18 +7,32 @@ namespace PractiSES
     public class ServerObject : MarshalByRefObject
     {
 
-        public string InitKeySet(String userID, string email)
+        public string InitKeySet_AskQuestions(String userID, string email)
         {
             Core core = new Core();
             string questions = core.ReadQuestionsFromSettingsFile();
 
-            return questions;
+            Encryption encryption = new Encryption();
+            string signQuestions = encryption.SignString(questions);
+
+            return string.Concat(questions, signQuestions);
 
             /*Console.WriteLine("Connected");
             DatabaseConnection connection = new DatabaseConnection();
             string result = connection.setPublicKey(email);
             connection.close();
             return result;*/
+        }
+
+        public string InitKeySet_EncryptMAC(String userID, string email)
+        {
+            Core core = new Core();
+            string questions = core.ReadQuestionsFromSettingsFile();
+
+            Encryption encryption = new Encryption();
+            string signQuestions = encryption.SignString(questions);
+
+            return string.Concat(questions, signQuestions);
         }
         
         public string KeyObt(String email) //get public key of a user ( complete )
