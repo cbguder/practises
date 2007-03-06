@@ -82,7 +82,7 @@ namespace PractiSES
 
                 questionNode = settingsDocument.SelectSingleNode("descendant::question");
                 Console.WriteLine(questionNode.Attributes.GetNamedItem("one").Value + " has been read from " + settingsPath);
-                return questionNode.Value;
+                return questionNode.Attributes.GetNamedItem("one").Value;
 
                 /*StreamReader settingsReader = new StreamReader(settingsFile);
                 String xmlString = settingsReader.ReadToEnd();
