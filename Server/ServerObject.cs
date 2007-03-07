@@ -7,10 +7,10 @@ namespace PractiSES
     public class ServerObject : MarshalByRefObject
     {
         //complete the userID-email verification query
-        public string InitKeySet_AskQuestions(String userID, string email)
+        public string InitKeySet_AskQuestions(string userID, string email)
         {
             Core core = new Core();
-            String questions = core.ReadQuestionsFromSettingsFile();
+            string questions = core.ReadQuestionsFromSettingsFile();
 
             Encryption encryption = new Encryption();
             string signQuestions = encryption.SignString(questions);
@@ -25,18 +25,15 @@ namespace PractiSES
             return result;*/
         }
 
-        public string InitKeySet_EncryptMAC(String userID, string email)
+        public string InitKeySet_EncryptMACPass(string userID, string email)
         {
-            Core core = new Core();
-            string questions = core.ReadQuestionsFromSettingsFile();
-
+            //HashMAC mac = new HashMAC();
+            //string hmac = mac.HMAC(;
             Encryption encryption = new Encryption();
-            string signQuestions = encryption.SignString(questions);
-
-            return string.Concat(questions, signQuestions);
+            encryption.EncryptString
         }
         
-        public string KeyObt(String email) //get public key of a user ( complete )
+        public string KeyObt(string email) //get public key of a user ( complete )
         {
             Console.WriteLine("Connected");
             DatabaseConnection connection = new DatabaseConnection();
