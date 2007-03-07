@@ -5,63 +5,83 @@
 using System;
 using System.IO;
 using System.Xml;
+using System.Security.Cryptography;
 
 namespace PractiSES
 {
     public class Core
     {
-        public Encryption encryption;
         private String keyFile;
-        private String settingsPath;
+        private String settingsFile;
         private String appDataFolder;
+        private String publicKey;
+        private String privateKey;
 
+        public String PublicKey
+        {
+            get
+            {
+                return this.publicKey;
+            }
+        }
+
+        public String PrivateKey
+        {
+            get
+            {
+                return this.privateKey;
+            }
+        }
+        
         public Core()
         {
             appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             appDataFolder = Path.Combine(appDataFolder, "PractiSES");
+            settingsFile = Path.Combine(appDataFolder, "settings.xml");
+            keyFile = Path.Combine(appDataFolder, "key.xml");
 
             if (!Directory.Exists(appDataFolder))
             {
                 Directory.CreateDirectory(appDataFolder);
             }
+
+            this.ReadKey();
         }
 
-        public void ReadWriteKeyFile()
+        public void ReadKey()
         {
-            keyFile = Path.Combine(appDataFolder, "key.xml");
+            RSACryptoServiceProvider rsa = Crypto.GetRSA();
 
             if (!File.Exists(keyFile))
             {
-                encryption = new Encryption();
-
                 StreamWriter keyWriter = new StreamWriter(keyFile);
-                String xmlString = encryption.ToXmlString(true);
-                keyWriter.Write(xmlString);
+                publicKey = rsa.ToXmlString(false);
+                privateKey = rsa.ToXmlString(true);
+                keyWriter.Write(privateKey);
                 keyWriter.Close();
                 Console.WriteLine("Public/Private key pair written to " + keyFile);
             }
             else
             {
                 StreamReader keyReader = new StreamReader(keyFile);
-                String xmlString = keyReader.ReadToEnd();
-                keyReader.Close();
-                encryption = new Encryption(xmlString);
+                String keyString = keyReader.ReadToEnd();
+                rsa.FromXmlString(keyString);
+                publicKey = rsa.ToXmlString(false);
+                privateKey = rsa.ToXmlString(true);
                 Console.WriteLine("Public/Private key pair read from " + keyFile);
             }
         }
 
-        public string ReadQuestionsFromSettingsFile()
+        public String ReadQuestions()
         {
-            settingsPath = Path.Combine(appDataFolder, "settings.xml");
-
-            if (!File.Exists(settingsPath))
+            if (!File.Exists(settingsFile))
             {
                 XmlDocument settingsDocument;
 
                 settingsDocument = new XmlDocument();
 
-                settingsDocument.CreateNode(XmlNodeType.Element, "settings", settingsPath.ToString());
-                settingsDocument.CreateNode(XmlNodeType.EndElement, "settings", settingsPath.ToString());
+                settingsDocument.CreateNode(XmlNodeType.Element, "settings", settingsFile.ToString());
+                settingsDocument.CreateNode(XmlNodeType.EndElement, "settings", settingsFile.ToString());
 
                 /*encryption = new Encryption();
 
@@ -69,7 +89,7 @@ namespace PractiSES
                 String xmlString = encryption.ToXmlString(true);
                 settingsWriter.Write(xmlString);
                 settingsWriter.Close();*/
-                Console.WriteLine(settingsPath + " has been created. No question has been found.");
+                Console.WriteLine(settingsFile + " has been created. No question has been found.");
                 return null;
             }
             else
@@ -78,10 +98,10 @@ namespace PractiSES
                 XmlDocument settingsDocument;
 
                 settingsDocument = new XmlDocument();
-                settingsDocument.Load(settingsPath);
+                settingsDocument.Load(settingsFile);
 
                 questionNode = settingsDocument.SelectSingleNode("descendant::question");
-                Console.WriteLine(questionNode.Attributes.GetNamedItem("one").Value + " has been read from " + settingsPath);
+                Console.WriteLine(questionNode.Attributes.GetNamedItem("one").Value + " has been read from " + settingsFile);
                 return questionNode.Attributes.GetNamedItem("one").Value;
 
                 /*StreamReader settingsReader = new StreamReader(settingsFile);

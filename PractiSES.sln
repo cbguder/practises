@@ -2,12 +2,34 @@
 Microsoft Visual Studio Solution File, Format Version 9.00
 # Visual Studio 2005
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "Client\Client.csproj", "{866C0B6F-2C33-4796-9157-47074DD3836B}"
+	ProjectSection(WebsiteProperties) = preProject
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.Debug = "False"
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "Server\Server.csproj", "{7C362F60-8C16-4C39-B222-9F5D73A6656E}"
+	ProjectSection(WebsiteProperties) = preProject
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.Debug = "False"
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Crypto", "Crypto\Crypto.csproj", "{FEAD5076-6DBF-4A17-8935-CA810964A835}"
+	ProjectSection(WebsiteProperties) = preProject
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.Debug = "False"
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "Core\Core.csproj", "{1C4E70E3-AEBF-4534-9179-6B4EB80FBE4E}"
+	ProjectSection(WebsiteProperties) = preProject
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.Debug = "False"
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Util", "Util\Util.csproj", "{3EAA688C-89B4-4181-B139-1FC5A6F5A85D}"
+	ProjectSection(WebsiteProperties) = preProject
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.Debug = "False"
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,6 +53,10 @@ Global
 		{1C4E70E3-AEBF-4534-9179-6B4EB80FBE4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1C4E70E3-AEBF-4534-9179-6B4EB80FBE4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1C4E70E3-AEBF-4534-9179-6B4EB80FBE4E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3EAA688C-89B4-4181-B139-1FC5A6F5A85D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3EAA688C-89B4-4181-B139-1FC5A6F5A85D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3EAA688C-89B4-4181-B139-1FC5A6F5A85D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3EAA688C-89B4-4181-B139-1FC5A6F5A85D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

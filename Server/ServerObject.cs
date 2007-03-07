@@ -10,10 +10,9 @@ namespace PractiSES
         public string InitKeySet_AskQuestions(string userID, string email)
         {
             Core core = new Core();
-            string questions = core.ReadQuestionsFromSettingsFile();
+            string questions = core.ReadQuestions();
 
-            Encryption encryption = new Encryption();
-            string signQuestions = encryption.SignString(questions);
+            string signQuestions = Crypto.Sign(questions, core.PrivateKey);
 
             questions = string.Concat(questions, signQuestions);
             return questions;
@@ -29,8 +28,9 @@ namespace PractiSES
         {
             //HashMAC mac = new HashMAC();
             //string hmac = mac.HMAC(;
-            Encryption encryption = new Encryption();
-            encryption.EncryptString
+//            Encryption encryption = new Encryption();
+//            encryption.EncryptString
+            return "";
         }
         
         public string KeyObt(string email) //get public key of a user ( complete )

@@ -23,7 +23,7 @@ namespace PractiSES
             HttpClientChannel chan = new HttpClientChannel();
             ChannelServices.RegisterChannel(chan, false);
 
-            Console.WriteLine("Connecting to PractiSES server ({0})...", host);
+            Console.Error.WriteLine("Connecting to PractiSES server ({0})...", host);
 
             ServerObject server = (ServerObject)Activator.GetObject(typeof(ServerObject), "http://" + host + "/PractiSES");
 
@@ -35,7 +35,7 @@ namespace PractiSES
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error: " + e.Message);
+                Console.Error.WriteLine("Error: " + e.Message);
             }
 
             Console.ReadLine();
