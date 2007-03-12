@@ -3,6 +3,7 @@
  */
 
 using System;
+using System.IO;
 using System.Text;
 using System.Collections;
 using System.Security.Cryptography;
@@ -11,11 +12,13 @@ namespace PractiSES
 {
 	public static class Crypto
 	{
-        private static int dwKeySize = 2048;
+        private static int RSAKeySize = 2048;
+        private static int AESKeySize = 256;
+        private static int AESIVSize = 128;
 
         public static RSACryptoServiceProvider GetRSA()
         {
-            RSACryptoServiceProvider rsa = new RSACryptoServiceProvider(dwKeySize);
+            RSACryptoServiceProvider rsa = new RSACryptoServiceProvider(RSAKeySize);
             return rsa;
         }
 
@@ -68,7 +71,7 @@ namespace PractiSES
         {
             RSACryptoServiceProvider rsa = Crypto.GetRSA(publicKey);
             
-            int keySize = Crypto.dwKeySize / 8;
+            int keySize = Crypto.RSAKeySize / 8;
             byte[] bytes = Encoding.UTF8.GetBytes(clearText);
             int maxLength = keySize - 42;
             int dataLength = bytes.Length;
@@ -90,8 +93,8 @@ namespace PractiSES
         {
             RSACryptoServiceProvider rsa = Crypto.GetRSA(privateKey);
 
-            int base64BlockSize = ((dwKeySize / 8) % 3 != 0) ?
-              (((dwKeySize / 8) / 3) * 4) + 4 : ((dwKeySize / 8) / 3) * 4;
+            int base64BlockSize = ((RSAKeySize / 8) % 3 != 0) ?
+              (((RSAKeySize / 8) / 3) * 4) + 4 : ((RSAKeySize / 8) / 3) * 4;
 
             int iterations = cipherText.Length / base64BlockSize;
 
@@ -115,17 +118,34 @@ namespace PractiSES
             return Convert.ToBase64String(signature);
         }
 
-        public static byte[] DeriveKey(String passphrase)
+        private static AESInfo DeriveKeyAndIV(String passphrase, byte[] salt, int keyLen, int IVLen)
         {
             const int saltLength = 8;
+            int k = keyLen / 8;
+            int i = IVLen / 8;
+
+            AESInfo result = new AESInfo();
 
             byte[] passphraseBytes = Encoding.UTF8.GetBytes(passphrase);
-            byte[] salt = new byte[saltLength];
-            
-            Random random = new Random(); 
-            random.NextBytes(salt);
-            
-            return PBKDF2(passphraseBytes, salt, 10000, 32);
+
+            if (salt == null)
+            {
+                result.salt = new byte[saltLength];
+                Random random = new Random();
+                random.NextBytes(result.salt);
+            }
+            else
+            {
+                result.salt = salt;
+            }
+
+            ArrayList keyAndIV = new ArrayList(k + i);
+            keyAndIV.AddRange(PBKDF2(passphraseBytes, result.salt, 10000, k + i));
+
+            result.key = (byte[])keyAndIV.GetRange(0, k).ToArray(Type.GetType("System.Byte"));
+            result.IV = (byte[])keyAndIV.GetRange(k, i).ToArray(Type.GetType("System.Byte"));
+
+            return result;
         }
         
         /*
@@ -133,7 +153,7 @@ namespace PractiSES
          */
         private static byte[] PBKDF2(byte[] passphrase, byte[] salt, int c, int dkLen)
         {
-            int hLen = 20;
+            const int hLen = 20;
             int l = (int)Math.Ceiling((double)dkLen / hLen);
             int r = dkLen - (l - 1) * hLen;
 
@@ -152,8 +172,6 @@ namespace PractiSES
          */
         private static byte[] F(byte[] passphrase, byte[] salt, int c, int i)
         {
-            const int hLen = 20;
-
             HMACSHA1 hmac = new HMACSHA1(passphrase);
 
             byte[] result = hmac.ComputeHash(Util.Join(salt, BitConverter.GetBytes(i)));
@@ -166,111 +184,50 @@ namespace PractiSES
             return result;
         }
 
-        //public static String AESEncrypt(String clearText, String passphrase)
-        //{
-        //    try
-        //    {
-        //        // Create or open the specified file.
-        //        FileStream fStream = File.Open(FileName, FileMode.OpenOrCreate);
+        public static String AESEncrypt(String clearText, String passphrase)
+        {
+            MemoryStream memoryStream = new MemoryStream();
+            
+            Rijndael aes = Rijndael.Create();
 
-        //        // Create a new Rijndael object.
-        //        Rijndael RijndaelAlg = Rijndael.Create();
+            AESInfo aesInfo = Crypto.DeriveKeyAndIV(passphrase, null, Crypto.AESKeySize, Crypto.AESIVSize);
 
-        //        // Create a CryptoStream using the FileStream 
-        //        // and the passed key and initialization vector (IV).
-        //        CryptoStream cStream = new CryptoStream(fStream,
-        //            RijndaelAlg.CreateEncryptor(Key, IV),
-        //            CryptoStreamMode.Write);
+            CryptoStream cryptoStream = new CryptoStream(memoryStream, aes.CreateEncryptor(aesInfo.key, aesInfo.IV), CryptoStreamMode.Write);
+            StreamWriter streamWriter = new StreamWriter(cryptoStream);
 
-        //        // Create a StreamWriter using the CryptoStream.
-        //        StreamWriter sWriter = new StreamWriter(cStream);
+            streamWriter.Write(clearText);
 
-        //        try
-        //        {
-        //            // Write the data to the stream 
-        //            // to encrypt it.
-        //            sWriter.WriteLine(Data);
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            Console.WriteLine("An error occurred: {0}", e.Message);
-        //        }
-        //        finally
-        //        {
-        //            // Close the streams and
-        //            // close the file.
-        //            sWriter.Close();
-        //            cStream.Close();
-        //            fStream.Close();
-        //        }
-        //    }
-        //    catch (CryptographicException e)
-        //    {
-        //        Console.WriteLine("A Cryptographic error occurred: {0}", e.Message);
-        //    }
-        //    catch (UnauthorizedAccessException e)
-        //    {
-        //        Console.WriteLine("A file error occurred: {0}", e.Message);
-        //    }
+            streamWriter.Close();
+            cryptoStream.Close();
 
-        //}
+            String result = Convert.ToBase64String(aesInfo.salt);
+            result += Environment.NewLine;
+            result += Convert.ToBase64String(memoryStream.ToArray());
 
-        //public static string AESDecrypt(String cipherText, String passphrase)
-        //{
-        //    try
-        //    {
-        //        // Create or open the specified file. 
-        //        FileStream fStream = File.Open(FileName, FileMode.OpenOrCreate);
+            memoryStream.Close();
 
-        //        // Create a new Rijndael object.
-        //        Rijndael RijndaelAlg = Rijndael.Create();
+            return result;
+        }
 
-        //        // Create a CryptoStream using the FileStream 
-        //        // and the passed key and initialization vector (IV).
-        //        CryptoStream cStream = new CryptoStream(fStream,
-        //            RijndaelAlg.CreateDecryptor(Key, IV),
-        //            CryptoStreamMode.Read);
+        public static string AESDecrypt(String cipherText, String passphrase)
+        {
+            StringReader stringReader = new StringReader(cipherText);
+            byte[] salt = Convert.FromBase64String(stringReader.ReadLine());
+            
+            MemoryStream memoryStream = new MemoryStream(Convert.FromBase64String(stringReader.ReadToEnd()));
 
-        //        // Create a StreamReader using the CryptoStream.
-        //        StreamReader sReader = new StreamReader(cStream);
+            Rijndael aes = Rijndael.Create();
 
-        //        string val = null;
+            AESInfo aesInfo = Crypto.DeriveKeyAndIV(passphrase, salt, Crypto.AESKeySize, Crypto.AESIVSize);
 
-        //        try
-        //        {
-        //            // Read the data from the stream 
-        //            // to decrypt it.
-        //            val = sReader.ReadLine();
+            CryptoStream cryptoStream = new CryptoStream(memoryStream, aes.CreateDecryptor(aesInfo.key, aesInfo.IV), CryptoStreamMode.Read);
+            StreamReader streamReader = new StreamReader(cryptoStream);
 
+            String result = null;
 
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            Console.WriteLine("An error occurred: {0}", e.Message);
-        //        }
-        //        finally
-        //        {
+            result = streamReader.ReadToEnd();
 
-        //            // Close the streams and
-        //            // close the file.
-        //            sReader.Close();
-        //            cStream.Close();
-        //            fStream.Close();
-        //        }
-
-        //        // Return the string. 
-        //        return val;
-        //    }
-        //    catch (CryptographicException e)
-        //    {
-        //        Console.WriteLine("A Cryptographic error occurred: {0}", e.Message);
-        //        return null;
-        //    }
-        //    catch (UnauthorizedAccessException e)
-        //    {
-        //        Console.WriteLine("A file error occurred: {0}", e.Message);
-        //        return null;
-        //    }
-        //}
+            return result;
+        }
 	}
 }
