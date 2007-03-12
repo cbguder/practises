@@ -69,7 +69,7 @@ namespace PractiSES
             RSACryptoServiceProvider rsa = Crypto.GetRSA(publicKey);
             
             int keySize = Crypto.dwKeySize / 8;
-            byte[] bytes = Encoding.UTF32.GetBytes(clearText);
+            byte[] bytes = Encoding.UTF8.GetBytes(clearText);
             int maxLength = keySize - 42;
             int dataLength = bytes.Length;
             int iterations = dataLength / maxLength;
@@ -103,16 +103,67 @@ namespace PractiSES
                 arrayList.AddRange(rsa.Decrypt(encryptedBytes, true));
             }
 
-            return Encoding.UTF32.GetString(arrayList.ToArray(Type.GetType("System.Byte")) as byte[]);
+            return Encoding.UTF8.GetString(arrayList.ToArray(Type.GetType("System.Byte")) as byte[]);
         }
 
         private static String RSAGetSignature(String clearText, String privateKey)
         {
             RSACryptoServiceProvider rsa = Crypto.GetRSA(privateKey);
 
-            byte[] bytes = Encoding.UTF32.GetBytes(clearText);
+            byte[] bytes = Encoding.UTF8.GetBytes(clearText);
             byte[] signature = rsa.SignData(bytes, new SHA1CryptoServiceProvider());
             return Convert.ToBase64String(signature);
+        }
+
+        public static byte[] DeriveKey(String passphrase)
+        {
+            const int saltLength = 8;
+
+            byte[] passphraseBytes = Encoding.UTF8.GetBytes(passphrase);
+            byte[] salt = new byte[saltLength];
+            
+            Random random = new Random(); 
+            random.NextBytes(salt);
+            
+            return PBKDF2(passphraseBytes, salt, 10000, 32);
+        }
+        
+        /*
+         * PBKDF2 as described in PKCS #5 v2.0 pp.8-10
+         */
+        private static byte[] PBKDF2(byte[] passphrase, byte[] salt, int c, int dkLen)
+        {
+            int hLen = 20;
+            int l = (int)Math.Ceiling((double)dkLen / hLen);
+            int r = dkLen - (l - 1) * hLen;
+
+            ArrayList result = new ArrayList(dkLen);
+
+            for (int i = 0; i < l; i++)
+            {
+                result.AddRange(F(passphrase, salt, c, i));
+            }
+
+            return (byte [])result.GetRange(0, dkLen).ToArray(System.Type.GetType("System.Byte"));
+        }
+
+        /*
+         * F as described in PKCS #5 v2.0 p.9
+         */
+        private static byte[] F(byte[] passphrase, byte[] salt, int c, int i)
+        {
+            const int hLen = 20;
+
+            HMACSHA1 hmac = new HMACSHA1(passphrase);
+
+            byte[] result = hmac.ComputeHash(Util.Join(salt, BitConverter.GetBytes(i)));
+
+            for(int j = 1; j < c; j++)
+            {
+                result = Util.XOR(result, hmac.ComputeHash(result));
+            }           
+
+            return result;
         }
 
         //public static String AESEncrypt(String clearText, String passphrase)
@@ -221,12 +272,5 @@ namespace PractiSES
         //        return null;
         //    }
         //}
-
-        public static byte[] DeriveKey(String passphrase)
-        {
-            byte[] bytes = Encoding.UTF32.GetBytes(passphrase);
-            SHA256Managed sha256 = new SHA256Managed();
-            return sha256.ComputeHash(bytes);
-        }
 	}
 }
