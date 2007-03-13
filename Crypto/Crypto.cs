@@ -287,5 +287,43 @@ namespace PractiSES
 
             return contents;
         }
+
+        public static String Decrypt(String cipherText, String privateKey, ref AESInfo aesInfo)
+        {
+            int ebs = RSAKeySize / 8;
+
+            Rijndael aes = Rijndael.Create();
+
+            ArrayList bytes = new ArrayList(Convert.FromBase64String(StripMessage(cipherText)));
+
+            byte[] key = RSADecrypt((byte[])bytes.GetRange(0, ebs).ToArray(Type.GetType("System.Byte")), privateKey);
+            byte[] IV = RSADecrypt((byte[])bytes.GetRange(ebs, ebs).ToArray(Type.GetType("System.Byte")), privateKey);
+            byte[] message = (byte[])bytes.GetRange(ebs * 2, bytes.Count - ebs * 2).ToArray(Type.GetType("System.Byte"));
+
+            aesInfo.key = key;
+            aesInfo.IV = IV;
+
+            return AESDecrypt(message, aes.CreateDecryptor(key, IV));
+        }
+
+        public static String Encrypt(String clearText, AESInfo aesInfo)
+        {
+            StringWriter cipherText = new StringWriter();
+
+            Rijndael aes = Rijndael.Create();
+
+            ArrayList message = new ArrayList();
+            message.AddRange(Crypto.AESEncrypt(clearText, aes.CreateEncryptor(aesInfo.key, aesInfo.IV)));
+
+            String messageArmor = Convert.ToBase64String((byte[])message.ToArray(Type.GetType("System.Byte")));
+
+            cipherText.WriteLine(Crypto.BeginMessage);
+            cipherText.WriteLine("Version: PractiSES {0} (Win32)", System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString(2));
+            cipherText.WriteLine();
+            cipherText.WriteLine(Util.Wrap(messageArmor, Wrap));
+            cipherText.WriteLine(Crypto.EndMessage);
+
+            return cipherText.ToString();
+        }
 	}
 }

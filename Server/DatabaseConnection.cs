@@ -57,7 +57,7 @@ namespace PractiSES
 
         public string getAnswers(string email) //return public key (complete)
         {
-            string query = "SELECT u.answers from users u WHERE u.email='" + email + "';";
+            string query = "SELECT u.semisecret1 from users u WHERE u.email='" + email + "';";
             
             cmd = new MySqlCommand(query, conn);
             read = cmd.ExecuteReader();
