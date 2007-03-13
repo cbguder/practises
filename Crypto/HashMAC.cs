@@ -28,6 +28,11 @@ namespace PractiSES
             secretkey = Encoding.Unicode.GetBytes(macPassword);
         }
 
+        public string SecretKey()
+        {
+            return this.secretkey.ToString();
+        }
+
         public string HMAC(string originalText)
         {
             //hashes original text with bytes, need to convert text to bytes 
@@ -47,17 +52,17 @@ namespace PractiSES
             // Initialize the keyed hash object. 
             HMACSHA1 hmacSHA1 = new HMACSHA1(secretkey);
             byte[] macReciever = hmacSHA1.ComputeHash(data);
-            bool tampered = false;
+            bool identical = true;
             // compare the computed hash with the stored value
             for (int i = 0; i < macReciever.Length; i++)
             {
                 if (macReciever[i] != macSender[i])
                 {
-                    tampered = true;
+                    identical = false;
                     break;
                 }
             }
-            return tampered;
+            return identical;
         }
     }
 }

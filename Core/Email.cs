@@ -6,7 +6,7 @@ using System.Net;
 
 namespace PractiSES
 {
-    class Email
+    public class Email
     {
         private MailMessage message = null;
         private bool messageSent = false;
@@ -27,16 +27,16 @@ namespace PractiSES
             try
             {
                 SmtpClient client = new SmtpClient("smtp.su.sabanciuniv.edu");
-                client.Credentials = new NetworkCredential("Sysadmin_Username", "Sysadmin_Password");
+                client.Credentials = new NetworkCredential("username", "password");
                 client.EnableSsl = true;
                 client.Port = 25;
                 client.Send(message);
                 messageSent = true;
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
                 messageSent = false;
-                Console.WriteLine("Exception: " + ex.Message);
+                Console.WriteLine("Exception: " + e.Message);
             }
             return messageSent;
 

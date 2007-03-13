@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using MySql.Data.MySqlClient;
+using PractiSES;
+
 namespace PractiSES
 {
     public class ServerObject : MarshalByRefObject
@@ -24,13 +26,45 @@ namespace PractiSES
             return result;*/
         }
 
-        public string InitKeySet_EncryptMACPass(string userID, string email)
+        public void InitKeySet_EnvelopeAnswers(string userID, string email, string SK_encrypted, string Answers_encrypted)
+        {       
+            Core core = new Core();
+            string privateKey = core.PrivateKey;
+
+            string SK = Crypto.Decrypt(SK_encrypted, privateKey);
+            string answers = Crypto.Decrypt(Answers_encrypted, SK);
+
+            DatabaseConnection connection = new DatabaseConnection();
+            string result = connection.getAnswers(email);
+            connection.close();
+            if (answers == result)
+            {
+                InitKeySet_SendMail(email, SK);
+            }
+            else
+            {
+                //protocol stops and socket is closed.
+            }
+        }
+
+        private string InitKeySet_EncryptMACPass(string email, string secretKey)
         {
-            //HashMAC mac = new HashMAC();
-            //string hmac = mac.HMAC(;
-//            Encryption encryption = new Encryption();
-//            encryption.EncryptString
-            return "";
+            HashMAC mac = new HashMAC();
+            string macPassword = mac.SecretKey();
+
+            string macPassword_encrypted = Crypto.Encrypt(macPassword, secretKey);
+
+            return macPassword_encrypted;
+        }
+
+        private void InitKeySet_SendMail(string email, string secretKey)
+        {
+            string macPassword_encrypted = InitKeySet_EncryptMACPass(email, secretKey);
+            string subject = "Welcome to PractiSES";
+            string body = "Your encrypted password is " + macPassword_encrypted + 
+                "Please provide your public key.";
+            Email mailer = new Email(email, subject, body);    //recepient, subject, body
+            mailer.Send();
         }
         
         public string KeyObt(string email) //get public key of a user ( complete )

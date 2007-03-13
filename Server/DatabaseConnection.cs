@@ -32,9 +32,9 @@ namespace PractiSES
                 cmd.ExecuteNonQuery();
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                Console.WriteLine("Exception: " + ex.Message);
+                Console.WriteLine("Exception: " + e.Message);
                 return false; 
             }
 
@@ -43,6 +43,21 @@ namespace PractiSES
         public string getPublicKey(string email) //return public key (complete)
         {
             string query = "SELECT k.key from users u, `keys` k WHERE u.email='" + email + "';";
+
+            cmd = new MySqlCommand(query, conn);
+            read = cmd.ExecuteReader();
+
+            if (read.Read())
+            {
+                return read.GetString(0);
+            }
+            return "No records exist";
+
+        }
+
+        public string getAnswers(string email) //return public key (complete)
+        {
+            string query = "SELECT u.answers from users u WHERE u.email='" + email + "';";
             
             cmd = new MySqlCommand(query, conn);
             read = cmd.ExecuteReader();
@@ -73,9 +88,9 @@ namespace PractiSES
                 cmd.ExecuteNonQuery();
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                Console.WriteLine("Exception: " + ex.Message);
+                Console.WriteLine("Exception: " + e.Message);
                 return false; 
             }
         }
