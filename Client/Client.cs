@@ -19,7 +19,7 @@ namespace PractiSES
         static void Main(string[] args)
         {
             Core core = new Core();
-
+            
             HttpClientChannel chan = new HttpClientChannel();
             ChannelServices.RegisterChannel(chan, false);
 

@@ -12,13 +12,21 @@ namespace PractiSES
 {
 	public static class Crypto
 	{
-        private static int RSAKeySize = 2048;
-        private static int AESKeySize = 256;
-        private static int AESIVSize = 128;
+        private const int RSAKeySize = 2048;
+        private const int AESKeySize = 256;
+        private const int AESIVSize = 128;
+
+        private const int Wrap = 64;
+
+        private const String BeginSignedMessage = "-----BEGIN PRACTISES SIGNED MESSAGE-----";
+        private const String BeginSignature     = "-----BEGIN PRACTISES SIGNATURE-----";
+        private const String EndSignature       = "-----END PRACTISES SIGNATURE-----";
+        private const String BeginMessage       = "-----BEGIN PRACTISES MESSAGE-----";
+        private const String EndMessage         = "-----END PRACTISES MESSAGE-----";
 
         public static RSACryptoServiceProvider GetRSA()
         {
-            RSACryptoServiceProvider rsa = new RSACryptoServiceProvider(RSAKeySize);
+            RSACryptoServiceProvider rsa = new RSACryptoServiceProvider(Crypto.RSAKeySize);
             return rsa;
         }
 
@@ -31,34 +39,58 @@ namespace PractiSES
 
         public static String Sign(String clearText, String privateKey)
         {
-            String signedMessage = "";
+            StringWriter sw = new StringWriter();
 
-            signedMessage += "-----BEGIN PRACTISES SIGNED MESSAGE-----";
-            signedMessage += Environment.NewLine;
-            signedMessage += clearText;
-            signedMessage += Environment.NewLine;
-            signedMessage += "-----BEGIN PRACTISES SIGNATURE-----";
-            signedMessage += Environment.NewLine;
-            signedMessage += Util.Wrap(Crypto.RSAGetSignature(clearText, privateKey), 64);
-            signedMessage += Environment.NewLine;
-            signedMessage += "-----END PRACTISES SIGNATURE-----";
-            signedMessage += Environment.NewLine;
+            sw.WriteLine(BeginSignedMessage);
+            sw.WriteLine();
+            sw.WriteLine(clearText);
+            sw.WriteLine(BeginSignature);
+            sw.WriteLine(Util.Wrap(Crypto.RSAGetSignature(clearText, privateKey), Wrap));
+            sw.WriteLine(EndSignature);
 
-            return signedMessage;
+            return sw.ToString();
         }
 
         public static String Encrypt(String clearText, String publicKey)
+        {            
+            StringWriter cipherText = new StringWriter();
+
+            Rijndael aes = Rijndael.Create();
+
+            ArrayList message = new ArrayList();
+            message.AddRange(Crypto.RSAEncrypt(aes.Key, publicKey));
+            message.AddRange(Crypto.RSAEncrypt(aes.IV, publicKey));
+            message.AddRange(Crypto.AESEncrypt(clearText, aes.CreateEncryptor()));
+
+            String messageArmor = Convert.ToBase64String((byte [])message.ToArray(Type.GetType("System.Byte")));
+
+            cipherText.WriteLine(Crypto.BeginMessage);
+            cipherText.WriteLine("Version: PractiSES {0} (Win32)", System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString(2));
+            cipherText.WriteLine();
+            cipherText.WriteLine(Util.Wrap(messageArmor, Wrap));
+            cipherText.WriteLine(Crypto.EndMessage);
+
+            return cipherText.ToString();
+        }
+        
+        public static String Decrypt(String cipherText, String privateKey)
         {
-            String cipherText = "";
+            int ebs = RSAKeySize / 8;
 
-            cipherText += "-----BEGIN PRACTISES MESSAGE-----";
-            cipherText += Environment.NewLine;
-            cipherText += Util.Wrap(Crypto.RSAEncrypt(clearText, publicKey), 64);
-            cipherText += Environment.NewLine;
-            cipherText += "-----END PRACTISES MESSAGE-----";
-            cipherText += Environment.NewLine;
+            Rijndael aes = Rijndael.Create();
 
-            return cipherText;
+            ArrayList bytes = new ArrayList(Convert.FromBase64String(StripMessage(cipherText)));
+
+            byte[] key = RSADecrypt((byte[])bytes.GetRange(0, ebs).ToArray(Type.GetType("System.Byte")), privateKey);
+            byte[] IV = RSADecrypt((byte[])bytes.GetRange(ebs, ebs).ToArray(Type.GetType("System.Byte")), privateKey);
+            byte[] message = (byte[])bytes.GetRange(ebs * 2, bytes.Count - ebs * 2).ToArray(Type.GetType("System.Byte"));
+
+            return AESDecrypt(message, aes.CreateDecryptor(key, IV));
+        }
+
+        public static Boolean Verify(String message, String publicKey)
+        {
+            return true;
         }
 
         public static String SignAndEncrypt(String clearText, String publicKey, String privateKey)
@@ -67,46 +99,16 @@ namespace PractiSES
             return Crypto.Encrypt(signedMessage, publicKey);
         }
 
-        private static String RSAEncrypt(String clearText, String publicKey)
+        private static byte[] RSAEncrypt(byte[] rgb, String publicKey)
         {
             RSACryptoServiceProvider rsa = Crypto.GetRSA(publicKey);
-            
-            int keySize = Crypto.RSAKeySize / 8;
-            byte[] bytes = Encoding.UTF8.GetBytes(clearText);
-            int maxLength = keySize - 42;
-            int dataLength = bytes.Length;
-            int iterations = dataLength / maxLength;
-            StringBuilder StringBuilder = new StringBuilder();
-
-            for (int i = 0; i <= iterations; i++)
-            {
-                byte[] tempBytes = new byte[(dataLength - maxLength * i > maxLength) ? maxLength : dataLength - maxLength * i];
-                Buffer.BlockCopy(bytes, maxLength * i, tempBytes, 0, tempBytes.Length);
-                byte[] encryptedBytes = rsa.Encrypt(tempBytes, true);
-                StringBuilder.Append(Convert.ToBase64String(encryptedBytes));
-            }
-
-            return StringBuilder.ToString();
+            return rsa.Encrypt(rgb, true);
         }
 
-        private static String RSADecrypt(String cipherText, String privateKey)
+        private static byte[] RSADecrypt(byte[] rgb, String privateKey)
         {
             RSACryptoServiceProvider rsa = Crypto.GetRSA(privateKey);
-
-            int base64BlockSize = ((RSAKeySize / 8) % 3 != 0) ?
-              (((RSAKeySize / 8) / 3) * 4) + 4 : ((RSAKeySize / 8) / 3) * 4;
-
-            int iterations = cipherText.Length / base64BlockSize;
-
-            ArrayList arrayList = new ArrayList();
-
-            for (int i = 0; i < iterations; i++)
-            {
-                byte[] encryptedBytes = Convert.FromBase64String(cipherText.Substring(base64BlockSize * i, base64BlockSize));
-                arrayList.AddRange(rsa.Decrypt(encryptedBytes, true));
-            }
-
-            return Encoding.UTF8.GetString(arrayList.ToArray(Type.GetType("System.Byte")) as byte[]);
+            return rsa.Decrypt(rgb, true);
         }
 
         private static String RSAGetSignature(String clearText, String privateKey)
@@ -184,15 +186,21 @@ namespace PractiSES
             return result;
         }
 
-        public static String AESEncrypt(String clearText, String passphrase)
-        {
-            MemoryStream memoryStream = new MemoryStream();
-            
+        private static byte[] AESEncrypt(String clearText, String passphrase)
+        {            
             Rijndael aes = Rijndael.Create();
 
             AESInfo aesInfo = Crypto.DeriveKeyAndIV(passphrase, null, Crypto.AESKeySize, Crypto.AESIVSize);
 
-            CryptoStream cryptoStream = new CryptoStream(memoryStream, aes.CreateEncryptor(aesInfo.key, aesInfo.IV), CryptoStreamMode.Write);
+            return Crypto.AESEncrypt(clearText, aes.CreateEncryptor(aesInfo.key, aesInfo.IV));
+        }
+
+        private static byte[] AESEncrypt(String clearText, ICryptoTransform transform)
+        {
+            Rijndael aes = Rijndael.Create();
+            
+            MemoryStream memoryStream = new MemoryStream();
+            CryptoStream cryptoStream = new CryptoStream(memoryStream, transform, CryptoStreamMode.Write);
             StreamWriter streamWriter = new StreamWriter(cryptoStream);
 
             streamWriter.Write(clearText);
@@ -200,16 +208,31 @@ namespace PractiSES
             streamWriter.Close();
             cryptoStream.Close();
 
-            String result = Convert.ToBase64String(aesInfo.salt);
-            result += Environment.NewLine;
-            result += Convert.ToBase64String(memoryStream.ToArray());
+            byte[] result = memoryStream.ToArray();
 
             memoryStream.Close();
 
             return result;
         }
 
-        public static string AESDecrypt(String cipherText, String passphrase)
+        private static String AESDecrypt(byte[] clearText, ICryptoTransform transform)
+        {
+            Rijndael aes = Rijndael.Create();
+
+            MemoryStream memoryStream = new MemoryStream(clearText);
+            CryptoStream cryptoStream = new CryptoStream(memoryStream, transform, CryptoStreamMode.Read);
+            StreamReader streamReader = new StreamReader(cryptoStream);
+
+            String result = streamReader.ReadToEnd();
+
+            streamReader.Close();
+            cryptoStream.Close();
+            memoryStream.Close();
+
+            return result;
+        }
+
+        private static string AESDecrypt(String cipherText, String passphrase)
         {
             StringReader stringReader = new StringReader(cipherText);
             byte[] salt = Convert.FromBase64String(stringReader.ReadLine());
@@ -228,6 +251,41 @@ namespace PractiSES
             result = streamReader.ReadToEnd();
 
             return result;
+        }
+
+        private static String StripMessage(String message)
+        {
+            Boolean messageStarted = false;
+            StringReader sr = new StringReader(message);
+            String contents = "";
+            String line;
+
+            while (true)
+            {
+                line = sr.ReadLine();
+                if (line == null)
+                {
+                    break;
+                }
+
+                line.Trim();
+
+                if (line == BeginMessage)
+                {
+                    while (line != "")
+                        line = sr.ReadLine();
+                }
+                else if (line == EndMessage)
+                {
+                    break;
+                }
+                else
+                {
+                    contents += line;
+                }
+            }
+
+            return contents;
         }
 	}
 }
