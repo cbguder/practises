@@ -56,6 +56,7 @@ namespace PractiSES
             
             Console.Write("Enter passphrase: ");
             String passphrase = Console.ReadLine();
+            Console.read
             passphrase.Trim();
 
             if (!File.Exists(keyFile))
