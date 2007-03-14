@@ -1,4 +1,4 @@
-/*
+﻿/*
  * $Id$
  */
 
@@ -51,8 +51,8 @@ namespace PractiSES
             return sw.ToString();
         }
 
-        public static String Encrypt(String clearText, String publicKey)
-        {            
+        public static String Encrypt(byte[] clearText, String publicKey)
+        {
             StringWriter cipherText = new StringWriter();
 
             Rijndael aes = Rijndael.Create();
@@ -62,7 +62,7 @@ namespace PractiSES
             message.AddRange(Crypto.RSAEncrypt(aes.IV, publicKey));
             message.AddRange(Crypto.AESEncrypt(clearText, aes.CreateEncryptor()));
 
-            String messageArmor = Convert.ToBase64String((byte [])message.ToArray(Type.GetType("System.Byte")));
+            String messageArmor = Convert.ToBase64String((byte[])message.ToArray(Type.GetType("System.Byte")));
 
             cipherText.WriteLine(Crypto.BeginMessage);
             cipherText.WriteLine("Version: PractiSES {0} (Win32)", System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString(2));
@@ -72,8 +72,8 @@ namespace PractiSES
 
             return cipherText.ToString();
         }
-        
-        public static String Decrypt(String cipherText, String privateKey)
+
+        public static byte[] Decrypt(String cipherText, String privateKey)
         {
             int ebs = RSAKeySize / 8;
 
@@ -96,7 +96,7 @@ namespace PractiSES
         public static String SignAndEncrypt(String clearText, String publicKey, String privateKey)
         {
             String signedMessage = Crypto.Sign(clearText, privateKey);
-            return Crypto.Encrypt(signedMessage, publicKey);
+            return Crypto.Encrypt(Encoding.ASCII.GetBytes(signedMessage), publicKey);
         }
 
         private static byte[] RSAEncrypt(byte[] rgb, String publicKey)
@@ -186,7 +186,7 @@ namespace PractiSES
             return result;
         }
 
-        private static byte[] AESEncrypt(String clearText, String passphrase)
+        private static byte[] AESEncrypt(byte[] clearText, String passphrase)
         {            
             Rijndael aes = Rijndael.Create();
 
@@ -195,37 +195,36 @@ namespace PractiSES
             return Crypto.AESEncrypt(clearText, aes.CreateEncryptor(aesInfo.key, aesInfo.IV));
         }
 
-        private static byte[] AESEncrypt(String clearText, ICryptoTransform transform)
+        private static byte[] AESEncrypt(byte[] clearText, ICryptoTransform transform)
         {
             Rijndael aes = Rijndael.Create();
             
             MemoryStream memoryStream = new MemoryStream();
+            
             CryptoStream cryptoStream = new CryptoStream(memoryStream, transform, CryptoStreamMode.Write);
-            StreamWriter streamWriter = new StreamWriter(cryptoStream);
-
-            streamWriter.Write(clearText);
-
-            streamWriter.Close();
+            cryptoStream.Write(clearText, 0, clearText.Length);
             cryptoStream.Close();
 
             byte[] result = memoryStream.ToArray();
-
             memoryStream.Close();
 
             return result;
         }
 
-        private static String AESDecrypt(byte[] clearText, ICryptoTransform transform)
+        private static byte[] AESDecrypt(byte[] cipherText, ICryptoTransform transform)
         {
             Rijndael aes = Rijndael.Create();
 
-            MemoryStream memoryStream = new MemoryStream(clearText);
+            MemoryStream memoryStream = new MemoryStream(cipherText);
             CryptoStream cryptoStream = new CryptoStream(memoryStream, transform, CryptoStreamMode.Read);
-            StreamReader streamReader = new StreamReader(cryptoStream);
 
-            String result = streamReader.ReadToEnd();
+            byte[] clearText = new byte[cipherText.Length];
 
-            streamReader.Close();
+            int count = cryptoStream.Read(clearText, 0, clearText.Length);
+
+            byte[] result = new byte[count];
+            Array.Copy(clearText, result, count);
+
             cryptoStream.Close();
             memoryStream.Close();
 
@@ -286,44 +285,6 @@ namespace PractiSES
             }
 
             return contents;
-        }
-
-        public static String Decrypt(String cipherText, String privateKey, ref AESInfo aesInfo)
-        {
-            int ebs = RSAKeySize / 8;
-
-            Rijndael aes = Rijndael.Create();
-
-            ArrayList bytes = new ArrayList(Convert.FromBase64String(StripMessage(cipherText)));
-
-            byte[] key = RSADecrypt((byte[])bytes.GetRange(0, ebs).ToArray(Type.GetType("System.Byte")), privateKey);
-            byte[] IV = RSADecrypt((byte[])bytes.GetRange(ebs, ebs).ToArray(Type.GetType("System.Byte")), privateKey);
-            byte[] message = (byte[])bytes.GetRange(ebs * 2, bytes.Count - ebs * 2).ToArray(Type.GetType("System.Byte"));
-
-            aesInfo.key = key;
-            aesInfo.IV = IV;
-
-            return AESDecrypt(message, aes.CreateDecryptor(key, IV));
-        }
-
-        public static String Encrypt(String clearText, AESInfo aesInfo)
-        {
-            StringWriter cipherText = new StringWriter();
-
-            Rijndael aes = Rijndael.Create();
-
-            ArrayList message = new ArrayList();
-            message.AddRange(Crypto.AESEncrypt(clearText, aes.CreateEncryptor(aesInfo.key, aesInfo.IV)));
-
-            String messageArmor = Convert.ToBase64String((byte[])message.ToArray(Type.GetType("System.Byte")));
-
-            cipherText.WriteLine(Crypto.BeginMessage);
-            cipherText.WriteLine("Version: PractiSES {0} (Win32)", System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString(2));
-            cipherText.WriteLine();
-            cipherText.WriteLine(Util.Wrap(messageArmor, Wrap));
-            cipherText.WriteLine(Crypto.EndMessage);
-
-            return cipherText.ToString();
         }
 	}
 }
