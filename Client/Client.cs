@@ -15,7 +15,7 @@ namespace PractiSES
 {
     class Client
     {
-        private const String host = "practises.no-ip.org";
+        private const String host = "10.90.36.198";
         private ServerObject server;
         private Core core;
 
@@ -27,16 +27,30 @@ namespace PractiSES
                 return;
             }
 
-            Client client = new Client();
-
             String command = args[0];
             String file = args[args.Length - 1];
+            String passphrase = null;
+            String recipient = null;
+
+            if (args[1] == "-p")
+            {
+                passphrase = args[2];
+            }
+            else if (args[1] == "-r")
+            {
+                recipient = args[2];
+            }
+
+            Client client = new Client(passphrase);
+            client.Connect(host);
+            client.Initialize();
+            return;
 
             switch (command)
             {
                 case "--encrypt":
                 case "-e":
-                    client.Encrypt(file);
+                    client.Encrypt(file, recipient);
                     break;
 
                 case "--decrypt":
@@ -75,7 +89,12 @@ namespace PractiSES
 
         public Client()
         {
-            core = new Core();
+            core = null;
+        }
+
+        public Client(String passphrase)
+        {
+            core = new Core(passphrase);
         }
 
         private bool Connect(String host)
@@ -90,17 +109,31 @@ namespace PractiSES
             return true;
         }
 
-        private void Encrypt(String filename)
+        private void Initialize()
+        {
+            String questions = server.InitKeySet_AskQuestions("cbguder", "cbguder@su.sabanciuniv.edu");
+            Console.WriteLine(questions);
+            Console.Write("Answers: ");
+            String answers = Console.ReadLine();
+            String serverPublicKey = server.KeyObt("server");
+            byte[] message = Encoding.UTF8.GetBytes(answers);
+            server.InitKeySet_EnvelopeAnswers("cbguder", "cbguder@su.sabanciuniv.edu", Crypto.Encrypt(message, serverPublicKey));
+        }
+
+        private void Encrypt(String filename, String recipient)
         {
             String outFile = filename + ".pses";
 
             String publicKey;
 
-            Console.Write("Recipient (leave empty for self): ");
-            String recipient = Console.ReadLine();
-            recipient.Trim();
+            if (recipient == null)
+            {
+                Console.Write("Recipient (leave empty for self): ");
+                recipient = Console.ReadLine();
+                recipient.Trim();
+            }
 
-            if (recipient == "")
+            if (recipient == "" || recipient == "self")
             {
                 Console.Error.WriteLine("Encrypting for self...");
                 publicKey = core.PublicKey;
@@ -134,16 +167,7 @@ namespace PractiSES
             String cipherText = File.ReadAllText(filename);
             byte[] clearText = Crypto.Decrypt(cipherText, core.PrivateKey);
 
-            String outFile;
-
-            if (filename.EndsWith(".pses"))
-            {
-                outFile = filename.Substring(0, filename.Length - 5);
-            }
-            else
-            {
-                outFile = filename + ".decrypted";
-            }
+            String outFile = filename + ".pses";
 
             if (Write(outFile, clearText))
             {

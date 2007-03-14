@@ -111,13 +111,13 @@ namespace PractiSES
         private static byte[] RSAEncrypt(byte[] rgb, String publicKey)
         {
             RSACryptoServiceProvider rsa = Crypto.GetRSA(publicKey);
-            return rsa.Encrypt(rgb, true);
+            return rsa.Encrypt(rgb, false);
         }
 
         private static byte[] RSADecrypt(byte[] rgb, String privateKey)
         {
             RSACryptoServiceProvider rsa = Crypto.GetRSA(privateKey);
-            return rsa.Decrypt(rgb, true);
+            return rsa.Decrypt(rgb, false);
         }
 
         private static String RSAGetSignature(String clearText, String privateKey)
