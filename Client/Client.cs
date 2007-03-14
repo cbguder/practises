@@ -21,7 +21,7 @@ namespace PractiSES
 
         static void Main(string[] args)
         {
-            if (args.Length < 2)
+            if (args.Length == 0)
             {
                 Usage();
                 return;
@@ -32,22 +32,34 @@ namespace PractiSES
             String passphrase = null;
             String recipient = null;
 
-            if (args[1] == "-p")
+            if (args.Length > 1)
             {
-                passphrase = args[2];
-            }
-            else if (args[1] == "-r")
-            {
-                recipient = args[2];
+                if (args[1] == "-p")
+                {
+                    passphrase = args[2];
+                }
+                else
+                {
+                    Console.Write("Enter passphrase: ");
+                    passphrase = Console.ReadLine();
+                    passphrase.Trim();
+                }
+
+                if (args[1] == "-r")
+                {
+                    recipient = args[2];
+                }
             }
 
             Client client = new Client(passphrase);
-            client.Connect(host);
-            client.Initialize();
-            return;
 
             switch (command)
             {
+                case "--initialize":
+                case "-i":
+                    client.Initialize();
+                    break;
+
                 case "--encrypt":
                 case "-e":
                     client.Encrypt(file, recipient);
@@ -111,13 +123,15 @@ namespace PractiSES
 
         private void Initialize()
         {
+            Connect(host);
             String questions = server.InitKeySet_AskQuestions("cbguder", "cbguder@su.sabanciuniv.edu");
             Console.WriteLine(questions);
             Console.Write("Answers: ");
             String answers = Console.ReadLine();
             String serverPublicKey = server.KeyObt("server");
             byte[] message = Encoding.UTF8.GetBytes(answers);
-            server.InitKeySet_EnvelopeAnswers("cbguder", "cbguder@su.sabanciuniv.edu", Crypto.Encrypt(message, serverPublicKey));
+            String encrypted = Crypto.Encrypt(message, serverPublicKey);
+            server.InitKeySet_EnvelopeAnswers("cbguder", "cbguder@su.sabanciuniv.edu", encrypted);
         }
 
         private void Encrypt(String filename, String recipient)
