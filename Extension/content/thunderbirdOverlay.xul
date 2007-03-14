@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="chrome://practises/skin/overlay.css" type="text/css"?>
+<!DOCTYPE overlay SYSTEM "chrome://practises/locale/practises.dtd">
+<overlay id="practises-overlay"
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <script src="overlay.js"/>
+  <stringbundleset id="stringbundleset">
+    <stringbundle id="practises-strings" src="chrome://practises/locale/practises.properties"/>
+  </stringbundleset>
+
+  <menupopup id="taskPopup">
+    <menuitem id="practises-hello" label="&practises.label;" 
+              oncommand="practises.onMenuItemCommand(event);"/>
+  </menupopup>
+  <toolbarpalette id="MsgComposeToolbarPalette">
+  <toolbarbutton id="practises-toolbar-button"
+    label="&practisesToolbar.label;"
+    tooltiptext="&practisesToolbar.tooltip;"
+    oncommand="practises.onToolbarButtonCommand()"
+    class="toolbarbutton-1 chromeclass-toolbar-additional"/>
+  </toolbarpalette>
+</overlay>
