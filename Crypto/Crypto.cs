@@ -195,15 +195,25 @@ namespace PractiSES
             return result;
         }
 
-        private static byte[] AESEncrypt(byte[] clearText, String passphrase)
+        public static AESInfo AESEncrypt(byte[] clearText, String passphrase)
         {            
             Rijndael aes = Rijndael.Create();
 
             AESInfo aesInfo = Crypto.DeriveKeyAndIV(passphrase, null, Crypto.AESKeySize, Crypto.AESIVSize);
+            aesInfo.message = Crypto.AESEncrypt(clearText, aes.CreateEncryptor(aesInfo.key, aesInfo.IV));
 
-            return Crypto.AESEncrypt(clearText, aes.CreateEncryptor(aesInfo.key, aesInfo.IV));
+            return aesInfo;
         }
 
+        public static byte[] AESDecrypt(byte[] cipherText, String passphrase, byte[] salt)
+        {
+            Rijndael aes = Rijndael.Create();
+
+            AESInfo aesInfo = Crypto.DeriveKeyAndIV(passphrase, salt, Crypto.AESKeySize, Crypto.AESIVSize);
+
+            return AESDecrypt(cipherText, aes.CreateDecryptor(aesInfo.key, aesInfo.IV));
+        }
+        
         public static byte[] AESEncrypt(byte[] clearText, ICryptoTransform transform)
         {
             Rijndael aes = Rijndael.Create();
@@ -236,27 +246,6 @@ namespace PractiSES
 
             cryptoStream.Close();
             memoryStream.Close();
-
-            return result;
-        }
-
-        private static string AESDecrypt(String cipherText, String passphrase)
-        {
-            StringReader stringReader = new StringReader(cipherText);
-            byte[] salt = Convert.FromBase64String(stringReader.ReadLine());
-            
-            MemoryStream memoryStream = new MemoryStream(Convert.FromBase64String(stringReader.ReadToEnd()));
-
-            Rijndael aes = Rijndael.Create();
-
-            AESInfo aesInfo = Crypto.DeriveKeyAndIV(passphrase, salt, Crypto.AESKeySize, Crypto.AESIVSize);
-
-            CryptoStream cryptoStream = new CryptoStream(memoryStream, aes.CreateDecryptor(aesInfo.key, aesInfo.IV), CryptoStreamMode.Read);
-            StreamReader streamReader = new StreamReader(cryptoStream);
-
-            String result = null;
-
-            result = streamReader.ReadToEnd();
 
             return result;
         }

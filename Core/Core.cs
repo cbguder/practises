@@ -6,6 +6,8 @@ using System;
 using System.IO;
 using System.Xml;
 using System.Security.Cryptography;
+using System.Text;
+using System.Collections;
 
 namespace PractiSES
 {
@@ -38,38 +40,55 @@ namespace PractiSES
             appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             appDataFolder = Path.Combine(appDataFolder, "PractiSES");
             settingsFile = Path.Combine(appDataFolder, "settings.xml");
-            keyFile = Path.Combine(appDataFolder, "key.xml");
+            keyFile = Path.Combine(appDataFolder, "private.key");
 
             if (!Directory.Exists(appDataFolder))
             {
                 Directory.CreateDirectory(appDataFolder);
             }
 
-            this.ReadKey();
+            this.InitializeKeys();
         }
 
-        public void ReadKey()
+        private void InitializeKeys()
         {
             RSACryptoServiceProvider rsa = Crypto.GetRSA();
+            
+            Console.Write("Enter passphrase: ");
+            String passphrase = Console.ReadLine();
+            passphrase.Trim();
 
             if (!File.Exists(keyFile))
             {
-                StreamWriter keyWriter = new StreamWriter(keyFile);
                 publicKey = rsa.ToXmlString(false);
                 privateKey = rsa.ToXmlString(true);
-                keyWriter.Write(privateKey);
-                keyWriter.Close();
+                WriteKey(keyFile, privateKey, passphrase);
                 Console.WriteLine("Public/Private key pair written to " + keyFile);
             }
             else
             {
-                StreamReader keyReader = new StreamReader(keyFile);
-                String keyString = keyReader.ReadToEnd();
+                String keyString = ReadKey(keyFile, passphrase);
                 rsa.FromXmlString(keyString);
                 publicKey = rsa.ToXmlString(false);
                 privateKey = rsa.ToXmlString(true);
                 Console.WriteLine("Public/Private key pair read from " + keyFile);
             }
+        }
+
+        private void WriteKey(String path, String key, String passphrase)
+        {
+            Rijndael aes = Rijndael.Create();
+            AESInfo info = Crypto.AESEncrypt(Encoding.ASCII.GetBytes(key), passphrase);
+            File.WriteAllText(path, Convert.ToBase64String(Util.Join(info.salt, info.message)));
+        }
+
+        private String ReadKey(String path, String passphrase)
+        {
+            Rijndael aes = Rijndael.Create();
+            ArrayList file = new ArrayList(Convert.FromBase64String(File.ReadAllText(path)));
+            byte[] salt = (byte [])file.GetRange(0, 8).ToArray(Type.GetType("System.Byte"));
+            byte[] rest = (byte[])file.GetRange(8, file.Count - 8).ToArray(Type.GetType("System.Byte"));
+            return Encoding.ASCII.GetString(Crypto.AESDecrypt(rest, passphrase, salt));
         }
 
         public String ReadQuestions()

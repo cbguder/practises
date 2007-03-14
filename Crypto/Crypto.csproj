@@ -36,7 +36,7 @@
   <ItemGroup>
     <Compile Include="AESInfo.cs" />
     <Compile Include="Crypto.cs" />
-    <Compile Include="HashMAC.cs" />
+    <Compile Include="Hash.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

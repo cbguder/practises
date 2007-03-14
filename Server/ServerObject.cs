@@ -73,11 +73,11 @@ namespace PractiSES
 
         private string InitKeySet_EncryptMACPass(string email, AESInfo aesInfo)
         {
-            Hash mac = new Hash();
+            HMAC hmac = HMACSHA1.Create();
 
             Rijndael aes = Rijndael.Create();
 
-            return Convert.ToBase64String(Crypto.AESEncrypt(mac.SecretKey(), aes.CreateEncryptor(aesInfo.key, aesInfo.IV)));
+            return Convert.ToBase64String(Crypto.AESEncrypt(hmac.Key, aes.CreateEncryptor(aesInfo.key, aesInfo.IV)));
         }
 
         private void InitKeySet_SendMail(string email, AESInfo aesInfo)

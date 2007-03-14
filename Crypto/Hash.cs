@@ -9,6 +9,14 @@ namespace PractiSES
     {
         private byte[] secretkey;
 
+        public byte[] SecretKey
+        {
+            get
+            {
+                return this.secretkey;
+            }
+        }
+
         public Hash()
         {
             // Create a random key using a random number generator. 
@@ -26,11 +34,6 @@ namespace PractiSES
             // Take random key as parameter. 
             secretkey = new Byte[64];
             secretkey = Encoding.UTF8.GetBytes(macPassword);
-        }
-
-        public byte[] SecretKey()
-        {
-            return this.secretkey;
         }
 
         public string HMAC(string originalText)
