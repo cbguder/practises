@@ -35,7 +35,11 @@ namespace PractiSES
             }
         }
         
-        public Core()
+        public Core() : this(null)
+        {
+        }
+
+        public Core(String passphrase)
         {
             appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             appDataFolder = Path.Combine(appDataFolder, "PractiSES");
@@ -47,17 +51,19 @@ namespace PractiSES
                 Directory.CreateDirectory(appDataFolder);
             }
 
-            this.InitializeKeys();
+            this.InitializeKeys(passphrase);
         }
 
-        private void InitializeKeys()
+        private void InitializeKeys(String passphrase)
         {
             RSACryptoServiceProvider rsa = Crypto.GetRSA();
-            
-            Console.Write("Enter passphrase: ");
-            String passphrase = Console.ReadLine();
-            Console.read
-            passphrase.Trim();
+
+            if (passphrase == null)
+            {
+                Console.Write("Enter passphrase: ");
+                passphrase = Console.ReadLine();
+                passphrase.Trim();
+            }
 
             if (!File.Exists(keyFile))
             {
