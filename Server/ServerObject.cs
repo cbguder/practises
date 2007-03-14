@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using MySql.Data.MySqlClient;
 using PractiSES;
+using System.Security.Cryptography;
 
 namespace PractiSES
 {
@@ -52,8 +53,10 @@ namespace PractiSES
            Core core = new Core();
            string privateKey = core.PrivateKey;
            
-           AESInfo aesInfo = new AESInfo();
-           string answers = Crypto.Decrypt(answersEnveloped, privateKey, ref aesInfo);
+            Rijndael aes = Rijndael.Create();
+            
+           AESInfo aesInfo = Crypto.Destruct(answersEnveloped, privateKey);
+           String answers = Encoding.UTF8.GetString(Crypto.AESDecrypt(aesInfo.message, aes.CreateDecryptor(aesInfo.key, aesInfo.IV)));
 
            DatabaseConnection connection = new DatabaseConnection();
            string result = connection.getAnswers(email);
@@ -71,11 +74,10 @@ namespace PractiSES
         private string InitKeySet_EncryptMACPass(string email, AESInfo aesInfo)
         {
             HashMAC mac = new HashMAC();
-            string macPassword = mac.SecretKey();
 
-            string macPassword_encrypted = Crypto.Encrypt(macPassword, aesInfo);
+            Rijndael aes = Rijndael.Create();
 
-            return macPassword_encrypted;
+            return Convert.ToBase64String(Crypto.AESEncrypt(mac.SecretKey(), aes.CreateEncryptor(aesInfo.key, aesInfo.IV)));
         }
 
         private void InitKeySet_SendMail(string email, AESInfo aesInfo)

@@ -28,9 +28,9 @@ namespace PractiSES
             secretkey = Encoding.Unicode.GetBytes(macPassword);
         }
 
-        public string SecretKey()
+        public byte[] SecretKey()
         {
-            return this.secretkey.ToString();
+            return this.secretkey;
         }
 
         public string HMAC(string originalText)

@@ -75,17 +75,26 @@ namespace PractiSES
 
         public static byte[] Decrypt(String cipherText, String privateKey)
         {
-            int ebs = RSAKeySize / 8;
-
             Rijndael aes = Rijndael.Create();
 
-            ArrayList bytes = new ArrayList(Convert.FromBase64String(StripMessage(cipherText)));
+            AESInfo message = Destruct(cipherText, privateKey);
 
-            byte[] key = RSADecrypt((byte[])bytes.GetRange(0, ebs).ToArray(Type.GetType("System.Byte")), privateKey);
-            byte[] IV = RSADecrypt((byte[])bytes.GetRange(ebs, ebs).ToArray(Type.GetType("System.Byte")), privateKey);
-            byte[] message = (byte[])bytes.GetRange(ebs * 2, bytes.Count - ebs * 2).ToArray(Type.GetType("System.Byte"));
+            return AESDecrypt(message.message, aes.CreateDecryptor(message.key, message.IV));
+        }
 
-            return AESDecrypt(message, aes.CreateDecryptor(key, IV));
+        public static AESInfo Destruct(String message, String privateKey)
+        {
+            int ebs = RSAKeySize / 8;
+
+            AESInfo result = new AESInfo();
+
+            ArrayList bytes = new ArrayList(Convert.FromBase64String(StripMessage(message)));
+
+            result.key = RSADecrypt((byte[])bytes.GetRange(0, ebs).ToArray(Type.GetType("System.Byte")), privateKey);
+            result.IV = RSADecrypt((byte[])bytes.GetRange(ebs, ebs).ToArray(Type.GetType("System.Byte")), privateKey);
+            result.message = (byte[])bytes.GetRange(ebs * 2, bytes.Count - ebs * 2).ToArray(Type.GetType("System.Byte"));
+
+            return result;
         }
 
         public static Boolean Verify(String message, String publicKey)
@@ -195,7 +204,7 @@ namespace PractiSES
             return Crypto.AESEncrypt(clearText, aes.CreateEncryptor(aesInfo.key, aesInfo.IV));
         }
 
-        private static byte[] AESEncrypt(byte[] clearText, ICryptoTransform transform)
+        public static byte[] AESEncrypt(byte[] clearText, ICryptoTransform transform)
         {
             Rijndael aes = Rijndael.Create();
             
@@ -211,7 +220,7 @@ namespace PractiSES
             return result;
         }
 
-        private static byte[] AESDecrypt(byte[] cipherText, ICryptoTransform transform)
+        public static byte[] AESDecrypt(byte[] cipherText, ICryptoTransform transform)
         {
             Rijndael aes = Rijndael.Create();
 
