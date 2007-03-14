@@ -10,8 +10,14 @@ namespace PractiSES
 {
     class Server
     {
+        public static String passphrase;
+
         static void Main(string[] args)
         {
+            Console.Write("Enter passphrase: ");
+            passphrase = Console.ReadLine();
+            Console.WriteLine("Server started.");
+
             HttpServerChannel channel = new HttpServerChannel(80);
             ChannelServices.RegisterChannel(channel,false);
 

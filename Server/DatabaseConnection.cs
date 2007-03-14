@@ -22,6 +22,22 @@ namespace PractiSES
             conn.Open();
         }
 
+        public string getUserID(string email) //return public key (complete)
+        {
+            string query = "SELECT u.userid from users u WHERE u.email='" + email + "';";
+
+            cmd = new MySqlCommand(query, conn);
+            read = cmd.ExecuteReader();
+
+            if (read.Read())
+            {
+                return read.GetString(0);
+            }
+            return "No records exist";
+
+        }
+
+
         public bool setPublicKey(string email, string key) //return public key (complete)
         {
             try
@@ -37,7 +53,6 @@ namespace PractiSES
                 Console.WriteLine("Exception: " + e.Message);
                 return false; 
             }
-
         }
 
         public string getPublicKey(string email) //return public key (complete)
@@ -63,6 +78,39 @@ namespace PractiSES
             read = cmd.ExecuteReader();
 
             if(read.Read())
+            {
+                return read.GetString(0);
+            }
+            return "No records exist";
+
+        }
+
+        public bool setMACPass(string email, string key)
+        {
+            try
+            {
+                string query = "UPDATE users u SET u.macpass='" + key + "' WHERE u.email='" + email + "';";
+
+                cmd = new MySqlCommand(query, conn);
+                cmd.ExecuteNonQuery();
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception: " + e.Message);
+                return false;
+            }
+
+        }
+
+        public string getMACPass(string email)
+        {
+            string query = "SELECT u.macpass from users u WHERE u.email='" + email + "';";
+
+            cmd = new MySqlCommand(query, conn);
+            read = cmd.ExecuteReader();
+
+            if (read.Read())
             {
                 return read.GetString(0);
             }

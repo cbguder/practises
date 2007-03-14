@@ -12,7 +12,17 @@ namespace PractiSES
         //complete the userID-email verification query
         public string InitKeySet_AskQuestions(string userID, string email)
         {
-            Core core = new Core();
+            Console.WriteLine(email + ": InitKeySet_AskQuestions");
+            DatabaseConnection connection = new DatabaseConnection();
+            string result = connection.getUserID(email);
+            connection.close();
+            if (result != userID)
+            {
+                Console.WriteLine("Incorrect user id or e-mail address");
+                return "Error: Incorrect user id or e-mail address";
+            }
+
+            Core core = new Core(Server.passphrase);
             string questions = core.ReadQuestions();
 
             string signQuestions = Crypto.Sign(questions, core.PrivateKey);
@@ -29,7 +39,7 @@ namespace PractiSES
 
         /*public void InitKeySet_EnvelopeAnswers(string userID, string email, string SK_encrypted, string Answers_encrypted)
         {       
-            Core core = new Core();
+            Core core = new Core(Server.passphrase);
             string privateKey = core.PrivateKey;
 
             string SK = Crypto.Decrypt(SK_encrypted, privateKey);
@@ -50,25 +60,33 @@ namespace PractiSES
 
         public void InitKeySet_EnvelopeAnswers(string userID, string email, string answersEnveloped)
         {
-           Core core = new Core();
-           string privateKey = core.PrivateKey;
+            Console.WriteLine(email + ": InitKeySet_EnvelopeAnswers");
+            DatabaseConnection connection = new DatabaseConnection();
+            string result = connection.getUserID(email);
+            if (result != userID)
+            {
+                Console.WriteLine("Incorrect user id or e-mail address");
+                connection.close();
+            }
 
-           Rijndael aes = Rijndael.Create();
+            Core core = new Core(Server.passphrase);
+            string privateKey = core.PrivateKey;
 
-           AESInfo aesInfo = Crypto.Destruct(answersEnveloped, privateKey);
-           String answers = Encoding.UTF8.GetString(Crypto.AESDecrypt(aesInfo.message, aes.CreateDecryptor(aesInfo.key, aesInfo.IV)));
+            Rijndael aes = Rijndael.Create();
 
-           DatabaseConnection connection = new DatabaseConnection();
-           string result = connection.getAnswers(email);
-           connection.close();
-           if (answers == result)
-           {
+            AESInfo aesInfo = Crypto.Destruct(answersEnveloped, privateKey);
+            String answers = Encoding.UTF8.GetString(Crypto.AESDecrypt(aesInfo.message, aes.CreateDecryptor(aesInfo.key, aesInfo.IV)));
+
+            result = connection.getAnswers(email);
+            connection.close();
+            if (answers == result)
+            {
                InitKeySet_SendMail(email, aesInfo);
-           }
-           else
-           {
+            }
+            else
+            {
                //protocol stops and socket is closed.
-           }
+            }
         }
 
         private string InitKeySet_EncryptMACPass(string email, AESInfo aesInfo)
@@ -76,6 +94,10 @@ namespace PractiSES
             HMAC hmac = HMACSHA1.Create();
 
             Rijndael aes = Rijndael.Create();
+
+            DatabaseConnection connection = new DatabaseConnection();
+            connection.setMACPass(email, hmac.Key.ToString());
+            connection.close();
 
             return Convert.ToBase64String(Crypto.AESEncrypt(hmac.Key, aes.CreateEncryptor(aesInfo.key, aesInfo.IV)));
         }
@@ -90,10 +112,37 @@ namespace PractiSES
             mailer.Send();
             Console.WriteLine("Mail sent to user " + email); 
         }
+
+        public bool InitKeySet_SendPublicKey(string userID, string email, string publicKey, string macValue)
+        {
+            Console.WriteLine(email + ": InitKeySet_SendPublicKey");
+            DatabaseConnection connection = new DatabaseConnection();
+            string result = connection.getUserID(email);
+            if (result != userID)
+            {
+                Console.WriteLine("Incorrect user id or e-mail address");
+                connection.close();
+                return false;
+            }
+
+            result = connection.getMACPass(email);
+
+            Hash hash = new Hash(result);
+            if (hash.ValidateMAC(publicKey, macValue))
+            {
+                connection.setPublicKey(email, publicKey);
+                Console.WriteLine(email +": Public key is set.");
+                connection.close();
+                return true;
+            }
+            Console.WriteLine(email + ": Error - Public key could not be set.");
+            connection.close();
+            return false;
+        }
         
         public string KeyObt(string email) //get public key of a user ( complete )
         {
-            Console.WriteLine("Connected");
+            Console.WriteLine(email + ": KeyObt");
             DatabaseConnection connection = new DatabaseConnection();
             string result = connection.getPublicKey(email);
             connection.close();
