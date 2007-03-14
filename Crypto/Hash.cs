@@ -5,11 +5,11 @@ using System.Security.Cryptography;
 
 namespace PractiSES
 {
-    public class HashMAC
+    public class Hash
     {
         private byte[] secretkey;
 
-        public HashMAC()
+        public Hash()
         {
             // Create a random key using a random number generator. 
             // This would be the secret key shared by sender and receiver.
@@ -21,11 +21,11 @@ namespace PractiSES
             rng.GetBytes(secretkey);
         }
 
-        public HashMAC(string macPassword)
+        public Hash(string macPassword)
         {
             // Take random key as parameter. 
             secretkey = new Byte[64];
-            secretkey = Encoding.Unicode.GetBytes(macPassword);
+            secretkey = Encoding.UTF8.GetBytes(macPassword);
         }
 
         public byte[] SecretKey()
@@ -36,19 +36,20 @@ namespace PractiSES
         public string HMAC(string originalText)
         {
             //hashes original text with bytes, need to convert text to bytes 
-            byte[] data = Encoding.Unicode.GetBytes(originalText);
+            byte[] data = Encoding.UTF8.GetBytes(originalText);
             // Initialize the keyed hash object. 
             HMACSHA1 hmacSHA1 = new HMACSHA1(secretkey);
+
             byte[] macSender = hmacSHA1.ComputeHash(data);
-            return macSender.ToString();
+            return Convert.ToBase64String(macSender);
         }
 
         public bool ValidateMAC(string originalText, string mac)
         {
             //hashes original text with bytes, need to convert text to bytes 
-            byte[] data = Encoding.Unicode.GetBytes(originalText);
+            byte[] data = Encoding.UTF8.GetBytes(originalText);
             //convert mac to bytes 
-            byte[] macSender = Encoding.Unicode.GetBytes(mac);
+            byte[] macSender = Encoding.UTF8.GetBytes(mac);
             // Initialize the keyed hash object. 
             HMACSHA1 hmacSHA1 = new HMACSHA1(secretkey);
             byte[] macReciever = hmacSHA1.ComputeHash(data);

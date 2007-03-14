@@ -49,12 +49,12 @@ namespace PractiSES
         }*/
 
         public void InitKeySet_EnvelopeAnswers(string userID, string email, string answersEnveloped)
-       {       
+        {
            Core core = new Core();
            string privateKey = core.PrivateKey;
-           
-            Rijndael aes = Rijndael.Create();
-            
+
+           Rijndael aes = Rijndael.Create();
+
            AESInfo aesInfo = Crypto.Destruct(answersEnveloped, privateKey);
            String answers = Encoding.UTF8.GetString(Crypto.AESDecrypt(aesInfo.message, aes.CreateDecryptor(aesInfo.key, aesInfo.IV)));
 
@@ -69,11 +69,11 @@ namespace PractiSES
            {
                //protocol stops and socket is closed.
            }
-       }
+        }
 
         private string InitKeySet_EncryptMACPass(string email, AESInfo aesInfo)
         {
-            HashMAC mac = new HashMAC();
+            Hash mac = new Hash();
 
             Rijndael aes = Rijndael.Create();
 
@@ -98,7 +98,6 @@ namespace PractiSES
             string result = connection.getPublicKey(email);
             connection.close();
             return result;
-            
         }
 
         public bool KeyRem(string userID, string email, string signedMessage)

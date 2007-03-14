@@ -263,7 +263,6 @@ namespace PractiSES
 
         private static String StripMessage(String message)
         {
-            Boolean messageStarted = false;
             StringReader sr = new StringReader(message);
             String contents = "";
             String line;
