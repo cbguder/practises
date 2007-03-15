@@ -65,7 +65,7 @@ namespace PractiSES
 
             for (int i = 0; i < a.Length; i++)
             {
-                if (a[i] != a[b])
+                if (a[i] != b[i])
                 {
                     return false;
                 }

@@ -145,7 +145,7 @@ namespace PractiSES
 
             String macpass = File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "asd.txt"));
             
-            HMACSHA1 hmac = HMACSHA1.Create();
+            HMAC hmac = HMACSHA1.Create();
             hmac.Key = Convert.FromBase64String(macpass);
             byte[] hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(core.PublicKey));
 

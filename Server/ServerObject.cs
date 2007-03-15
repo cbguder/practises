@@ -62,11 +62,12 @@ namespace PractiSES
         {
             Console.WriteLine(email + ": InitKeySet_EnvelopeAnswers");
             DatabaseConnection connection = new DatabaseConnection();
-            string result = connection.getUserID(email);
-            if (result != userID)
+            string dbUserid = connection.getUserID(email);
+            connection.close();
+            if (userID != dbUserid)
             {
                 Console.WriteLine("Incorrect user id or e-mail address");
-                connection.close();
+                return;
             }
 
             Core core = new Core(Server.passphrase);
@@ -77,9 +78,10 @@ namespace PractiSES
             AESInfo aesInfo = Crypto.Destruct(answersEnveloped, privateKey);
             String answers = Encoding.UTF8.GetString(Crypto.AESDecrypt(aesInfo.message, aes.CreateDecryptor(aesInfo.key, aesInfo.IV)));
 
-            result = connection.getAnswers(email);
+            connection = new DatabaseConnection();
+            string dbAnswers = connection.getAnswers(email);
             connection.close();
-            if (answers == result)
+            if (answers == dbAnswers)
             {
                InitKeySet_SendMail(email, aesInfo);
             }
@@ -117,26 +119,31 @@ namespace PractiSES
         {
             Console.WriteLine(email + ": InitKeySet_SendPublicKey");
             DatabaseConnection connection = new DatabaseConnection();
-            string result = connection.getUserID(email);
-            if (result != userID)
+            string dbUserid = connection.getUserID(email);
+            connection.close();
+            if (userID != dbUserid)
             {
                 Console.WriteLine("Incorrect user id or e-mail address");
-                connection.close();
                 return false;
             }
 
-            result = connection.getMACPass(email);
+            connection = new DatabaseConnection();
+            string dbMACPass = connection.getMACPass(email);
+            connection.close();
 
-            Hash hash = new Hash(result);
-            if (hash.ValidateMAC(publicKey, macValue))
+            HMAC hmac = HMACSHA1.Create();
+            hmac.Key = Convert.FromBase64String(dbMACPass);
+            byte[] hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(publicKey));
+
+            //Hash hash = new Hash(dbMACPass);
+            //if (hash.ValidateMAC(publicKey, macValue))
+            if(Util.Compare(hash, Convert.FromBase64String(macValue)))
             {
                 connection.setPublicKey(email, publicKey);
                 Console.WriteLine(email +": Public key is set.");
-                connection.close();
                 return true;
             }
             Console.WriteLine(email + ": Error - Public key could not be set.");
-            connection.close();
             return false;
         }
         

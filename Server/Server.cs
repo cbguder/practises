@@ -16,6 +16,8 @@ namespace PractiSES
         {
             Console.Write("Enter passphrase: ");
             passphrase = Console.ReadLine();
+            passphrase.Trim();
+
             Console.WriteLine("Server started.");
 
             HttpServerChannel channel = new HttpServerChannel(80);

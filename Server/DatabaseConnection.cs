@@ -57,7 +57,7 @@ namespace PractiSES
 
         public string getPublicKey(string email) //return public key (complete)
         {
-            string query = "SELECT k.key from users u, `keys` k WHERE u.email='" + email + "';";
+            string query = "SELECT k.key from users u, `keys` k WHERE u.email='" + email + "' AND k.userid=u.userid;";
 
             cmd = new MySqlCommand(query, conn);
             read = cmd.ExecuteReader();
@@ -109,7 +109,7 @@ namespace PractiSES
 
             cmd = new MySqlCommand(query, conn);
             read = cmd.ExecuteReader();
-
+            
             if (read.Read())
             {
                 return read.GetString(0);
