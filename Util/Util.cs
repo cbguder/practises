@@ -55,5 +55,23 @@ namespace PractiSES
 
             return result;
         }
+
+        public static bool Compare(byte[] a, byte[] b)
+        {
+            if (a.Length != b.Length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < a.Length; i++)
+            {
+                if (a[i] != a[b])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }
