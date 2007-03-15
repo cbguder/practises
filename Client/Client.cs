@@ -27,65 +27,77 @@ namespace PractiSES
                 return;
             }
 
-            String command = args[0];
+            Client client = new Client();
             String file = args[args.Length - 1];
             String passphrase = null;
             String recipient = null;
-
-            if (args.Length > 1)
-            {
-                if (args[1] == "-p")
-                {
-                    passphrase = args[2];
-                }
-                else
-                {
-                    Console.Write("Enter passphrase: ");
-                    passphrase = Console.ReadLine();
-                    passphrase.Trim();
-                }
-
-                if (args[1] == "-r")
-                {
-                    recipient = args[2];
-                }
-            }
-
-            Client client = new Client(passphrase);
-
-            switch (command)
+            String command = null;
+            
+            switch (args[0])
             {
                 case "--initialize":
                 case "-i":
-                    client.Initialize();
+                    command = "initialize";
                     break;
-                
                 case "--confirm":
                 case "-c":
-                    client.Confirm();
+                    command = "confirm";
                     break;
-
                 case "--encrypt":
                 case "-e":
-                    client.Encrypt(file, recipient);
+                    command = "encrypt";
                     break;
-
                 case "--decrypt":
                 case "-d":
-                    client.Decrypt(file);
+                    command = "decrypt";
                     break;
-
                 case "--sign":
                 case "-s":
-                    client.Sign(file);
+                    command = "sign";
                     break;
-
                 case "--verify":
                 case "-v":
+                    command = "verify";
+                    break;
+                default:
+                    command = "help";
+                    break;
+            }
+
+            for (int i = 0; i < args.Length; i++)
+            {
+                switch (args[i])
+                {
+                    case "-p":
+                        passphrase = args[i + 1];
+                        break;
+                    case "-r":
+                        recipient = args[i + 1];
+                        break;
+                }
+            }
+          
+            switch (command)
+            {
+                case "initialize":
+                    client.Initialize(passphrase);
+                    break;
+                case "confirm":
+                    client.Confirm(file, passphrase);
+                    break;
+                case "encrypt":
+                    client.Encrypt(file, recipient);
+                    break;
+                case "decrypt":
+                    client.Decrypt(file, passphrase);
+                    break;
+                case "sign":
+                    client.Sign(file, passphrase);
+                    break;
+                case "verify":
                     client.Verify(file);
                     break;
-
-                default:
+                case "help":
                     Usage();
                     break;
             }
@@ -106,12 +118,6 @@ namespace PractiSES
 
         public Client()
         {
-            core = null;
-        }
-
-        public Client(String passphrase)
-        {
-            core = new Core(passphrase);
         }
 
         private bool Connect(String host)
@@ -126,36 +132,67 @@ namespace PractiSES
             return true;
         }
 
-        private void Initialize()
+        private void Initialize(String passphrase)
         {
+            core = new Core(passphrase);
+
+            Console.Write("Username: ");
+            String username = Console.ReadLine();
+            Console.Write("Email: ");
+            String email = Console.ReadLine();
+
+            StreamWriter sw = new StreamWriter(Path.Combine(core.ApplicationDataFolder, "identity"));
+            sw.WriteLine(username);
+            sw.WriteLine(email);
+            sw.Close();
+            
             Connect(host);
-            String questions = server.InitKeySet_AskQuestions("cbguder", "cbguder@su.sabanciuniv.edu");
+
+            String questions = server.InitKeySet_AskQuestions(username, email);
             Console.WriteLine(questions);
             Console.Write("Answers: ");
             String answers = Console.ReadLine();
             String serverPublicKey = server.KeyObt("server");
             byte[] message = Encoding.UTF8.GetBytes(answers);
             String encrypted = Crypto.Encrypt(message, serverPublicKey);
-            server.InitKeySet_EnvelopeAnswers("cbguder", "cbguder@su.sabanciuniv.edu", encrypted);
+            File.WriteAllText(Path.Combine(core.ApplicationDataFolder, "answers"), encrypted);
+            server.InitKeySet_EnvelopeAnswers(username, email, encrypted);
         }
 
-        private void Confirm()
+        private void Confirm(String file, String passphrase)
         {
+            core = new Core(passphrase);
+
+            StreamReader sr = new StreamReader(Path.Combine(core.ApplicationDataFolder, "identity"));
+            String username = sr.ReadLine();
+            String email = sr.ReadLine();
+            sr.Close();
+
+            username.Trim();
+            email.Trim();
+
             Connect(host);
 
-            String macpass = File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "asd.txt"));
+            String encrypted = File.ReadAllText(Path.Combine(core.ApplicationDataFolder, "answers"));
+            AESInfo info = Crypto.Destruct(encrypted, core.PrivateKey);
+
+            Rijndael aes = Rijndael.Create();
             
+            String e_macpass = File.ReadAllText(file);
+            byte[] macpass = Crypto.AESDecrypt(Convert.FromBase64String(e_macpass), aes.CreateDecryptor(info.key, info.IV));
+            String abik = Convert.ToBase64String(macpass);
+
             HMAC hmac = HMACSHA1.Create();
-            hmac.Key = Convert.FromBase64String(macpass);
+            hmac.Key = macpass;
             byte[] hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(core.PublicKey));
 
-            if (server.InitKeySet_SendPublicKey("cbguder", "cbguder@su.sabanciuniv.edu", core.PublicKey, Convert.ToBase64String(hash)))
+            if (server.InitKeySet_SendPublicKey(username, email, core.PublicKey, Convert.ToBase64String(hash)))
             {
-                Console.WriteLine("YÝHUUUU!!!");
+                Console.WriteLine("Public key sent. Please check your email.");
             }
             else
             {
-                Console.WriteLine("ühühühü");
+                Console.WriteLine("Public key could not be sent, please try again.");
             }
         }
 
@@ -163,33 +200,29 @@ namespace PractiSES
         {
             String outFile = filename + ".pses";
 
-            String publicKey;
-
-            if (recipient == null)
+            while (recipient == null || recipient == "")
             {
-                Console.Write("Recipient (leave empty for self): ");
+                Console.Write("Recipient: ");
                 recipient = Console.ReadLine();
                 recipient.Trim();
             }
 
-            if (recipient == "" || recipient == "self")
+            try
             {
-                Console.Error.WriteLine("Encrypting for self...");
-                publicKey = core.PublicKey;
+                Connect(host);
             }
-            else
+            catch (Exception e)
             {
-                try
-                {
-                    Connect(host);
-                }
-                catch (Exception e)
-                {
-                    Console.Error.WriteLine("Error: {0}", e.Message);
-                    return;
-                }
+                Console.Error.WriteLine("Error: {0}", e.Message);
+                return;
+            }
 
-                publicKey = server.KeyObt(recipient);
+            String publicKey = server.KeyObt(recipient);
+
+            if (publicKey == "No records exist")
+            {
+                Console.Error.WriteLine("Invalid recipient");
+                return;
             }
 
             byte[] clearText = File.ReadAllBytes(filename);
@@ -201,8 +234,10 @@ namespace PractiSES
             }
         }
 
-        public void Decrypt(String filename)
+        public void Decrypt(String filename, String passphrase)
         {
+            core = new Core(passphrase);
+
             String cipherText = File.ReadAllText(filename);
             byte[] clearText = Crypto.Decrypt(cipherText, core.PrivateKey);
 
@@ -214,8 +249,10 @@ namespace PractiSES
             }
         }
 
-        public void Sign(String filename)
+        public void Sign(String filename, String passphrase)
         {
+            core = new Core(passphrase);
+
             String outFile = filename + ".pses";
 
             String clearText = File.ReadAllText(filename, Encoding.UTF8);

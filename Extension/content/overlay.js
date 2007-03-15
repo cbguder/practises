@@ -1,4 +1,4 @@
-const GPG				= "C:\\Program\ Files\\GNU\\GnuPG\\gpg.exe";
+﻿const GPG				= "C:\\Documents\ and\ Settings\\cbguder\\My\ Documents\\Visual\ Studio\ 2005\\Projects\\PractiSES\\Client\\bin\\Debug\\Client.exe";
 const CHARSET			= "UTF-8";
 const REPLACEMENTCHAR	= Components.interfaces.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER;
 
@@ -7,24 +7,20 @@ var practises = {
 		this.initialized = true;
 		this.strings = document.getElementById("practises-strings");
 	},
-	onMenuItemCommand: function(e) {
-		practises.clearSignMessage();
-	},
-	onToolbarButtonCommand: function(e) {
-		practises.onMenuItemCommand(e);
-	},
-	clearSignMessage: function() {
+	prompt: function(title, message) {
 		var prompts = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
 		var input = {value:""};
 		var check = {value:false};
-		var dialogResult = prompts.promptPassword(window, 'GPG Requires Passphrase', 'Enter Passphrase:', input, null, check);
-		var passphrase = input.value
+		var dialogResult = prompts.promptPassword(window, title, message, input, null, check);
 
-		if(!dialogResult || passphrase == "")
+		if(!dialogResult || input.value == "")
 		{
-			return;
+			return null;
 		}
 
+		return input.value;
+	},
+	callPractises: function(command, argument) {
 		var domndEditor = document.getElementById("content-frame");
 		var htmlEditor = domndEditor.getHTMLEditor(domndEditor.contentWindow);
 		htmlEditor = htmlEditor.QueryInterface(Components.interfaces.nsIPlaintextEditor);
@@ -43,14 +39,23 @@ var practises = {
 
 		var gpg_file = Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces.nsILocalFile);
 		var gpg_process = Components.classes["@mozilla.org/process/util;1"].createInstance(Components.interfaces.nsIProcess);
-		var gpg_args = ["--clearsign", "--charset", "utf8", "--passphrase", passphrase, tmp_file.path];
+		var gpg_args;
+
+		if(command == "-s" || command == "-d" || command == "-c")
+		{
+			gpg_args = [command, "-p", argument, tmp_file.path];
+		}
+		else if(command == "-e")
+		{
+			gpg_args = [command, "-r", argument, tmp_file.path];
+		}
 
 		gpg_file.initWithPath(GPG);
 		gpg_process.init(gpg_file);
 		gpg_process.run(true, gpg_args, gpg_args.length);
 
 		var signed_file = Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces.nsILocalFile);
-		signed_file.initWithPath(tmp_file.path + ".asc");
+		signed_file.initWithPath(tmp_file.path + ".pses");
 		var istream = Components.classes["@mozilla.org/network/file-input-stream;1"].createInstance(Components.interfaces.nsIFileInputStream);
 		istream.init(signed_file, 0x01, 0, 0);
 		istream.QueryInterface(Components.interfaces.nsIInputStream);
@@ -71,6 +76,22 @@ var practises = {
 
 		tmp_file.remove(false);
 		signed_file.remove(false);
+	},
+	confirm: function(e) {
+		var passphrase = practises.prompt("PractiSES", "Enter passphrase:");
+		practises.callPractises("-c", passphrase);
+	},
+	encrypt: function(e) {
+		var recipient = practises.prompt("PractiSES", "Enter recipient:");
+		practises.callPractises("-e", recipient);
+	},
+	decrypt: function(e) {
+		var passphrase = practises.prompt("PractiSES", "Enter passphrase:");
+		practises.callPractises("-d", passphrase);
+	},
+	sign: function(e) {
+		var passphrase = practises.prompt("PractiSES", "Enter passphrase:");
+		practises.callPractises("-s", passphrase);
 	}
 };
 

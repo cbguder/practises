@@ -34,6 +34,14 @@ namespace PractiSES
                 return this.privateKey;
             }
         }
+
+        public String ApplicationDataFolder
+        {
+            get
+            {
+                return this.appDataFolder;
+            }
+        }
         
         public Core() : this(null)
         {
