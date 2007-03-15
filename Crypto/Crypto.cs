@@ -90,7 +90,9 @@ namespace PractiSES
 
             ArrayList bytes = new ArrayList(Convert.FromBase64String(StripMessage(message)));
 
-            result.key = RSADecrypt((byte[])bytes.GetRange(0, ebs).ToArray(Type.GetType("System.Byte")), privateKey);
+            byte[] keyPart = (byte[])bytes.GetRange(0, ebs).ToArray(Type.GetType("System.Byte"));
+
+            result.key = RSADecrypt(keyPart, privateKey);
             result.IV = RSADecrypt((byte[])bytes.GetRange(ebs, ebs).ToArray(Type.GetType("System.Byte")), privateKey);
             result.message = (byte[])bytes.GetRange(ebs * 2, bytes.Count - ebs * 2).ToArray(Type.GetType("System.Byte"));
 
@@ -111,13 +113,13 @@ namespace PractiSES
         private static byte[] RSAEncrypt(byte[] rgb, String publicKey)
         {
             RSACryptoServiceProvider rsa = Crypto.GetRSA(publicKey);
-            return rsa.Encrypt(rgb, false);
+            return rsa.Encrypt(rgb, true);
         }
 
         private static byte[] RSADecrypt(byte[] rgb, String privateKey)
         {
             RSACryptoServiceProvider rsa = Crypto.GetRSA(privateKey);
-            return rsa.Decrypt(rgb, false);
+            return rsa.Decrypt(rgb, true);
         }
 
         private static String RSAGetSignature(String clearText, String privateKey)
