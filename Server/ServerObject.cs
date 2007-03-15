@@ -98,7 +98,7 @@ namespace PractiSES
             Rijndael aes = Rijndael.Create();
 
             DatabaseConnection connection = new DatabaseConnection();
-            connection.setMACPass(email, hmac.Key.ToString());
+            connection.setMACPass(email, Convert.ToBase64String(hmac.Key));
             connection.close();
 
             return Convert.ToBase64String(Crypto.AESEncrypt(hmac.Key, aes.CreateEncryptor(aesInfo.key, aesInfo.IV)));
@@ -108,8 +108,7 @@ namespace PractiSES
         {
             string macPassword_encrypted = InitKeySet_EncryptMACPass(email, aesInfo);
             string subject = "Welcome to PractiSES";
-            string body = "Your encrypted password is " + macPassword_encrypted + 
-                "Please provide your public key.";
+            string body = macPassword_encrypted;
             Email mailer = new Email(email, subject, body);    //recepient, subject, body
             mailer.Send();
             Console.WriteLine("Mail sent to user " + email); 
