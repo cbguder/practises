@@ -59,6 +59,11 @@ namespace PractiSES
                 case "-i":
                     client.Initialize();
                     break;
+                
+                case "--confirm":
+                case "-c":
+                    client.Confirm();
+                    break;
 
                 case "--encrypt":
                 case "-e":
@@ -132,6 +137,26 @@ namespace PractiSES
             byte[] message = Encoding.UTF8.GetBytes(answers);
             String encrypted = Crypto.Encrypt(message, serverPublicKey);
             server.InitKeySet_EnvelopeAnswers("cbguder", "cbguder@su.sabanciuniv.edu", encrypted);
+        }
+
+        private void Confirm()
+        {
+            Connect(host);
+
+            String macpass = File.ReadAllText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "asd.txt"));
+            
+            HMACSHA1 hmac = HMACSHA1.Create();
+            hmac.Key = Convert.FromBase64String(macpass);
+            byte[] hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(core.PublicKey));
+
+            if (server.InitKeySet_SendPublicKey("cbguder", "cbguder@su.sabanciuniv.edu", core.PublicKey, Convert.ToBase64String(hash)))
+            {
+                Console.WriteLine("YÝHUUUU!!!");
+            }
+            else
+            {
+                Console.WriteLine("ühühühü");
+            }
         }
 
         private void Encrypt(String filename, String recipient)
