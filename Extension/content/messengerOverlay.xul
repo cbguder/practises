@@ -2,7 +2,7 @@
 <?xml-stylesheet href="chrome://practises/skin/overlay.css" type="text/css"?>
 <!DOCTYPE overlay SYSTEM "chrome://practises/locale/practises.dtd">
 <overlay id="practises-overlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-	<script src="practises.js"/>
+	<script src="messengerOverlay.js"/>
 	<stringbundleset id="stringbundleset">
 		<stringbundle id="practises-strings" src="chrome://practises/locale/practises.properties"/>
 	</stringbundleset>
