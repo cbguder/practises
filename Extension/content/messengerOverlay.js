@@ -72,8 +72,7 @@ var practises = {
 			is.close();
 		istream.close();
 
-		htmlEditor.selectAll();
-		htmlEditor.insertText(data);
+		ndBODY.textContent = data;
 
 		tmp_file.remove(false);
 		signed_file.remove(false);
