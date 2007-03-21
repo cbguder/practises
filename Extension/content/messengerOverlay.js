@@ -25,8 +25,6 @@ var practises = {
 		var msgPaneDocChildren = messagePane.contentDocument.childNodes;
 		var ndHTML = msgPaneDocChildren.item(0);
 		var ndBODY = ndHTML.childNodes.item(1);
-		ndBODY.textContent = "asdasdasdasd";
-		return;
 
 		var tmp_file = Components.classes["@mozilla.org/file/directory_service;1"].getService(Components.interfaces.nsIProperties).get("TmpD", Components.interfaces.nsIFile);
 		tmp_file.append("message.tmp");
