@@ -17,7 +17,20 @@ namespace PractiSES
             Console.Write("Enter passphrase: ");
             passphrase = Console.ReadLine();
             passphrase.Trim();
-
+            Core core = new Core(passphrase);
+            DatabaseConnection connection = new DatabaseConnection();
+            string publicKey = core.PublicKey;
+            string dbPublicKey = connection.getPublicKey("server");
+            connection.close();
+            if (publicKey != dbPublicKey)
+            {
+                connection = new DatabaseConnection();
+                connection.setPublicKey("server", "server", publicKey);
+                Console.WriteLine("Old public key:\n" + dbPublicKey);
+                Console.WriteLine("New key pair is set.");
+            }   
+            connection.close();
+            Console.WriteLine("Server's public key:\n" + publicKey);
             Console.WriteLine("Server started.");
 
             HttpServerChannel channel = new HttpServerChannel(80);
@@ -28,7 +41,6 @@ namespace PractiSES
                 "PractiSES",
                 WellKnownObjectMode.SingleCall);
             System.Console.ReadLine();
-
         }
     }
 }

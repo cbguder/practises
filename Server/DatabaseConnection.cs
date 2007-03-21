@@ -17,33 +17,37 @@ namespace PractiSES
 
         public DatabaseConnection()
         {
-            connectionstring = String.Format("server={0};uid={1};pwd={2};database={3}", server, uid, pwd, dbase);
-            conn = new MySqlConnection(connectionstring);
-            conn.Open();
+            try
+            {
+                connectionstring = String.Format("server={0};uid={1};pwd={2};database={3}", server, uid, pwd, dbase);
+                conn = new MySqlConnection(connectionstring);
+                conn.Open();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception: " + e.Message);
+                throw e;
+            }
         }
 
         public string getUserID(string email) //return public key (complete)
         {
             string query = "SELECT u.userid from users u WHERE u.email='" + email + "';";
-
             cmd = new MySqlCommand(query, conn);
             read = cmd.ExecuteReader();
-
             if (read.Read())
             {
                 return read.GetString(0);
             }
-            return "No records exist";
+            return null;
 
         }
 
-
-        public bool setPublicKey(string email, string key) //return public key (complete)
+        public bool setPublicKey(string userID, string email, string key) //return public key (complete)
         {
             try
             {
-                string query = "UPDATE `keys` k, users u SET k.key='" + key + "' WHERE u.email='" + email + "', u.id=k.id, k.key='null';";
-
+                string query = String.Format("INSERT INTO `keys` (`userID`, `start`, `end`, `key`, `deleted`) VALUES ('{0}', NOW(), 0, '{1}', 0);", userID, key);
                 cmd = new MySqlCommand(query, conn);
                 cmd.ExecuteNonQuery();
                 return true;
@@ -58,31 +62,25 @@ namespace PractiSES
         public string getPublicKey(string email) //return public key (complete)
         {
             string query = "SELECT k.key from users u, `keys` k WHERE u.email='" + email + "' AND k.userid=u.userid;";
-
             cmd = new MySqlCommand(query, conn);
             read = cmd.ExecuteReader();
-
             if (read.Read())
             {
                 return read.GetString(0);
             }
-            return "No records exist";
-
+            return null;
         }
 
         public string getAnswers(string email) //return public key (complete)
         {
-            string query = "SELECT u.semisecret1 from users u WHERE u.email='" + email + "';";
-            
+            string query = "SELECT u.semisecret1 from users u WHERE u.email='" + email + "';";   
             cmd = new MySqlCommand(query, conn);
             read = cmd.ExecuteReader();
-
             if(read.Read())
             {
                 return read.GetString(0);
             }
-            return "No records exist";
-
+            return email + ": No records exist";
         }
 
         public bool setMACPass(string email, string key)
@@ -90,7 +88,6 @@ namespace PractiSES
             try
             {
                 string query = "UPDATE users u SET u.macpass='" + key + "' WHERE u.email='" + email + "';";
-
                 cmd = new MySqlCommand(query, conn);
                 cmd.ExecuteNonQuery();
                 return true;
@@ -100,22 +97,18 @@ namespace PractiSES
                 Console.WriteLine("Exception: " + e.Message);
                 return false;
             }
-
         }
 
         public string getMACPass(string email)
         {
             string query = "SELECT u.macpass from users u WHERE u.email='" + email + "';";
-
             cmd = new MySqlCommand(query, conn);
-            read = cmd.ExecuteReader();
-            
+            read = cmd.ExecuteReader();         
             if (read.Read())
             {
                 return read.GetString(0);
             }
             return "No records exist";
-
         }
 
         public void insertEntry()
@@ -127,8 +120,7 @@ namespace PractiSES
         {
             try
             {
-                string query = "DELETE FROM users WHERE email='" + email + "';";
-                
+                string query = "DELETE FROM users WHERE email='" + email + "';";          
                 cmd = new MySqlCommand(query, conn);
                 cmd.ExecuteNonQuery();
                 query = "DELETE FROM users WHERE userID='" + userID + "';";

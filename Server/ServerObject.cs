@@ -9,72 +9,50 @@ namespace PractiSES
 {
     public class ServerObject : MarshalByRefObject
     {
-        //complete the userID-email verification query
         public string InitKeySet_AskQuestions(string userID, string email)
         {
+            Console.WriteLine("-------------------------");
             Console.WriteLine(email + ": InitKeySet_AskQuestions");
             DatabaseConnection connection = new DatabaseConnection();
-            string result = connection.getUserID(email);
+            string dbUserid = connection.getUserID(email);
             connection.close();
-            if (result != userID)
+            if (userID == null)
             {
-                Console.WriteLine("Incorrect user id or e-mail address");
-                return "Error: Incorrect user id or e-mail address";
+                Console.WriteLine(email + ": Email does not exist!");
+                return null;
             }
-
+            if (userID != dbUserid)
+            {
+                Console.WriteLine(email + ": User id does not exist!");
+                return null;
+            }
             Core core = new Core(Server.passphrase);
             string questions = core.ReadQuestions();
-
             string signQuestions = Crypto.Sign(questions, core.PrivateKey);
-
-            //questions = string.Concat(questions, signQuestions);
             return signQuestions;
-
-            /*Console.WriteLine("Connected");
-            DatabaseConnection connection = new DatabaseConnection();
-            string result = connection.setPublicKey(email);
-            connection.close();
-            return result;*/
         }
-
-        /*public void InitKeySet_EnvelopeAnswers(string userID, string email, string SK_encrypted, string Answers_encrypted)
-        {       
-            Core core = new Core(Server.passphrase);
-            string privateKey = core.PrivateKey;
-
-            string SK = Crypto.Decrypt(SK_encrypted, privateKey);
-            string answers = Crypto.Decrypt(Answers_encrypted, SK);
-
-            DatabaseConnection connection = new DatabaseConnection();
-            string result = connection.getAnswers(email);
-            connection.close();
-            if (answers == result)
-            {
-                InitKeySet_SendMail(email, SK);
-            }
-            else
-            {
-                //protocol stops and socket is closed.
-            }
-        }*/
 
         public void InitKeySet_EnvelopeAnswers(string userID, string email, string answersEnveloped)
         {
+            Console.WriteLine("-------------------------");
             Console.WriteLine(email + ": InitKeySet_EnvelopeAnswers");
             DatabaseConnection connection = new DatabaseConnection();
             string dbUserid = connection.getUserID(email);
             connection.close();
-            if (userID != dbUserid)
+            if (userID == null)
             {
-                Console.WriteLine("Incorrect user id or e-mail address");
+                Console.WriteLine(email + ": Email does not exist!");
                 return;
             }
-
+            if (userID != dbUserid)
+            {
+                Console.WriteLine(email + ": User id does not exist!");
+                return;
+            }
             Core core = new Core(Server.passphrase);
             string privateKey = core.PrivateKey;
 
             Rijndael aes = Rijndael.Create();
-
             AESInfo aesInfo = Crypto.Destruct(answersEnveloped, privateKey);
             String answers = Encoding.UTF8.GetString(Crypto.AESDecrypt(aesInfo.message, aes.CreateDecryptor(aesInfo.key, aesInfo.IV)));
 
@@ -88,6 +66,8 @@ namespace PractiSES
             else
             {
                //protocol stops and socket is closed.
+                InitKeySet_ErrorMail(email);
+                Console.WriteLine("Error - " + email + ": Answers are not correct!");
             }
         }
 
@@ -108,24 +88,42 @@ namespace PractiSES
         {
             string macPassword_encrypted = InitKeySet_EncryptMACPass(email, aesInfo);
             string subject = "Welcome to PractiSES";
-            string body = macPassword_encrypted;
+            StringBuilder body = new StringBuilder("Please double click the message to open this mail message in new window.\n Then follow Tools -> PractiSES -> Finalize Initialization links to finish initialization.");
+            body.AppendLine();
+            body.AppendLine(Crypto.BeginMessage);
+            body.AppendLine(macPassword_encrypted);
+            body.AppendLine(Crypto.EndMessage);
+            Email mailer = new Email(email, subject, body.ToString());    //recepient, subject, body
+            mailer.Send();
+            Console.WriteLine(email + ": Mail sent."); 
+        }
+
+        private void InitKeySet_ErrorMail(string email)
+        {
+            string subject = "PractiSES";
+            string body = "Your answers are not correct.";
             Email mailer = new Email(email, subject, body);    //recepient, subject, body
             mailer.Send();
-            Console.WriteLine("Mail sent to user " + email); 
+            Console.WriteLine(email + ": Warning mail sent.");
         }
 
         public bool InitKeySet_SendPublicKey(string userID, string email, string publicKey, string macValue)
         {
+            Console.WriteLine("-------------------------");
             Console.WriteLine(email + ": InitKeySet_SendPublicKey");
             DatabaseConnection connection = new DatabaseConnection();
             string dbUserid = connection.getUserID(email);
             connection.close();
-            if (userID != dbUserid)
+            if (userID == null)
             {
-                Console.WriteLine("Incorrect user id or e-mail address");
+                Console.WriteLine("Error - " + email + ": Email does not exist!");
                 return false;
             }
-
+            if (userID != dbUserid)
+            {
+                Console.WriteLine("Error - " + email + ": User id does not exist!");
+                return false;
+            }
             connection = new DatabaseConnection();
             string dbMACPass = connection.getMACPass(email);
             connection.close();
@@ -133,30 +131,37 @@ namespace PractiSES
             HMAC hmac = HMACSHA1.Create();
             hmac.Key = Convert.FromBase64String(dbMACPass);
             byte[] hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(publicKey));
-
             //Hash hash = new Hash(dbMACPass);
             //if (hash.ValidateMAC(publicKey, macValue))
             if(Util.Compare(hash, Convert.FromBase64String(macValue)))
             {
-                connection.setPublicKey(email, publicKey);
+                connection = new DatabaseConnection();
+                connection.setPublicKey(userID, email, publicKey);
+                connection.close();
                 Console.WriteLine(email +": Public key is set.");
                 return true;
             }
-            Console.WriteLine(email + ": Error - Public key could not be set.");
+            Console.WriteLine("Error - " + email + ": MAC value is tampered, public key is not set.");
             return false;
         }
         
         public string KeyObt(string email) //get public key of a user ( complete )
         {
+            Console.WriteLine("-------------------------");
             Console.WriteLine(email + ": KeyObt");
             DatabaseConnection connection = new DatabaseConnection();
-            string result = connection.getPublicKey(email);
+            string publicKey = connection.getPublicKey(email);
             connection.close();
-            return result;
+            if (publicKey == null)
+            {
+                Console.WriteLine("Error - " + email + ": Email does not exist!");
+            }
+            return publicKey;
         }
 
         public bool KeyRem(string userID, string email, string signedMessage)
         {
+            Console.WriteLine("-------------------------");
             Console.WriteLine("Connected");
             DatabaseConnection connection = new DatabaseConnection();
             bool result = connection.removeEntry(email, userID);
@@ -166,15 +171,18 @@ namespace PractiSES
 
         public bool KeyUpdate(string userID, string email, string signedMessage)
         {
+            Console.WriteLine("-------------------------");
             return true;
         }
 
         public void USKeyRem(string userID, string email)
         {
+            Console.WriteLine("-------------------------");
         }
 
         public void USKeyUpdate(string userID, string email, string newKey)
         {
+            Console.WriteLine("-------------------------");
         }
 
     }
