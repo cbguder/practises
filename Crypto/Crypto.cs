@@ -18,11 +18,11 @@ namespace PractiSES
 
         private const int Wrap = 64;
 
-        private const String BeginSignedMessage = "-----BEGIN PRACTISES SIGNED MESSAGE-----";
-        private const String BeginSignature     = "-----BEGIN PRACTISES SIGNATURE-----";
-        private const String EndSignature       = "-----END PRACTISES SIGNATURE-----";
-        private const String BeginMessage       = "-----BEGIN PRACTISES MESSAGE-----";
-        private const String EndMessage         = "-----END PRACTISES MESSAGE-----";
+        public const String BeginSignedMessage = "-----BEGIN PRACTISES SIGNED MESSAGE-----";
+        public const String BeginSignature = "-----BEGIN PRACTISES SIGNATURE-----";
+        public const String EndSignature = "-----END PRACTISES SIGNATURE-----";
+        public const String BeginMessage = "-----BEGIN PRACTISES MESSAGE-----";
+        public const String EndMessage = "-----END PRACTISES MESSAGE-----";
 
         public static RSACryptoServiceProvider GetRSA()
         {
