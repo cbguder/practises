@@ -16,7 +16,7 @@ namespace PractiSES
 {
     class Client
     {
-        private const String host = "10.90.10.72";
+        private const String host = "10.90.12.114";
         private ServerObject server;
         private Core core;
 
