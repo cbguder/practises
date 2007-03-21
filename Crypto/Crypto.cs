@@ -262,6 +262,7 @@ namespace PractiSES
             String contents = "";
             String line;
             Boolean inMessage = false;
+            Boolean signedMessage = false;
 
             while (true)
             {
@@ -275,12 +276,18 @@ namespace PractiSES
 
                 if (line == BeginMessage || line == BeginSignedMessage)
                 {
+                    if (line == BeginSignedMessage)
+                    {
+                        signedMessage = true;
+                    }
+
                     do
                     {
                         line = sr.ReadLine();
-                        line.Trim();
+                        if(line != null)
+                            line.Trim();
                     }
-                    while (line != "");
+                    while (line != "" && line != null);
 
                     inMessage = true;
                 }
@@ -291,10 +298,15 @@ namespace PractiSES
                 else if (inMessage)
                 {
                     contents += line;
+
+                    if (signedMessage)
+                    {
+                        contents += Environment.NewLine;
+                    }
                 }
             }
 
-            return contents;
+            return contents.Trim();
         }
 	}
 }

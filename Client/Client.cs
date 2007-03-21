@@ -10,12 +10,13 @@ using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Http;
 using System.Security.Cryptography;
 using System.Text;
+using System.Collections;
 
 namespace PractiSES
 {
     class Client
     {
-        private const String host = "10.90.36.198";
+        private const String host = "10.90.10.72";
         private ServerObject server;
         private Core core;
 
@@ -59,6 +60,9 @@ namespace PractiSES
                 case "-v":
                     command = "verify";
                     break;
+                case "--strip":
+                    command = "strip";
+                    break;
                 default:
                     command = "help";
                     break;
@@ -96,6 +100,9 @@ namespace PractiSES
                     break;
                 case "verify":
                     client.Verify(file);
+                    break;
+                case "strip":
+                    client.Strip(file);
                     break;
                 case "help":
                     Usage();
@@ -149,14 +156,25 @@ namespace PractiSES
             Connect(host);
 
             String questions = server.InitKeySet_AskQuestions(username, email);
-            Console.WriteLine(questions);
+            String strippedQuestions = Crypto.StripMessage(questions);
+            Console.WriteLine("Questions:");
+            Console.WriteLine(strippedQuestions);
             Console.Write("Answers: ");
             String answers = Console.ReadLine();
             String serverPublicKey = server.KeyObt("server");
             byte[] message = Encoding.UTF8.GetBytes(answers);
-            String encrypted = Crypto.Encrypt(message, serverPublicKey);
-            File.WriteAllText(Path.Combine(core.ApplicationDataFolder, "answers"), encrypted);
+            Rijndael aes = Rijndael.Create();
+            String encrypted = Crypto.Encrypt(message, serverPublicKey, aes);
+
+            ArrayList key = new ArrayList();
+            key.AddRange(aes.Key);
+            key.AddRange(aes.IV);
+
+            File.WriteAllBytes(Path.Combine(core.ApplicationDataFolder, "answers.key"), (byte[])key.ToArray(Type.GetType("System.Byte")));
+
             server.InitKeySet_EnvelopeAnswers(username, email, encrypted);
+
+            Console.Error.WriteLine("Answers sent. Please check your email to finalize PractiSES initialization.");
         }
 
         private void Confirm(String file, String passphrase)
@@ -173,12 +191,17 @@ namespace PractiSES
 
             Connect(host);
 
-            String encrypted = File.ReadAllText(Path.Combine(core.ApplicationDataFolder, "answers"));
-            AESInfo info = Crypto.Destruct(encrypted, core.PrivateKey);
+            ArrayList key = new ArrayList(File.ReadAllBytes(Path.Combine(core.ApplicationDataFolder, "answers.key")));
+            AESInfo info = new AESInfo();
+            info.key = (byte[])key.GetRange(0, Crypto.AESKeySize / 8).ToArray(Type.GetType("System.Byte"));
+            info.IV = (byte[])key.GetRange(Crypto.AESKeySize / 8, Crypto.AESIVSize / 8).ToArray(Type.GetType("System.Byte"));
+            File.Delete(Path.Combine(core.ApplicationDataFolder, "answers.key"));
 
             Rijndael aes = Rijndael.Create();
             
             String e_macpass = File.ReadAllText(file);
+            e_macpass = Crypto.StripMessage(e_macpass);
+
             byte[] macpass = Crypto.AESDecrypt(Convert.FromBase64String(e_macpass), aes.CreateDecryptor(info.key, info.IV));
             String abik = Convert.ToBase64String(macpass);
 
@@ -188,7 +211,7 @@ namespace PractiSES
 
             if (server.InitKeySet_SendPublicKey(username, email, core.PublicKey, Convert.ToBase64String(hash)))
             {
-                Console.WriteLine("Public key sent. Please check your email.");
+                Console.WriteLine("Public key successfully sent.");
             }
             else
             {
@@ -262,6 +285,12 @@ namespace PractiSES
             {
                 Console.Error.WriteLine("Output written to {0}", outFile);
             }
+        }
+
+        public void Strip(String filename)
+        {
+            String message = File.ReadAllText(filename);
+            Console.WriteLine(Crypto.StripMessage(message));
         }
 
         public void Verify(String filename)
