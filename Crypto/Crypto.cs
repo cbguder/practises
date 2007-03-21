@@ -12,9 +12,9 @@ namespace PractiSES
 {
 	public static class Crypto
 	{
-        private const int RSAKeySize = 2048;
-        private const int AESKeySize = 256;
-        private const int AESIVSize = 128;
+        public const int RSAKeySize = 2048;
+        public const int AESKeySize = 256;
+        public const int AESIVSize = 128;
 
         private const int Wrap = 64;
 
@@ -53,9 +53,13 @@ namespace PractiSES
 
         public static String Encrypt(byte[] clearText, String publicKey)
         {
-            StringWriter cipherText = new StringWriter();
-
             Rijndael aes = Rijndael.Create();
+            return Crypto.Encrypt(clearText, publicKey, aes);
+        }
+
+        public static String Encrypt(byte[] clearText, String publicKey, Rijndael aes)
+        {
+            StringWriter cipherText = new StringWriter();
 
             ArrayList message = new ArrayList();
             message.AddRange(Crypto.RSAEncrypt(aes.Key, publicKey));
@@ -252,11 +256,12 @@ namespace PractiSES
             return result;
         }
 
-        private static String StripMessage(String message)
+        public static String StripMessage(String message)
         {
             StringReader sr = new StringReader(message);
             String contents = "";
             String line;
+            Boolean inMessage = false;
 
             while (true)
             {
@@ -268,16 +273,22 @@ namespace PractiSES
 
                 line.Trim();
 
-                if (line == BeginMessage)
+                if (line == BeginMessage || line == BeginSignedMessage)
                 {
-                    while (line != "")
+                    do
+                    {
                         line = sr.ReadLine();
+                        line.Trim();
+                    }
+                    while (line != "");
+
+                    inMessage = true;
                 }
-                else if (line == EndMessage)
+                else if (line == EndMessage || line == BeginSignature)
                 {
                     break;
                 }
-                else
+                else if (inMessage)
                 {
                     contents += line;
                 }
