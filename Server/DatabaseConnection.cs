@@ -30,7 +30,7 @@ namespace PractiSES
             }
         }
 
-        public string getUserID(string email) //return public key (complete)
+        public string getUserID(string email) //return user id  (complete)
         {
             string query = "SELECT u.userid from users u WHERE u.email='" + email + "';";
             cmd = new MySqlCommand(query, conn);
@@ -43,7 +43,7 @@ namespace PractiSES
 
         }
 
-        public bool setPublicKey(string userID, string email, string key) //return public key (complete)
+        public bool setPublicKey(string userID, string email, string key) 
         {
             try
             {
@@ -59,6 +59,37 @@ namespace PractiSES
             }
         }
 
+        public bool updatePublicKey(string userID, string email, string key)
+        {
+            try
+            {
+                string query = String.Format("UPDATE `keys` SET `key` = '{0}' WHERE `userID` ='{1}';",key,userID);
+                cmd = new MySqlCommand(query, conn);
+                cmd.ExecuteNonQuery();
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception: " + e.Message);
+                return false;
+            }
+        }
+
+        public bool removePublicKey(string userID, string email)
+        {
+            try
+            {
+                string query = String.Format("UPDATE `keys` SET `key` = '' WHERE `userID` ='{0}';", userID);
+                cmd = new MySqlCommand(query, conn);
+                cmd.ExecuteNonQuery();
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception: " + e.Message);
+                return false;
+            }
+        }
         public string getPublicKey(string email) //return public key (complete)
         {
             string query = "SELECT k.key from users u, `keys` k WHERE u.email='" + email + "' AND k.userid=u.userid;";

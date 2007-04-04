@@ -1,4 +1,4 @@
-const GPG				= "C:\\Documents\ and\ Settings\\cbguder\\My\ Documents\\Visual\ Studio\ 2005\\Projects\\PractiSES\\Client\\bin\\Debug\\Client.exe";
+const GPG				= "C:\\Documents\ and\ Settings\\kullaniciadi\\Desktop\\Practises\\Client\\bin\\Debug\\Client.exe";
 const CHARSET			= "UTF-8";
 const REPLACEMENTCHAR	= Components.interfaces.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER;
 
