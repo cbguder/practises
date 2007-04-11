@@ -276,7 +276,7 @@ namespace PractiSES
 
             HMAC hmac = HMACSHA1.Create();
             hmac.Key = Convert.FromBase64String(dbMACPass);
-            byte[] hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(removalRequest));
+            byte[] hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(removeRequest));
             string request = hash.ToString();
             if (request.Equals("I want to remove my current public key"))
             {

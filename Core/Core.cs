@@ -42,12 +42,24 @@ namespace PractiSES
                 return this.appDataFolder;
             }
         }
+
+        public String KeyFile
+        {
+            get
+            {
+                return this.keyFile;
+            }
+        }
         
         public Core() : this(null)
         {
         }
 
-        public Core(String passphrase)
+        public Core(String passphrase) : this(passphrase, true)
+        {
+        }
+
+        public Core(String passphrase, Boolean autoInitialize)
         {
             appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             appDataFolder = Path.Combine(appDataFolder, "PractiSES");
@@ -59,10 +71,13 @@ namespace PractiSES
                 Directory.CreateDirectory(appDataFolder);
             }
 
-            this.InitializeKeys(passphrase);
+            if (autoInitialize)
+            {
+                this.InitializeKeys(passphrase);
+            }
         }
 
-        private void InitializeKeys(String passphrase)
+        public void InitializeKeys(String passphrase)
         {
             RSACryptoServiceProvider rsa = Crypto.GetRSA();
 

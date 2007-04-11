@@ -56,6 +56,10 @@ namespace PractiSES
                 case "-s":
                     command = "sign";
                     break;
+                case "--update":
+                case "-u":
+                    command = "update";
+                    break;
                 case "--verify":
                 case "-v":
                     command = "verify";
@@ -98,6 +102,9 @@ namespace PractiSES
                 case "sign":
                     client.Sign(file, passphrase);
                     break;
+                case "update":
+                    client.Update(passphrase);
+                    break;
                 case "verify":
                     client.Verify(file);
                     break;
@@ -120,6 +127,7 @@ namespace PractiSES
             Console.Error.WriteLine("    -d, --decrypt");
             Console.Error.WriteLine("    -e, --encrypt");
             Console.Error.WriteLine("    -s, --sign");
+            Console.Error.WriteLine("    -u, --update");
             Console.Error.WriteLine("    -v, --verify");
         }
 
@@ -293,8 +301,51 @@ namespace PractiSES
             Console.WriteLine(Crypto.StripMessage(message));
         }
 
+        public void Update(String passphrase)
+        {
+            core = new Core(passphrase, false);
+            File.Delete(core.KeyFile);
+            core.InitializeKeys(passphrase);
+
+            StreamReader sr = new StreamReader(Path.Combine(core.ApplicationDataFolder, "identity"));
+            String username = sr.ReadLine();
+            String email = sr.ReadLine();
+            sr.Close();
+
+            Connect(host);
+
+            String questions = server.USKeyRem_AskQuestions(username, email);
+            String strippedQuestions = Crypto.StripMessage(questions);
+            Console.WriteLine("Questions:");
+            Console.WriteLine(strippedQuestions);
+            Console.Write("Answers: ");
+            String answers = Console.ReadLine();
+            String serverPublicKey = server.KeyObt("server");
+            byte[] message = Encoding.UTF8.GetBytes(answers);
+            Rijndael aes = Rijndael.Create();
+            String encrypted = Crypto.Encrypt(message, serverPublicKey, aes);
+
+            ArrayList key = new ArrayList();
+            key.AddRange(aes.Key);
+            key.AddRange(aes.IV);
+
+            File.WriteAllBytes(Path.Combine(core.ApplicationDataFolder, "answers.key"), (byte[])key.ToArray(Type.GetType("System.Byte")));
+
+            server.USKeyRem_EnvelopeAnswers(username, email, encrypted);
+
+            Console.Error.WriteLine("Answers sent. Please check your email to finalize PractiSES key update.");
+        }
+
         public void Verify(String filename)
         {
+        }
+
+        private void WriteIdentity(String username, String email)
+        {
+            StreamWriter sw = new StreamWriter(Path.Combine(core.ApplicationDataFolder, "identity"));
+            sw.WriteLine(username);
+            sw.WriteLine(email);
+            sw.Close();
         }
 
         private bool Write(String path, byte[] contents)
