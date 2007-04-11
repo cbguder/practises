@@ -1,4 +1,4 @@
-const GPG				= "C:\\Documents\ and\ Settings\\kullaniciadi\\Desktop\\Practises\\Client\\bin\\Debug\\Client.exe";
+const GPG				= "C:\\Documents\ and\ Settings\\cbguder\\My\ Documents\\Visual\ Studio\ 2005\\Projects\\PractiSES\\Client\\bin\\Debug\\Client.exe";
 const CHARSET			= "UTF-8";
 const REPLACEMENTCHAR	= Components.interfaces.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER;
 
@@ -77,15 +77,45 @@ var practises = {
 		tmp_file.remove(false);
 		signed_file.remove(false);
 	},
-	encrypt: function(e) {
+	encrypt: function() {
 		var node = document.getElementById("addressCol2#1");
 		var recipient = node.value;
 		practises.callPractises("-e", recipient);
 	},
-	sign: function(e) {
+	sign: function() {
 		var passphrase = practises.prompt("PractiSES", "Enter passphrase:");
 		practises.callPractises("-s", passphrase);
 	}
 };
 
+function onComposerSendMessage()
+{
+	var signRadio = document.getElementById("practises-sign");
+	var encryptRadio = document.getElementById("practises-encrypt");
+	var signAndEncryptRadio = document.getElementById("practises-signAndEncrypt");
+
+	var CHECKED = signRadio.accessible.STATE_CHECKED;
+
+	var sign = false;
+	var encrypt = false;
+	
+	if(signAndEncryptRadio.accessible.finalState & CHECKED) {
+		sign = true;
+		encrypt = true;
+	} else if(signRadio.accessible.finalState & CHECKED) {
+		sign = true;
+	} else if(encryptRadio.accessible.finalState & CHECKED) {
+		encrypt = true;
+	}
+
+	if(sign) {
+		practises.sign();
+	}
+
+	if(encrypt) {
+		practises.encrypt();
+	}
+};
+
 window.addEventListener("load", function(e) { practises.onLoad(e); }, false);
+window.addEventListener('compose-send-message', onComposerSendMessage, true);
