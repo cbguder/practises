@@ -32,7 +32,7 @@ namespace PractiSES
             return signQuestions;
         }
 
-        public void InitKeySet_EnvelopeAnswers(string userID, string email, string answersEnveloped)
+        public bool InitKeySet_EnvelopeAnswers(string userID, string email, string answersEnveloped)
         {
             Console.WriteLine("-------------------------");
             Console.WriteLine(email + ": InitKeySet_EnvelopeAnswers");
@@ -42,12 +42,12 @@ namespace PractiSES
             if (userID == null)
             {
                 Console.WriteLine(email + ": Email does not exist!");
-                return;
+                return false;
             }
             if (userID != dbUserid)
             {
                 Console.WriteLine(email + ": User id does not exist!");
-                return;
+                return false;
             }
             Core core = new Core(Server.passphrase);
             string privateKey = core.PrivateKey;
@@ -61,13 +61,15 @@ namespace PractiSES
             connection.close();
             if (answers == dbAnswers)
             {
-               InitKeySet_SendMail(email, aesInfo);
+                InitKeySet_SendMail(email, aesInfo);
+                return true;
             }
             else
             {
                //protocol stops and socket is closed.
                 InitKeySet_ErrorMail(email);
                 Console.WriteLine("Error - " + email + ": Answers are not correct!");
+                return false;
             }
         }
 
@@ -91,11 +93,14 @@ namespace PractiSES
             StringBuilder body = new StringBuilder("Please double click the message to open this mail message in new window.\n Then follow Tools -> PractiSES -> Finalize Initialization links to finish initialization.");
             body.AppendLine();
             body.AppendLine(Crypto.BeginMessage);
+            body.AppendLine();
             body.AppendLine(macPassword_encrypted);
             body.AppendLine(Crypto.EndMessage);
             Email mailer = new Email(email, subject, body.ToString());    //recepient, subject, body
-            mailer.Send();
-            Console.WriteLine(email + ": Mail sent."); 
+            if(mailer.Send())
+            {
+                Console.WriteLine(email + ": Mail sent."); 
+            }
         }
 
         private void InitKeySet_ErrorMail(string email)
@@ -137,6 +142,9 @@ namespace PractiSES
             {
                 connection = new DatabaseConnection();
                 connection.setPublicKey(userID, email, publicKey);
+                connection.close();
+                connection = new DatabaseConnection();
+                connection.removeMACPass(email);
                 connection.close();
                 Console.WriteLine(email +": Public key is set.");
                 return true;

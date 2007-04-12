@@ -15,9 +15,13 @@ namespace PractiSES
     {
         private String keyFile;
         private String settingsFile;
+        private String actionLogFile;
+        private String errorLogFile;
         private String appDataFolder;
         private String publicKey;
         private String privateKey;
+        public const String separator = "----------------";
+        public const String space = ": ";
 
         public String PublicKey
         {
@@ -50,6 +54,22 @@ namespace PractiSES
                 return this.keyFile;
             }
         }
+
+        public String ActionLogFile
+        {
+            get
+            {
+                return this.actionLogFile;
+            }
+        }
+
+        public String ErrorLogFile
+        {
+            get
+            {
+                return this.errorLogFile;
+            }
+        }
         
         public Core() : this(null)
         {
@@ -62,8 +82,20 @@ namespace PractiSES
         public Core(String passphrase, Boolean autoInitialize)
         {
             appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            appDataFolder = Path.Combine(appDataFolder, "PractiSES");
-            settingsFile = Path.Combine(appDataFolder, "settings.xml");
+            String exeName = Path.GetFileName(Environment.GetCommandLineArgs()[0]);
+            if (exeName == "Client.exe")
+            {
+                appDataFolder = Path.Combine(appDataFolder, "PractiSES\\Client");
+            }
+            if(exeName == "Server.exe" || exeName == "Server.vshost.exe")
+            {
+                appDataFolder = Path.Combine(appDataFolder, "PractiSES\\Server");
+                settingsFile = Path.Combine(appDataFolder, "settings.xml");
+                errorLogFile = Path.Combine(appDataFolder, "error.log");
+                actionLogFile = Path.Combine(appDataFolder, "action.log");
+                CreateLogFile(errorLogFile);
+                CreateLogFile(actionLogFile);
+            }
             keyFile = Path.Combine(appDataFolder, "private.key");
 
             if (!Directory.Exists(appDataFolder))
@@ -93,7 +125,12 @@ namespace PractiSES
                 publicKey = rsa.ToXmlString(false);
                 privateKey = rsa.ToXmlString(true);
                 WriteKey(keyFile, privateKey, passphrase);
-                Console.WriteLine("Public/Private key pair written to " + keyFile);
+                StreamWriter writer = new StreamWriter(actionLogFile, true);
+                writer.Write(DateTime.Now.ToString() + space);
+                writer.WriteLine("Public/Private key pair written to " + keyFile);
+                writer.Close();
+                Console.Write(DateTime.Now.ToString() + Core.space);
+                Console.WriteLine("Public/Private key pair written.");
             }
             else
             {
@@ -101,8 +138,26 @@ namespace PractiSES
                 rsa.FromXmlString(keyString);
                 publicKey = rsa.ToXmlString(false);
                 privateKey = rsa.ToXmlString(true);
-                Console.WriteLine("Public/Private key pair read from " + keyFile);
+                StreamWriter writer = new StreamWriter(actionLogFile, true);
+                writer.Write(DateTime.Now.ToString() + space);
+                writer.WriteLine("Public/Private key pair read from " + keyFile);
+                writer.Close();
+                Console.Write(DateTime.Now.ToString() + Core.space);
+                Console.WriteLine("Public/Private key pair read.");
             }
+        }
+
+        private void CreateLogFile(String logFile)
+        {
+            StreamWriter writer = new StreamWriter(logFile, true);
+            if (!File.Exists(logFile))
+            {
+                writer.WriteLine(separator);
+                writer.Write(DateTime.Now.ToString() + space);
+                writer.WriteLine("Log file has been created.");
+            }
+            writer.WriteLine(separator);
+            writer.Close();
         }
 
         private void WriteKey(String path, String key, String passphrase)
@@ -125,20 +180,37 @@ namespace PractiSES
         {
             if (!File.Exists(settingsFile))
             {
+                XmlElement questionElement;
+                XmlAttribute questionNumber;
                 XmlDocument settingsDocument;
+                XmlProcessingInstruction instruction;
 
                 settingsDocument = new XmlDocument();
 
-                settingsDocument.CreateNode(XmlNodeType.Element, "settings", settingsFile.ToString());
-                settingsDocument.CreateNode(XmlNodeType.EndElement, "settings", settingsFile.ToString());
+                try
+                {
+                    instruction = settingsDocument.CreateProcessingInstruction("xml", "version='1.0' encoding='UTF-8'");
+                    settingsDocument.AppendChild(instruction);
 
-                /*encryption = new Encryption();
+                    questionElement = settingsDocument.CreateElement("", "settings", "");
+                    settingsDocument.AppendChild(questionElement);
 
-                StreamWriter settingsWriter = new StreamWriter(settingsFile);
-                String xmlString = encryption.ToXmlString(true);
-                settingsWriter.Write(xmlString);
-                settingsWriter.Close();*/
-                Console.WriteLine(settingsFile + " has been created. No question has been found.");
+                    questionElement = settingsDocument.CreateElement("", "question", "");
+                    questionNumber = settingsDocument.CreateAttribute("one");
+                    Console.WriteLine("Please enter asked secret question:");
+                    String strQuestion = Console.ReadLine();
+                    Console.WriteLine("Thank you!");
+                    questionNumber.InnerText = strQuestion;
+                    questionElement.Attributes.Append(questionNumber);
+                    settingsDocument.ChildNodes.Item(1).AppendChild(questionElement);
+
+                    settingsDocument.Save(settingsFile);
+                    Console.WriteLine(settingsFile + " has been created.");
+                }
+                catch (XmlException e)
+                {
+                    Console.WriteLine(e.Message);
+                }
                 return null;
             }
             else
@@ -150,14 +222,16 @@ namespace PractiSES
                 settingsDocument.Load(settingsFile);
 
                 questionNode = settingsDocument.SelectSingleNode("descendant::question");
-                Console.WriteLine(questionNode.Attributes.GetNamedItem("one").Value + " has been read from " + settingsFile);
-                return questionNode.Attributes.GetNamedItem("one").Value;
+                String question = questionNode.Attributes.GetNamedItem("one").Value;
 
-                /*StreamReader settingsReader = new StreamReader(settingsFile);
-                String xmlString = settingsReader.ReadToEnd();
-                settingsReader.Close();
-                encryption = new Encryption(xmlString);*/
-                
+                StreamWriter writer = new StreamWriter(actionLogFile, true);
+                writer.Write(DateTime.Now.ToString() + space);
+                writer.WriteLine("'" + question + "'" + " has been read from " + settingsFile);
+                writer.Close();
+                Console.Write(DateTime.Now.ToString() + Core.space);
+                Console.WriteLine("'" + question + "'" + " has been read.");
+
+                return question;             
             }
         }
 
