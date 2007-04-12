@@ -149,14 +149,21 @@ namespace PractiSES
 
         private void CreateLogFile(String logFile)
         {
-            StreamWriter writer = new StreamWriter(logFile, true);
+            bool fileExists = true;
             if (!File.Exists(logFile))
             {
+                fileExists = false;
+            }
+            StreamWriter writer = new StreamWriter(logFile, true);
+            if (!fileExists)
+            {               
                 writer.WriteLine(separator);
                 writer.Write(DateTime.Now.ToString() + space);
                 writer.WriteLine("Log file has been created.");
             }
             writer.WriteLine(separator);
+            writer.Write(DateTime.Now.ToString() + space);
+            writer.WriteLine("Logging started.");
             writer.Close();
         }
 
