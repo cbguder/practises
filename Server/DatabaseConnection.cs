@@ -92,7 +92,7 @@ namespace PractiSES
         }
         public string getPublicKey(string email) //return public key (complete)
         {
-            string query = "SELECT k.key from users u, `keys` k WHERE u.email='" + email + "' AND k.userid=u.userid;";
+            string query = "SELECT k.key from users u, `keys` k WHERE u.email='" + email + "' AND k.userid=u.userid ORDER BY k.`start` DESC LIMIT 1;";
             cmd = new MySqlCommand(query, conn);
             read = cmd.ExecuteReader();
             if (read.Read())
@@ -102,7 +102,21 @@ namespace PractiSES
             return null;
         }
 
-        public string getAnswers(string email) //return public key (complete)
+        public string getPublicKey(string email, DateTime date)
+        {
+            DateTime unixStart = new DateTime(1970, 1, 1);
+            TimeSpan timestamp = date - unixStart;
+            string query = string.Format("SELECT k.key from users u, `keys` k WHERE u.email='{0}' AND k.userid=u.userid AND k.`start`<'{1}' AND (k.`end`=0 OR k.`end`>'{2}');", email, timestamp, timestamp);
+            cmd = new MySqlCommand(query, conn);
+            read = cmd.ExecuteReader();
+            if (read.Read())
+            {
+                return read.GetString(0);
+            }
+            return null;
+        }
+
+        public string getAnswers(string email)
         {
             string query = "SELECT u.semisecret1 from users u WHERE u.email='" + email + "';";   
             cmd = new MySqlCommand(query, conn);
@@ -135,6 +149,18 @@ namespace PractiSES
             string query = "SELECT u.macpass from users u WHERE u.email='" + email + "';";
             cmd = new MySqlCommand(query, conn);
             read = cmd.ExecuteReader();         
+            if (read.Read())
+            {
+                return read.GetString(0);
+            }
+            return "No records exist";
+        }
+
+        public string removeMACPass(string email)
+        {
+            string query = string.Format("UPDATE users u SET u.macpass=NULL WHERE u.email='{0}';", email);
+            cmd = new MySqlCommand(query, conn);
+            read = cmd.ExecuteReader();
             if (read.Read())
             {
                 return read.GetString(0);
