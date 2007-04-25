@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet href="chrome://practises/skin/overlay.css" type="text/css"?>
-<!DOCTYPE overlay SYSTEM "chrome://practises/locale/practises.dtd">
+<!DOCTYPE overlay SYSTEM "chrome://PractiSES/locale/practises.dtd">
 <overlay id="practises-overlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 	<script src="messengerOverlay.js"/>
 	<stringbundleset id="stringbundleset">
-		<stringbundle id="practises-strings" src="chrome://practises/locale/practises.properties"/>
+		<stringbundle id="practises-strings" src="chrome://PractiSES/locale/practises.properties"/>
 	</stringbundleset>
 	<menupopup id="taskPopup">
 		<menu id="practises-menu" label="&practises.practises;">
