@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="chrome://practises/skin/overlay.css" type="text/css"?>
+<!DOCTYPE overlay SYSTEM "chrome://practises/locale/practises.dtd">
+<overlay id="practises-overlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+	<script src="composeOverlay.js"/>
+	<stringbundleset id="stringbundleset">
+		<stringbundle id="practises-strings" src="chrome://practises/locale/practises.properties"/>
+	</stringbundleset>
+	<menupopup id="taskPopup">
+		<menu id="practises-menu" label="&practises.practises;">
+			<menupopup id="practises-popup">
+				<menuitem id="practises-nothing" type="radio" name="practises" checked="true" label="&practises.nothing;"/>
+				<menuitem id="practises-sign" type="radio" name="practises" label="&practises.sign;"/>
+				<menuitem id="practises-encrypt" type="radio" name="practises" label="&practises.encrypt;"/>
+				<menuitem id="practises-signAndEncrypt" type="radio" name="practises" label="&practises.signAndEncrypt;"/>
+			</menupopup>
+		</menu>
+	</menupopup>
+</overlay>

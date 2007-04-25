@@ -1,0 +1,7 @@
+<!ENTITY practises.practises "PractiSES">
+<!ENTITY practises.encrypt "Encrypt">
+<!ENTITY practises.sign "Sign">
+<!ENTITY practises.nothing "Do Nothing">
+<!ENTITY practises.signAndEncrypt "Sign and Encrypt">
+<!ENTITY practises.decrypt "Decrypt...">
+<!ENTITY practises.confirm "Finalize Initialization">
