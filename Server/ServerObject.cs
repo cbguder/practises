@@ -291,7 +291,7 @@ namespace PractiSES
             Console.WriteLine(email + ": Mail sent.");
         }
 
-        public bool USKeyRem_SendRemoveRequest(String userID, String email, String removeRequest, String macValue)
+        public bool USKeyRem_SendRemoveRequest(String userID, String email, String macValue)
         {
             Console.WriteLine("-------------------------");
             Console.WriteLine(email + ": USKeyRem_SendPublicKey");
@@ -314,9 +314,9 @@ namespace PractiSES
 
             HMAC hmac = HMACSHA1.Create();
             hmac.Key = Convert.FromBase64String(dbMACPass);
-            byte[] hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(removeRequest));
-            String request = hash.ToString();
-            if (request.Equals("I want to remove my current public key"))
+            byte[] hash = hmac.ComputeHash(Encoding.UTF8.GetBytes("I want to remove my current public key"));
+
+            if (Convert.ToBase64String(hash) == macValue)
             {
                 connection = new DatabaseConnection();
                 connection.removePublicKey(userID, email);
@@ -324,6 +324,7 @@ namespace PractiSES
                 Console.WriteLine(email + ": Public key is removed.");
                 return true;
             }
+
             Console.WriteLine("Error - " + email + ": MAC value is tampered, public key is not set.");
             return false;
         }
