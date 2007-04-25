@@ -1,5 +1,6 @@
 content	PractiSES	jar:chrome/PractiSES.jar!/content/
 locale	PractiSES	en-US	jar:chrome/PractiSES.jar!/locale/en-US/
 skin	PractiSES	classic/1.0	jar:chrome/PractiSES.jar!/skin/
+
 overlay	chrome://messenger/content/messageWindow.xul	chrome://PractiSES/content/messengerOverlay.xul
 overlay	chrome://messenger/content/messengercompose/messengercompose.xul	chrome://PractiSES/content/composeOverlay.xul
