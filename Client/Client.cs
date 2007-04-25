@@ -134,20 +134,6 @@ namespace PractiSES
             return;
         }
 
-        private static void Usage()
-        {
-            Console.Error.WriteLine("Usage: practises command filename");
-            Console.Error.WriteLine();
-            Console.Error.WriteLine("Commands:");
-            Console.Error.WriteLine("    -d, --decrypt");
-            Console.Error.WriteLine("    -e, --encrypt");
-            Console.Error.WriteLine("    -s, --sign");
-            Console.Error.WriteLine("    -v, --verify");
-            Console.Error.WriteLine("        --initialize");
-            Console.Error.WriteLine("        --remove");
-            Console.Error.WriteLine("        --update");
-        }
-
         public Client()
         {
         }
@@ -162,6 +148,116 @@ namespace PractiSES
             server = (IServer)Activator.GetObject(typeof(IServer), "http://" + host + "/PractiSES");
 
             return true;
+        }
+        
+        private bool Write(String path, byte[] contents)
+        {
+            bool write = true;
+
+            if (File.Exists(path))
+            {
+                Console.Write("{0} exists, overwrite? (y/N): ", path);
+                String response = Console.ReadLine();
+                response.Trim();
+
+                if (response != "y")
+                {
+                    write = false;
+                }
+            }
+
+            if (write)
+            {
+                File.WriteAllBytes(path, contents);
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool Write(String path, String contents)
+        {
+            return Write(path, Encoding.UTF8.GetBytes(contents));
+        }
+
+        private void WriteIdentity(String username, String email)
+        {
+            StreamWriter sw = new StreamWriter(Path.Combine(core.ApplicationDataFolder, "identity"));
+            sw.WriteLine(username);
+            sw.WriteLine(email);
+            sw.Close();
+        }
+        
+        private void Encrypt(String filename, String recipient)
+        {
+            String outFile = filename + ".pses";
+
+            while (recipient == null || recipient == "")
+            {
+                Console.Write("Recipient: ");
+                recipient = Console.ReadLine();
+                recipient.Trim();
+            }
+
+            try
+            {
+                Connect(host);
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine("Error: {0}", e.Message);
+                return;
+            }
+
+            String publicKey = server.KeyObt(recipient);
+
+            if (publicKey == "No records exist")
+            {
+                Console.Error.WriteLine("Invalid recipient");
+                return;
+            }
+
+            byte[] clearText = File.ReadAllBytes(filename);
+            String cipherText = Crypto.Encrypt(clearText, publicKey);
+
+            if (Write(outFile, cipherText))
+            {
+                Console.Error.WriteLine("Output written to {0}", outFile);
+            }
+        }
+
+        private void Decrypt(String filename, String passphrase)
+        {
+            core = new Core(passphrase);
+
+            String cipherText = File.ReadAllText(filename);
+            byte[] clearText = Crypto.Decrypt(cipherText, core.PrivateKey);
+
+            String outFile = filename + ".pses";
+
+            if (Write(outFile, clearText))
+            {
+                Console.Error.WriteLine("Output written to {0}", outFile);
+            }
+        }
+
+        private void Sign(String filename, String passphrase)
+        {
+            core = new Core(passphrase);
+
+            String outFile = filename + ".pses";
+
+            String clearText = File.ReadAllText(filename, Encoding.UTF8);
+            String signed = Crypto.Sign(clearText, core.PrivateKey);
+
+            if (Write(outFile, signed))
+            {
+                Console.Error.WriteLine("Output written to {0}", outFile);
+            }
+        }
+
+        private void Verify(String filename)
+        {
         }
 
         private void Initialize(String passphrase)
@@ -244,60 +340,42 @@ namespace PractiSES
             }
         }
 
-        private void Encrypt(String filename, String recipient)
+        private void Update(String passphrase)
         {
-            String outFile = filename + ".pses";
+            core = new Core(passphrase, false);
+            File.Delete(core.KeyFile);
+            core.InitializeKeys(passphrase);
 
-            while (recipient == null || recipient == "")
-            {
-                Console.Write("Recipient: ");
-                recipient = Console.ReadLine();
-                recipient.Trim();
-            }
+            StreamReader sr = new StreamReader(Path.Combine(core.ApplicationDataFolder, "identity"));
+            String username = sr.ReadLine();
+            String email = sr.ReadLine();
+            sr.Close();
 
-            try
-            {
-                Connect(host);
-            }
-            catch (Exception e)
-            {
-                Console.Error.WriteLine("Error: {0}", e.Message);
-                return;
-            }
+            Connect(host);
 
-            String publicKey = server.KeyObt(recipient);
+            String questions = server.USKeyUpdate_AskQuestions(username, email);
+            String strippedQuestions = Crypto.StripMessage(questions);
+            Console.WriteLine("Questions:");
+            Console.WriteLine(strippedQuestions);
+            Console.Write("Answers: ");
+            String answers = Console.ReadLine();
+            String serverPublicKey = server.KeyObt("server");
+            byte[] message = Encoding.UTF8.GetBytes(answers);
+            Rijndael aes = Rijndael.Create();
+            String encrypted = Crypto.Encrypt(message, serverPublicKey, aes);
 
-            if (publicKey == "No records exist")
-            {
-                Console.Error.WriteLine("Invalid recipient");
-                return;
-            }
+            ArrayList key = new ArrayList();
+            key.AddRange(aes.Key);
+            key.AddRange(aes.IV);
 
-            byte[] clearText = File.ReadAllBytes(filename);
-            String cipherText = Crypto.Encrypt(clearText, publicKey);
+            File.WriteAllBytes(Path.Combine(core.ApplicationDataFolder, "answers.key"), (byte[])key.ToArray(Type.GetType("System.Byte")));
 
-            if (Write(outFile, cipherText))
-            {
-                Console.Error.WriteLine("Output written to {0}", outFile);
-            }
+            server.USKeyUpdate_EnvelopeAnswers(username, email, encrypted);
+
+            Console.Error.WriteLine("Answers sent. Please check your email to finalize PractiSES key update.");
         }
 
-        public void Decrypt(String filename, String passphrase)
-        {
-            core = new Core(passphrase);
-
-            String cipherText = File.ReadAllText(filename);
-            byte[] clearText = Crypto.Decrypt(cipherText, core.PrivateKey);
-
-            String outFile = filename + ".pses";
-
-            if (Write(outFile, clearText))
-            {
-                Console.Error.WriteLine("Output written to {0}", outFile);
-            }
-        }
-
-        public void FinalizeUpdate(String filename, String passphrase)
+        private void FinalizeUpdate(String filename, String passphrase)
         {
             core = new Core(passphrase);
 
@@ -339,7 +417,7 @@ namespace PractiSES
             }
         }
 
-        public void Remove(String passphrase)
+        private void Remove(String passphrase)
         {
             core = new Core(passphrase);
 
@@ -372,7 +450,7 @@ namespace PractiSES
             Console.Error.WriteLine("Answers sent. Please check your email to finalize PractiSES key removal.");
         }
 
-        public void FinalizeRemove(String filename, String passphrase)
+        private void FinalizeRemove(String filename, String passphrase)
         {
             core = new Core(passphrase);
 
@@ -414,102 +492,24 @@ namespace PractiSES
             }
         }
 
-        public void Sign(String filename, String passphrase)
-        {
-            core = new Core(passphrase);
-
-            String outFile = filename + ".pses";
-
-            String clearText = File.ReadAllText(filename, Encoding.UTF8);
-            String signed = Crypto.Sign(clearText, core.PrivateKey);
-
-            if (Write(outFile, signed))
-            {
-                Console.Error.WriteLine("Output written to {0}", outFile);
-            }
-        }
-
-        public void Strip(String filename)
+        private void Strip(String filename)
         {
             String message = File.ReadAllText(filename);
             Console.WriteLine(Crypto.StripMessage(message));
         }
 
-        public void Update(String passphrase)
+        private static void Usage()
         {
-            core = new Core(passphrase, false);
-            File.Delete(core.KeyFile);
-            core.InitializeKeys(passphrase);
-
-            StreamReader sr = new StreamReader(Path.Combine(core.ApplicationDataFolder, "identity"));
-            String username = sr.ReadLine();
-            String email = sr.ReadLine();
-            sr.Close();
-
-            Connect(host);
-
-            String questions = server.USKeyUpdate_AskQuestions(username, email);
-            String strippedQuestions = Crypto.StripMessage(questions);
-            Console.WriteLine("Questions:");
-            Console.WriteLine(strippedQuestions);
-            Console.Write("Answers: ");
-            String answers = Console.ReadLine();
-            String serverPublicKey = server.KeyObt("server");
-            byte[] message = Encoding.UTF8.GetBytes(answers);
-            Rijndael aes = Rijndael.Create();
-            String encrypted = Crypto.Encrypt(message, serverPublicKey, aes);
-
-            ArrayList key = new ArrayList();
-            key.AddRange(aes.Key);
-            key.AddRange(aes.IV);
-
-            File.WriteAllBytes(Path.Combine(core.ApplicationDataFolder, "answers.key"), (byte[])key.ToArray(Type.GetType("System.Byte")));
-
-            server.USKeyUpdate_EnvelopeAnswers(username, email, encrypted);
-
-            Console.Error.WriteLine("Answers sent. Please check your email to finalize PractiSES key update.");
-        }
-
-        public void Verify(String filename)
-        {
-        }
-
-        private void WriteIdentity(String username, String email)
-        {
-            StreamWriter sw = new StreamWriter(Path.Combine(core.ApplicationDataFolder, "identity"));
-            sw.WriteLine(username);
-            sw.WriteLine(email);
-            sw.Close();
-        }
-
-        private bool Write(String path, byte[] contents)
-        {
-            bool write = true;
-
-            if (File.Exists(path))
-            {
-                Console.Write("{0} exists, overwrite? (y/N): ", path);
-                String response = Console.ReadLine();
-                response.Trim();
-                
-                if (response != "y")
-                {
-                    write = false;
-                }
-            }
-
-            if (write)
-            {
-                File.WriteAllBytes(path, contents);
-                return true;
-            }
-
-            return false;
-        }
-
-        private bool Write(String path, String contents)
-        {
-            return Write(path, Encoding.UTF8.GetBytes(contents));
+            Console.Error.WriteLine("Usage: practises command filename");
+            Console.Error.WriteLine();
+            Console.Error.WriteLine("Commands:");
+            Console.Error.WriteLine("    -d, --decrypt");
+            Console.Error.WriteLine("    -e, --encrypt");
+            Console.Error.WriteLine("    -s, --sign");
+            Console.Error.WriteLine("    -v, --verify");
+            Console.Error.WriteLine("        --initialize");
+            Console.Error.WriteLine("        --remove");
+            Console.Error.WriteLine("        --update");
         }
     }
 }
