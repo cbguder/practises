@@ -8,8 +8,10 @@
 	<menupopup id="taskPopup">
 		<menu id="practises-menu" label="&practises.practises;">
 			<menupopup id="practises-popup">
-				<menuitem id="practises-confirm" label="&practises.confirm;" oncommand="practises.confirm(event);"/>
 				<menuitem id="practises-decrypt" label="&practises.decrypt;" oncommand="practises.decrypt(event);"/>
+				<menuitem id="practises-finalizeInitialize" label="&practises.finalizeInitialize;" oncommand="practises.finalizeInitialize(event);"/>
+				<menuitem id="practises-finalizeUpdate" label="&practises.finalizeUpdate;" oncommand="practises.finalizeUpdate(event);"/>
+				<menuitem id="practises-finalizeRemove" label="&practises.finalizeRemove;" oncommand="practises.finalizeRemove(event);"/>
 			</menupopup>
 		</menu>
 	</menupopup>

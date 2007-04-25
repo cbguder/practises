@@ -45,7 +45,7 @@ var practises = {
 		var gpg_process = Components.classes["@mozilla.org/process/util;1"].createInstance(Components.interfaces.nsIProcess);
 		var gpg_args;
 
-		if(command == "-s" || command == "-d" || command == "-c")
+		if(command == "-s" || command == "-d" || command == "--finalize-initialize" || command == "--finalize-update" || command == "--finalize-remove")
 		{
 			gpg_args = [command, "-p", argument, tmp_file.path];
 		}
@@ -80,9 +80,17 @@ var practises = {
 		tmp_file.remove(false);
 		signed_file.remove(false);
 	},
-	confirm: function(e) {
+	finalizeInitialize: function(e) {
 		var passphrase = practises.prompt("PractiSES", "Enter passphrase:");
-		practises.callPractises("-c", passphrase);
+		practises.callPractises("--finalize-initialize", passphrase);
+	},
+	finalizeUpdate: function(e) {
+		var passphrase = practises.prompt("PractiSES", "Enter passphrase:");
+		practises.callPractises("--finalize-update", passphrase);
+	},
+	finalizeRemove: function(e) {
+		var passphrase = practises.prompt("PractiSES", "Enter passphrase:");
+		practises.callPractises("--finalize-remove", passphrase);
 	},
 	decrypt: function(e) {
 		var passphrase = practises.prompt("PractiSES", "Enter passphrase:");

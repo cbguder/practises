@@ -36,14 +36,6 @@ namespace PractiSES
             
             switch (args[0])
             {
-                case "--initialize":
-                case "-i":
-                    command = "initialize";
-                    break;
-                case "--confirm":
-                case "-c":
-                    command = "confirm";
-                    break;
                 case "--encrypt":
                 case "-e":
                     command = "encrypt";
@@ -56,13 +48,27 @@ namespace PractiSES
                 case "-s":
                     command = "sign";
                     break;
-                case "--update":
-                case "-u":
-                    command = "update";
-                    break;
                 case "--verify":
                 case "-v":
                     command = "verify";
+                    break;
+                case "--initialize":
+                    command = "initialize";
+                    break;
+                case "--finalize-initialize":
+                    command = "finalizeInitialize";
+                    break;
+                case "--update":
+                    command = "update";
+                    break;
+                case "--finalize-update":
+                    command = "finalizeUpdate";
+                    break;
+                case "--remove":
+                    command = "remove";
+                    break;
+                case "--finalize-remove":
+                    command = "finalizeRemove";
                     break;
                 case "--strip":
                     command = "strip";
@@ -87,12 +93,6 @@ namespace PractiSES
           
             switch (command)
             {
-                case "initialize":
-                    client.Initialize(passphrase);
-                    break;
-                case "confirm":
-                    client.Confirm(file, passphrase);
-                    break;
                 case "encrypt":
                     client.Encrypt(file, recipient);
                     break;
@@ -102,11 +102,26 @@ namespace PractiSES
                 case "sign":
                     client.Sign(file, passphrase);
                     break;
+                case "verify":
+                    client.Verify(file);
+                    break;
+                case "initialize":
+                    client.Initialize(passphrase);
+                    break;
+                case "finalizeInitialize":
+                    client.FinalizeInitialize(file, passphrase);
+                    break;
                 case "update":
                     client.Update(passphrase);
                     break;
-                case "verify":
-                    client.Verify(file);
+                case "finalizeUpdate":
+                    client.FinalizeUpdate(file, passphrase);
+                    break;
+                case "remove":
+                    client.Remove(passphrase);
+                    break;
+                case "finalizeRemove":
+                    client.FinalizeRemove(file, passphrase);
                     break;
                 case "strip":
                     client.Strip(file);
@@ -127,8 +142,10 @@ namespace PractiSES
             Console.Error.WriteLine("    -d, --decrypt");
             Console.Error.WriteLine("    -e, --encrypt");
             Console.Error.WriteLine("    -s, --sign");
-            Console.Error.WriteLine("    -u, --update");
             Console.Error.WriteLine("    -v, --verify");
+            Console.Error.WriteLine("        --initialize");
+            Console.Error.WriteLine("        --remove");
+            Console.Error.WriteLine("        --update");
         }
 
         public Client()
@@ -185,7 +202,7 @@ namespace PractiSES
             Console.Error.WriteLine("Answers sent. Please check your email to finalize PractiSES initialization.");
         }
 
-        private void Confirm(String file, String passphrase)
+        private void FinalizeInitialize(String filename, String passphrase)
         {
             core = new Core(passphrase);
 
@@ -207,7 +224,7 @@ namespace PractiSES
 
             Rijndael aes = Rijndael.Create();
             
-            String e_macpass = File.ReadAllText(file);
+            String e_macpass = File.ReadAllText(filename);
             e_macpass = Crypto.StripMessage(e_macpass);
 
             byte[] macpass = Crypto.AESDecrypt(Convert.FromBase64String(e_macpass), aes.CreateDecryptor(info.key, info.IV));
@@ -280,6 +297,123 @@ namespace PractiSES
             }
         }
 
+        public void FinalizeUpdate(String filename, String passphrase)
+        {
+            core = new Core(passphrase);
+
+            StreamReader sr = new StreamReader(Path.Combine(core.ApplicationDataFolder, "identity"));
+            String username = sr.ReadLine();
+            String email = sr.ReadLine();
+            sr.Close();
+
+            username.Trim();
+            email.Trim();
+
+            Connect(host);
+
+            ArrayList key = new ArrayList(File.ReadAllBytes(Path.Combine(core.ApplicationDataFolder, "answers.key")));
+            AESInfo info = new AESInfo();
+            info.key = (byte[])key.GetRange(0, Crypto.AESKeySize / 8).ToArray(Type.GetType("System.Byte"));
+            info.IV = (byte[])key.GetRange(Crypto.AESKeySize / 8, Crypto.AESIVSize / 8).ToArray(Type.GetType("System.Byte"));
+            File.Delete(Path.Combine(core.ApplicationDataFolder, "answers.key"));
+
+            Rijndael aes = Rijndael.Create();
+
+            String e_macpass = File.ReadAllText(filename);
+            e_macpass = Crypto.StripMessage(e_macpass);
+
+            byte[] macpass = Crypto.AESDecrypt(Convert.FromBase64String(e_macpass), aes.CreateDecryptor(info.key, info.IV));
+            String abik = Convert.ToBase64String(macpass);
+
+            HMAC hmac = HMACSHA1.Create();
+            hmac.Key = macpass;
+            byte[] hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(core.PublicKey));
+
+            if (server.USKeyUpdate_SendPublicKey(username, email, core.PublicKey, Convert.ToBase64String(hash)))
+            {
+                Console.WriteLine("Public key successfully sent.");
+            }
+            else
+            {
+                Console.WriteLine("Public key could not be sent, please try again.");
+            }
+        }
+
+        public void Remove(String passphrase)
+        {
+            core = new Core(passphrase);
+
+            StreamReader sr = new StreamReader(Path.Combine(core.ApplicationDataFolder, "identity"));
+            String username = sr.ReadLine();
+            String email = sr.ReadLine();
+            sr.Close();
+
+            Connect(host);
+
+            String questions = server.USKeyRem_AskQuestions(username, email);
+            String strippedQuestions = Crypto.StripMessage(questions);
+            Console.WriteLine("Questions:");
+            Console.WriteLine(strippedQuestions);
+            Console.Write("Answers: ");
+            String answers = Console.ReadLine();
+            String serverPublicKey = server.KeyObt("server");
+            byte[] message = Encoding.UTF8.GetBytes(answers);
+            Rijndael aes = Rijndael.Create();
+            String encrypted = Crypto.Encrypt(message, serverPublicKey, aes);
+
+            ArrayList key = new ArrayList();
+            key.AddRange(aes.Key);
+            key.AddRange(aes.IV);
+
+            File.WriteAllBytes(Path.Combine(core.ApplicationDataFolder, "answers.key"), (byte[])key.ToArray(Type.GetType("System.Byte")));
+
+            server.USKeyRem_EnvelopeAnswers(username, email, encrypted);
+
+            Console.Error.WriteLine("Answers sent. Please check your email to finalize PractiSES key removal.");
+        }
+
+        public void FinalizeRemove(String filename, String passphrase)
+        {
+            core = new Core(passphrase);
+
+            StreamReader sr = new StreamReader(Path.Combine(core.ApplicationDataFolder, "identity"));
+            String username = sr.ReadLine();
+            String email = sr.ReadLine();
+            sr.Close();
+
+            username.Trim();
+            email.Trim();
+
+            Connect(host);
+
+            ArrayList key = new ArrayList(File.ReadAllBytes(Path.Combine(core.ApplicationDataFolder, "answers.key")));
+            AESInfo info = new AESInfo();
+            info.key = (byte[])key.GetRange(0, Crypto.AESKeySize / 8).ToArray(Type.GetType("System.Byte"));
+            info.IV = (byte[])key.GetRange(Crypto.AESKeySize / 8, Crypto.AESIVSize / 8).ToArray(Type.GetType("System.Byte"));
+            File.Delete(Path.Combine(core.ApplicationDataFolder, "answers.key"));
+
+            Rijndael aes = Rijndael.Create();
+
+            String e_macpass = File.ReadAllText(filename);
+            e_macpass = Crypto.StripMessage(e_macpass);
+
+            byte[] macpass = Crypto.AESDecrypt(Convert.FromBase64String(e_macpass), aes.CreateDecryptor(info.key, info.IV));
+            String abik = Convert.ToBase64String(macpass);
+
+            HMAC hmac = HMACSHA1.Create();
+            hmac.Key = macpass;
+            byte[] hash = hmac.ComputeHash(Encoding.UTF8.GetBytes("I want to remove my current public key"));
+
+            if (server.USKeyRem_SendRemoveRequest(username, passphrase, Convert.ToBase64String(hash)))
+            {
+                Console.WriteLine("Removal request successfully sent.");
+            }
+            else
+            {
+                Console.WriteLine("Removal request could not be sent, please try again.");
+            }
+        }
+
         public void Sign(String filename, String passphrase)
         {
             core = new Core(passphrase);
@@ -314,7 +448,7 @@ namespace PractiSES
 
             Connect(host);
 
-            String questions = server.USKeyRem_AskQuestions(username, email);
+            String questions = server.USKeyUpdate_AskQuestions(username, email);
             String strippedQuestions = Crypto.StripMessage(questions);
             Console.WriteLine("Questions:");
             Console.WriteLine(strippedQuestions);
@@ -331,7 +465,7 @@ namespace PractiSES
 
             File.WriteAllBytes(Path.Combine(core.ApplicationDataFolder, "answers.key"), (byte[])key.ToArray(Type.GetType("System.Byte")));
 
-            server.USKeyRem_EnvelopeAnswers(username, email, encrypted);
+            server.USKeyUpdate_EnvelopeAnswers(username, email, encrypted);
 
             Console.Error.WriteLine("Answers sent. Please check your email to finalize PractiSES key update.");
         }

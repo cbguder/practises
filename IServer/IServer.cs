@@ -13,7 +13,7 @@ namespace PractiSES
         bool KeyRem(String userID, String email, String signedMessage);
         String USKeyRem_AskQuestions(String userID, String email);
         void USKeyRem_EnvelopeAnswers(String userID, String email, String answersEnveloped);
-        bool USKeyRem_SendRemoveRequest(String userID, String email, String removeRequest, String macValue);
+        bool USKeyRem_SendRemoveRequest(String userID, String email, String macValue);
         String USKeyUpdate_AskQuestions(String userID, String email);
         void USKeyUpdate_EnvelopeAnswers(String userID, String email, String answersEnveloped);
         bool USKeyUpdate_SendPublicKey(String userID, String email, String publicKey, String macValue);
