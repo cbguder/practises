@@ -43,20 +43,17 @@
   !insertmacro MUI_LANGUAGE "English"
 
 ;--------------------------------
+; Install Types
+
+  InstType "Typical"
+  InstType "Custom2"
+
+;--------------------------------
 ; Sections
 
 Section "PractiSES"
   SectionIn RO
-  
-  Call CompareThunderbirdVersion
-  Pop $0
-  DetailPrint $0
-  
-  ${If} $0 == "not found"
-    MessageBox MB_OK|MB_ICONSTOP ".NET runtime library is not installed."
-    Abort
-  ${EndIf}
-  
+
   ;Set output path to the installation directory.
   SetOutPath $INSTDIR
 
@@ -95,13 +92,28 @@ Section "Uninstall"
   RMDir "$INSTDIR"
 SectionEnd
 
-Function CompareThunderbirdVersion
+Function .onInit
+  Call GetThunderbirdVersion
+  Pop $0
+  
+  ${If} $0 == ""
+    MessageBox MB_OK|MB_ICONSTOP "Thunderbird is not installed."
+    Abort
+  ${Else}
+    ${VersionCompare} $0 "1.5.0.0" $1
+	${If} $1 == 2
+	  MessageBox MB_OK|MB_ICONSTOP "Thunderbird v1.5 or newer is required. You have $0"
+      Abort
+	${EndIf}
+  ${EndIf}
+FunctionEnd
+
+Function GetThunderbirdVersion
   Push $0
   Push $1
   
-  ReadRegStr $0 HKLM "Software\Mozilla\Mozilla Thunderbird" "CurrentVersion"
-  ${WordFind} $0 " " "+1" $1
-  ${VersionCompare} $1 "1.5.0.0" $0
+  ReadRegStr $1 HKLM "Software\Mozilla\Mozilla Thunderbird" "CurrentVersion"
+  ${WordFind} $1 " " "+1" $0
   
   Pop $1
   Exch $0
