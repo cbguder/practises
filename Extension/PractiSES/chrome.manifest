@@ -1,6 +1,6 @@
-content	PractiSES	content/
-locale	PractiSES	en-US	locale/en-US/
-skin	PractiSES	classic/1.0	skin/
+content	practises	content/
+locale	practises	en-US	locale/en-US/
+skin	practises	classic/1.0	skin/
 
-overlay	chrome://messenger/content/messageWindow.xul	chrome://PractiSES/content/messengerOverlay.xul
-overlay	chrome://messenger/content/messengercompose/messengercompose.xul	chrome://PractiSES/content/composeOverlay.xul
+overlay	chrome://messenger/content/messageWindow.xul	chrome://practises/content/messengerOverlay.xul
+overlay	chrome://messenger/content/messengercompose/messengercompose.xul	chrome://practises/content/composeOverlay.xul
