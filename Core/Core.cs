@@ -20,7 +20,8 @@ namespace PractiSES
         private String appDataFolder;
         private String publicKey;
         private String privateKey;
-        public const String separator = "----------------";
+        private String exeName;
+        public const String separator = "--------------------";
         public const String space = ": ";
 
         public String PublicKey
@@ -82,7 +83,7 @@ namespace PractiSES
         public Core(String passphrase, Boolean autoInitialize)
         {
             appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            String exeName = Path.GetFileName(Environment.GetCommandLineArgs()[0]);
+            exeName = Path.GetFileName(Environment.GetCommandLineArgs()[0]);
             if (exeName == "Client.exe")
             {
                 appDataFolder = Path.Combine(appDataFolder, "PractiSES\\Client");
@@ -124,11 +125,14 @@ namespace PractiSES
             {
                 publicKey = rsa.ToXmlString(false);
                 privateKey = rsa.ToXmlString(true);
-                WriteKey(keyFile, privateKey, passphrase);
-                StreamWriter writer = new StreamWriter(actionLogFile, true);
-                writer.Write(DateTime.Now.ToString() + space);
-                writer.WriteLine("Public/Private key pair written to " + keyFile);
-                writer.Close();
+                if (exeName == "Server.exe")
+                {
+                    WriteKey(keyFile, privateKey, passphrase);
+                    StreamWriter writer = new StreamWriter(actionLogFile, true);
+                    writer.Write(DateTime.Now.ToString() + space);
+                    writer.WriteLine("Public/Private key pair written to " + keyFile);
+                    writer.Close();
+                }
                 Console.Write(DateTime.Now.ToString() + Core.space);
                 Console.WriteLine("Public/Private key pair written.");
             }
@@ -138,10 +142,13 @@ namespace PractiSES
                 rsa.FromXmlString(keyString);
                 publicKey = rsa.ToXmlString(false);
                 privateKey = rsa.ToXmlString(true);
-                StreamWriter writer = new StreamWriter(actionLogFile, true);
-                writer.Write(DateTime.Now.ToString() + space);
-                writer.WriteLine("Public/Private key pair read from " + keyFile);
-                writer.Close();
+                if (exeName == "Server.exe")
+                {
+                    StreamWriter writer = new StreamWriter(actionLogFile, true);
+                    writer.Write(DateTime.Now.ToString() + space);
+                    writer.WriteLine("Public/Private key pair read from " + keyFile);
+                    writer.Close();
+                }
                 Console.Write(DateTime.Now.ToString() + Core.space);
                 Console.WriteLine("Public/Private key pair read.");
             }
@@ -161,6 +168,7 @@ namespace PractiSES
                 writer.Write(DateTime.Now.ToString() + space);
                 writer.WriteLine("Log file has been created.");
             }
+            writer.WriteLine();
             writer.WriteLine(separator);
             writer.Write(DateTime.Now.ToString() + space);
             writer.WriteLine("Logging started.");
