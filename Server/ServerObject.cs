@@ -4,17 +4,24 @@ using System.Text;
 using MySql.Data.MySqlClient;
 using PractiSES;
 using System.Security.Cryptography;
+using System.IO;
 
 namespace PractiSES
 {
-    public class ServerObject : MarshalByRefObject
+    public class ServerObject : MarshalByRefObject, IServer
     {
-        public string InitKeySet_AskQuestions(string userID, string email)
+        public String InitKeySet_AskQuestions(String userID, String email)
         {
+            Core core = new Core(Server.passphrase);
+            StreamWriter writer = new StreamWriter(core.ActionLogFile, true);
+            writer.Write(DateTime.Now.ToString() + Core.space);
+            writer.WriteLine("-------------------------");
+            writer.WriteLine(email + ": InitKeySet_AskQuestions");
+            writer.Close();
             Console.WriteLine("-------------------------");
             Console.WriteLine(email + ": InitKeySet_AskQuestions");
             DatabaseConnection connection = new DatabaseConnection();
-            string dbUserid = connection.getUserID(email);
+            String dbUserid = connection.getUserID(email);
             connection.close();
             if (userID == null)
             {
@@ -26,18 +33,17 @@ namespace PractiSES
                 Console.WriteLine(email + ": User id does not exist!");
                 return null;
             }
-            Core core = new Core(Server.passphrase);
-            string questions = core.ReadQuestions();
-            string signQuestions = Crypto.Sign(questions, core.PrivateKey);
+            String questions = core.ReadQuestions();
+            String signQuestions = Crypto.Sign(questions, core.PrivateKey);
             return signQuestions;
         }
 
-        public bool InitKeySet_EnvelopeAnswers(string userID, string email, string answersEnveloped)
+        public bool InitKeySet_EnvelopeAnswers(String userID, String email, String answersEnveloped)
         {
             Console.WriteLine("-------------------------");
             Console.WriteLine(email + ": InitKeySet_EnvelopeAnswers");
             DatabaseConnection connection = new DatabaseConnection();
-            string dbUserid = connection.getUserID(email);
+            String dbUserid = connection.getUserID(email);
             connection.close();
             if (userID == null)
             {
@@ -50,14 +56,14 @@ namespace PractiSES
                 return false;
             }
             Core core = new Core(Server.passphrase);
-            string privateKey = core.PrivateKey;
+            String privateKey = core.PrivateKey;
 
             Rijndael aes = Rijndael.Create();
             AESInfo aesInfo = Crypto.Destruct(answersEnveloped, privateKey);
             String answers = Encoding.UTF8.GetString(Crypto.AESDecrypt(aesInfo.message, aes.CreateDecryptor(aesInfo.key, aesInfo.IV)));
 
             connection = new DatabaseConnection();
-            string dbAnswers = connection.getAnswers(email);
+            String dbAnswers = connection.getAnswers(email);
             connection.close();
             if (answers == dbAnswers)
             {
@@ -73,7 +79,7 @@ namespace PractiSES
             }
         }
 
-        private string InitKeySet_EncryptMACPass(string email, AESInfo aesInfo)
+        private String InitKeySet_EncryptMACPass(String email, AESInfo aesInfo)
         {
             HMAC hmac = HMACSHA1.Create();
 
@@ -86,10 +92,10 @@ namespace PractiSES
             return Convert.ToBase64String(Crypto.AESEncrypt(hmac.Key, aes.CreateEncryptor(aesInfo.key, aesInfo.IV)));
         }
 
-        private void InitKeySet_SendMail(string email, AESInfo aesInfo)
+        private void InitKeySet_SendMail(String email, AESInfo aesInfo)
         {
-            string macPassword_encrypted = InitKeySet_EncryptMACPass(email, aesInfo);
-            string subject = "Welcome to PractiSES";
+            String macPassword_encrypted = InitKeySet_EncryptMACPass(email, aesInfo);
+            String subject = "Welcome to PractiSES";
             StringBuilder body = new StringBuilder("Please double click the message to open this mail message in new window.\n Then follow Tools -> PractiSES -> Finalize Initialization links to finish initialization.");
             body.AppendLine();
             body.AppendLine(Crypto.BeginMessage);
@@ -103,21 +109,21 @@ namespace PractiSES
             }
         }
 
-        private void InitKeySet_ErrorMail(string email)
+        private void InitKeySet_ErrorMail(String email)
         {
-            string subject = "PractiSES";
-            string body = "Your answers are not correct.";
+            String subject = "PractiSES";
+            String body = "Your answers are not correct.";
             Email mailer = new Email(email, subject, body);    //recepient, subject, body
             mailer.Send();
             Console.WriteLine(email + ": Warning mail sent.");
         }
 
-        public bool InitKeySet_SendPublicKey(string userID, string email, string publicKey, string macValue)
+        public bool InitKeySet_SendPublicKey(String userID, String email, String publicKey, String macValue)
         {
             Console.WriteLine("-------------------------");
             Console.WriteLine(email + ": InitKeySet_SendPublicKey");
             DatabaseConnection connection = new DatabaseConnection();
-            string dbUserid = connection.getUserID(email);
+            String dbUserid = connection.getUserID(email);
             connection.close();
             if (userID == null)
             {
@@ -130,7 +136,7 @@ namespace PractiSES
                 return false;
             }
             connection = new DatabaseConnection();
-            string dbMACPass = connection.getMACPass(email);
+            String dbMACPass = connection.getMACPass(email);
             connection.close();
 
             HMAC hmac = HMACSHA1.Create();
@@ -153,12 +159,12 @@ namespace PractiSES
             return false;
         }
         
-        public string KeyObt(string email) //get public key of a user ( complete )
+        public String KeyObt(String email) //get public key of a user ( complete )
         {
             Console.WriteLine("-------------------------");
             Console.WriteLine(email + ": KeyObt");
             DatabaseConnection connection = new DatabaseConnection();
-            string publicKey = connection.getPublicKey(email);
+            String publicKey = connection.getPublicKey(email);
             connection.close();
             if (publicKey == null)
             {
@@ -167,7 +173,7 @@ namespace PractiSES
             return publicKey;
         }
 
-        public bool KeyRem(string userID, string email, string signedMessage)
+        public bool KeyRem(String userID, String email, String signedMessage)
         {
             Console.WriteLine("-------------------------");
             Console.WriteLine("Connected");
@@ -177,7 +183,7 @@ namespace PractiSES
             return result;
         }
 
-        public bool KeyUpdate(string userID, string email, string signedMessage)
+        public bool KeyUpdate(String userID, String email, String signedMessage)
         {
             Console.WriteLine("-------------------------");
             return true;
@@ -185,12 +191,12 @@ namespace PractiSES
 
 
         /************************************************************************/
-        public string USKeyRem_AskQuestions(string userID, string email)
+        public String USKeyRem_AskQuestions(String userID, String email)
         {
             Console.WriteLine("-------------------------");
             Console.WriteLine(email + ": USKeyRem_AskQuestions");
             DatabaseConnection connection = new DatabaseConnection();
-            string dbUserid = connection.getUserID(email);
+            String dbUserid = connection.getUserID(email);
             connection.close();
             if (userID == null)
             {
@@ -203,17 +209,17 @@ namespace PractiSES
                 return null;
             }
             Core core = new Core(Server.passphrase);
-            string questions = core.ReadQuestions();
-            string signQuestions = Crypto.Sign(questions, core.PrivateKey);
+            String questions = core.ReadQuestions();
+            String signQuestions = Crypto.Sign(questions, core.PrivateKey);
             return signQuestions;
         }
 
-        public void USKeyRem_EnvelopeAnswers(string userID, string email, string answersEnveloped)
+        public void USKeyRem_EnvelopeAnswers(String userID, String email, String answersEnveloped)
         {
             Console.WriteLine("-------------------------");
             Console.WriteLine(email + ": USKeyRem_EnvelopeAnswers");
             DatabaseConnection connection = new DatabaseConnection();
-            string dbUserid = connection.getUserID(email);
+            String dbUserid = connection.getUserID(email);
             connection.close();
             if (userID == null)
             {
@@ -226,14 +232,14 @@ namespace PractiSES
                 return;
             }
             Core core = new Core(Server.passphrase);
-            string privateKey = core.PrivateKey;
+            String privateKey = core.PrivateKey;
 
             Rijndael aes = Rijndael.Create();
             AESInfo aesInfo = Crypto.Destruct(answersEnveloped, privateKey);
             String answers = Encoding.UTF8.GetString(Crypto.AESDecrypt(aesInfo.message, aes.CreateDecryptor(aesInfo.key, aesInfo.IV)));
 
             connection = new DatabaseConnection();
-            string dbAnswers = connection.getAnswers(email);
+            String dbAnswers = connection.getAnswers(email);
             connection.close();
             if (answers == dbAnswers)
             {
@@ -247,10 +253,10 @@ namespace PractiSES
             }
         }
 
-        private void USKeyRem_SendMail(string email, AESInfo aesInfo)
+        private void USKeyRem_SendMail(String email, AESInfo aesInfo)
         {
-            string macPassword_encrypted = InitKeySet_EncryptMACPass(email, aesInfo);
-            string subject = "Your PractiSES Key Removal Request";
+            String macPassword_encrypted = InitKeySet_EncryptMACPass(email, aesInfo);
+            String subject = "Your PractiSES Key Removal Request";
             StringBuilder body = new StringBuilder("Please double click the message to open this mail message in new window.\n Then follow Tools -> PractiSES -> Finalize Key Removal links to finish removal of your key.");
             body.AppendLine();
             body.AppendLine(Crypto.BeginMessage);
@@ -261,12 +267,12 @@ namespace PractiSES
             Console.WriteLine(email + ": Mail sent.");
         }
 
-        public bool USKeyRem_SendRemoveRequest(string userID, string email, string removeRequest, string macValue)
+        public bool USKeyRem_SendRemoveRequest(String userID, String email, String removeRequest, String macValue)
         {
             Console.WriteLine("-------------------------");
             Console.WriteLine(email + ": USKeyRem_SendPublicKey");
             DatabaseConnection connection = new DatabaseConnection();
-            string dbUserid = connection.getUserID(email);
+            String dbUserid = connection.getUserID(email);
             connection.close();
             if (userID == null)
             {
@@ -279,13 +285,13 @@ namespace PractiSES
                 return false;
             }
             connection = new DatabaseConnection();
-            string dbMACPass = connection.getMACPass(email);
+            String dbMACPass = connection.getMACPass(email);
             connection.close();
 
             HMAC hmac = HMACSHA1.Create();
             hmac.Key = Convert.FromBase64String(dbMACPass);
             byte[] hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(removeRequest));
-            string request = hash.ToString();
+            String request = hash.ToString();
             if (request.Equals("I want to remove my current public key"))
             {
                 connection = new DatabaseConnection();
@@ -299,12 +305,12 @@ namespace PractiSES
         }
         /***************************************************************************/
 
-        public string USKeyUpdate_AskQuestions(string userID, string email)
+        public String USKeyUpdate_AskQuestions(String userID, String email)
         {
             Console.WriteLine("-------------------------");
             Console.WriteLine(email + ": USKeyUpdate_AskQuestions");
             DatabaseConnection connection = new DatabaseConnection();
-            string dbUserid = connection.getUserID(email);
+            String dbUserid = connection.getUserID(email);
             connection.close();
             if (userID == null)
             {
@@ -317,17 +323,17 @@ namespace PractiSES
                 return null;
             }
             Core core = new Core(Server.passphrase);
-            string questions = core.ReadQuestions();
-            string signQuestions = Crypto.Sign(questions, core.PrivateKey);
+            String questions = core.ReadQuestions();
+            String signQuestions = Crypto.Sign(questions, core.PrivateKey);
             return signQuestions;
         }
 
-        public void USKeyUpdate_EnvelopeAnswers(string userID, string email, string answersEnveloped)
+        public void USKeyUpdate_EnvelopeAnswers(String userID, String email, String answersEnveloped)
         {
             Console.WriteLine("-------------------------");
             Console.WriteLine(email + ": USKeyUpdate_EnvelopeAnswers");
             DatabaseConnection connection = new DatabaseConnection();
-            string dbUserid = connection.getUserID(email);
+            String dbUserid = connection.getUserID(email);
             connection.close();
             if (userID == null)
             {
@@ -340,14 +346,14 @@ namespace PractiSES
                 return;
             }
             Core core = new Core(Server.passphrase);
-            string privateKey = core.PrivateKey;
+            String privateKey = core.PrivateKey;
 
             Rijndael aes = Rijndael.Create();
             AESInfo aesInfo = Crypto.Destruct(answersEnveloped, privateKey);
             String answers = Encoding.UTF8.GetString(Crypto.AESDecrypt(aesInfo.message, aes.CreateDecryptor(aesInfo.key, aesInfo.IV)));
 
             connection = new DatabaseConnection();
-            string dbAnswers = connection.getAnswers(email);
+            String dbAnswers = connection.getAnswers(email);
             connection.close();
             if (answers == dbAnswers)
             {
@@ -361,7 +367,7 @@ namespace PractiSES
             }
         }
 
-        private string USKeyUpdate_EncryptMACPass(string email, AESInfo aesInfo)
+        private String USKeyUpdate_EncryptMACPass(String email, AESInfo aesInfo)
         {
             HMAC hmac = HMACSHA1.Create();
 
@@ -374,10 +380,10 @@ namespace PractiSES
             return Convert.ToBase64String(Crypto.AESEncrypt(hmac.Key, aes.CreateEncryptor(aesInfo.key, aesInfo.IV)));
         }
 
-        private void USKeyUpdate_SendMail(string email, AESInfo aesInfo)
+        private void USKeyUpdate_SendMail(String email, AESInfo aesInfo)
         {
-            string macPassword_encrypted = InitKeySet_EncryptMACPass(email, aesInfo);
-            string subject = "Welcome to PractiSES";
+            String macPassword_encrypted = InitKeySet_EncryptMACPass(email, aesInfo);
+            String subject = "Welcome to PractiSES";
             StringBuilder body = new StringBuilder("Please double click the message to open this mail message in new window.\n Then follow Tools -> PractiSES -> Finalize Update links to finish update operation.");
             body.AppendLine();
             body.AppendLine(Crypto.BeginMessage);
@@ -388,21 +394,21 @@ namespace PractiSES
             Console.WriteLine(email + ": Mail sent.");
         }
 
-        private void USKeyUpdate_ErrorMail(string email)
+        private void USKeyUpdate_ErrorMail(String email)
         {
-            string subject = "PractiSES";
-            string body = "Your answers are not correct.";
+            String subject = "PractiSES";
+            String body = "Your answers are not correct.";
             Email mailer = new Email(email, subject, body);    //recepient, subject, body
             mailer.Send();
             Console.WriteLine(email + ": Warning mail sent.");
         }
 
-        public bool USKeyUpdate_SendPublicKey(string userID, string email, string publicKey, string macValue)
+        public bool USKeyUpdate_SendPublicKey(String userID, String email, String publicKey, String macValue)
         {
             Console.WriteLine("-------------------------");
             Console.WriteLine(email + ": USKeyUpdate_SendPublicKey");
             DatabaseConnection connection = new DatabaseConnection();
-            string dbUserid = connection.getUserID(email);
+            String dbUserid = connection.getUserID(email);
             connection.close();
             if (userID == null)
             {
@@ -415,7 +421,7 @@ namespace PractiSES
                 return false;
             }
             connection = new DatabaseConnection();
-            string dbMACPass = connection.getMACPass(email);
+            String dbMACPass = connection.getMACPass(email);
             connection.close();
 
             HMAC hmac = HMACSHA1.Create();
