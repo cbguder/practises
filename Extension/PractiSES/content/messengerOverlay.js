@@ -1,4 +1,7 @@
-const GPG				= "C:\\Documents\ and\ Settings\\kullaniciadi\\Desktop\\Practises\\Client\\bin\\Debug\\Client.exe";
+var prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService);
+prefs = prefs.getBranch("extensions.practises.");
+
+var clientpath			= prefs.getCharPref("clientpath");
 const CHARSET			= "UTF-8";
 const REPLACEMENTCHAR	= Components.interfaces.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER;
 
@@ -51,7 +54,7 @@ var practises = {
 			gpg_args = [command, "-r", argument, tmp_file.path];
 		}
 
-		gpg_file.initWithPath(GPG);
+		gpg_file.initWithPath(clientpath);
 		gpg_process.init(gpg_file);
 		gpg_process.run(true, gpg_args, gpg_args.length);
 
