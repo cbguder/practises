@@ -283,9 +283,9 @@ namespace PractiSES
             StringBuilder body = new StringBuilder("Please double click the message to open this mail message in new window.\n Then follow Tools -> PractiSES -> Finalize Key Removal links to finish removal of your key.");
             body.AppendLine();
             body.AppendLine(Crypto.BeginMessage);
+            body.AppendLine();
             body.AppendLine(macPassword_encrypted);
             body.AppendLine(Crypto.EndMessage);
-            body.AppendLine();
             Email mailer = new Email(email, subject, body.ToString());    //recepient, subject, body
             mailer.Send();
             Console.WriteLine(email + ": Mail sent.");
@@ -411,6 +411,7 @@ namespace PractiSES
             StringBuilder body = new StringBuilder("Please double click the message to open this mail message in new window.\n Then follow Tools -> PractiSES -> Finalize Update links to finish update operation.");
             body.AppendLine();
             body.AppendLine(Crypto.BeginMessage);
+            body.AppendLine();
             body.AppendLine(macPassword_encrypted);
             body.AppendLine(Crypto.EndMessage);
             Email mailer = new Email(email, subject, body.ToString());    //recepient, subject, body
