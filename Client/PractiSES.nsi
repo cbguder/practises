@@ -46,7 +46,7 @@
 ; Install Types
 
   InstType "Typical"
-  InstType "Custom2"
+  InstType "Custom"
 
 ;--------------------------------
 ; Sections
@@ -61,6 +61,7 @@ Section "PractiSES"
   File /oname=PractiSES.exe bin\Debug\Client.exe
   File bin\Debug\Core.dll
   File bin\Debug\Crypto.dll
+  File bin\Debug\IServer.dll
   File bin\Debug\Util.dll
   File /oname=License.txt ..\GPL.txt
   
@@ -84,6 +85,7 @@ Section "Uninstall"
   Delete $INSTDIR\PractiSES.exe
   Delete $INSTDIR\Core.dll
   Delete $INSTDIR\Crypto.dll
+  Delete $INSTDIR\IServer.dll
   Delete $INSTDIR\Util.dll
   Delete $INSTDIR\License.txt
   Delete $INSTDIR\uninstall.exe
