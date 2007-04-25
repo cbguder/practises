@@ -1,5 +1,0 @@
-obj\Debug\ResolveAssemblyReference.cache
-bin\Debug\IServer.dll
-bin\Debug\IServer.pdb
-obj\Debug\IServer.dll
-obj\Debug\IServer.pdb
