@@ -142,7 +142,7 @@ namespace PractiSES
 
             Console.Error.WriteLine("Connecting to PractiSES server ({0})...", host);
 
-            server = (ServerObject)Activator.GetObject(typeof(ServerObject), "http://" + host + "/PractiSES");
+            server = (IServer)Activator.GetObject(typeof(IServer), "http://" + host + "/PractiSES");
 
             return true;
         }
