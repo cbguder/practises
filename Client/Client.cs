@@ -404,7 +404,7 @@ namespace PractiSES
             hmac.Key = macpass;
             byte[] hash = hmac.ComputeHash(Encoding.UTF8.GetBytes("I want to remove my current public key"));
 
-            if (server.USKeyRem_SendRemoveRequest(username, passphrase, Convert.ToBase64String(hash)))
+            if (server.USKeyRem_SendRemoveRequest(username, email, Convert.ToBase64String(hash)))
             {
                 Console.WriteLine("Removal request successfully sent.");
             }

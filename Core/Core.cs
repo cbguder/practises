@@ -127,9 +127,9 @@ namespace PractiSES
             {
                 publicKey = rsa.ToXmlString(false);
                 privateKey = rsa.ToXmlString(true);
+                WriteKey(keyFile, privateKey, passphrase);
                 if (processName == "Server" || processName == "Server.vshost")
                 {
-                    WriteKey(keyFile, privateKey, passphrase);
                     StreamWriter writer = new StreamWriter(actionLogFile, true);
                     writer.Write(DateTime.Now.ToString() + space);
                     writer.WriteLine("Public/Private key pair written to " + keyFile);
