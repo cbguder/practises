@@ -1,3 +1,4 @@
-<!ENTITY prefwindow.title "PractiSES preferences">
-<!ENTITY pane1.title "PractiSES preferences">
-<!ENTITY stringpref.label "Path to PractiSES executable">
+<!ENTITY practisesPrefwindow.title "PractiSES preferences">
+<!ENTITY practisesPrefpane.title "PractiSES preferences">
+<!ENTITY clientpath.label "Path to PractiSES executable">
+<!ENTITY browse.label "Browse...">

@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://global/skin/options.css" type="text/css"?>
 <!DOCTYPE prefwindow SYSTEM "chrome://practises/locale/prefwindow.dtd">
 <prefwindow id="practisesPrefwindow" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" title="&practisesPrefwindow.title;">
   <prefpane id="practisesPrefpane" label="&practisesPrefpane.title;">
     <preferences>
-      <preference id="clientpath" name="extensions.practises.clientpath" type="string"/>
+      <preference id="clientpath" name="extensions.practises.clientpath" type="string" />
     </preferences>
-    <label control="textclientpath">&clientpath.label;</label><textbox id="textclientpath" preference="clientpath"/>
+    <label control="textclientpath">&clientpath.label;</label>
+	<textbox id="textclientpath" preference="clientpath" />
+	<button label="&browse.label;" accesskey="B" />
   </prefpane>
+
+  <script type="application/x-javascript" src="options.js"/>
 </prefwindow>

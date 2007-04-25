@@ -8,6 +8,7 @@ using System.Xml;
 using System.Security.Cryptography;
 using System.Text;
 using System.Collections;
+using System.Diagnostics;
 
 namespace PractiSES
 {
@@ -20,7 +21,7 @@ namespace PractiSES
         private String appDataFolder;
         private String publicKey;
         private String privateKey;
-        private String exeName;
+        private String processName;
         public const String separator = "--------------------";
         public const String space = ": ";
 
@@ -83,12 +84,13 @@ namespace PractiSES
         public Core(String passphrase, Boolean autoInitialize)
         {
             appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            exeName = Path.GetFileName(Environment.GetCommandLineArgs()[0]);
-            if (exeName == "Client.exe")
+            processName = Process.GetCurrentProcess().ProcessName;
+
+            if (processName == "Client" || processName == "PractiSES" || processName == "Client.vshost")
             {
                 appDataFolder = Path.Combine(appDataFolder, "PractiSES\\Client");
             }
-            if(exeName == "Server.exe" || exeName == "Server.vshost.exe")
+            if(processName == "Server" || processName == "Server.vshost")
             {
                 appDataFolder = Path.Combine(appDataFolder, "PractiSES\\Server");
                 settingsFile = Path.Combine(appDataFolder, "settings.xml");
@@ -125,7 +127,7 @@ namespace PractiSES
             {
                 publicKey = rsa.ToXmlString(false);
                 privateKey = rsa.ToXmlString(true);
-                if (exeName == "Server.exe")
+                if (processName == "Server" || processName == "Server.vshost")
                 {
                     WriteKey(keyFile, privateKey, passphrase);
                     StreamWriter writer = new StreamWriter(actionLogFile, true);
@@ -142,7 +144,7 @@ namespace PractiSES
                 rsa.FromXmlString(keyString);
                 publicKey = rsa.ToXmlString(false);
                 privateKey = rsa.ToXmlString(true);
-                if (exeName == "Server.exe")
+                if (processName == "Server" || processName == "Server.vshost")
                 {
                     StreamWriter writer = new StreamWriter(actionLogFile, true);
                     writer.Write(DateTime.Now.ToString() + space);
