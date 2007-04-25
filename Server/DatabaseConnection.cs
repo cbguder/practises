@@ -79,7 +79,7 @@ namespace PractiSES
         {
             try
             {
-                string query = String.Format("UPDATE `keys` SET `key` = '' WHERE `userID` ='{0}';", userID);
+                string query = String.Format("UPDATE `keys` SET `deleted` = 1 WHERE `userID` ='{0}';", userID);
                 cmd = new MySqlCommand(query, conn);
                 cmd.ExecuteNonQuery();
                 return true;
