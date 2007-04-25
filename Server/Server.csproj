@@ -54,6 +54,10 @@
       <Project>{FEAD5076-6DBF-4A17-8935-CA810964A835}</Project>
       <Name>Crypto</Name>
     </ProjectReference>
+    <ProjectReference Include="..\IServer\IServer.csproj">
+      <Project>{5762516A-00E1-458F-9788-0F57F4C646C0}</Project>
+      <Name>IServer</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Util\Util.csproj">
       <Project>{3EAA688C-89B4-4181-B139-1FC5A6F5A85D}</Project>
       <Name>Util</Name>
