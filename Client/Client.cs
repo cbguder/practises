@@ -17,7 +17,7 @@ namespace PractiSES
     class Client
     {
         private const String host = "practises2.no-ip.org";
-        private ServerObject server;
+        private IServer server;
         private Core core;
 
         static void Main(string[] args)
