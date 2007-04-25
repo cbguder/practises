@@ -28,7 +28,9 @@ namespace PractiSES
             if (publicKey != dbPublicKey)
             {
                 writer.Write(DateTime.Now.ToString() + Core.space);
-                writer.WriteLine("Server's old public key:\n" + dbPublicKey);
+                writer.WriteLine("Server's old public key:");
+                writer.WriteLine(dbPublicKey);
+                writer.WriteLine();
                 connection = new DatabaseConnection();
                 connection.setPublicKey("server", "server", publicKey);
                 Console.Write(DateTime.Now.ToString() + Core.space);
@@ -36,7 +38,9 @@ namespace PractiSES
             }
             connection.close();
             writer.Write(DateTime.Now.ToString() + Core.space);
-            writer.WriteLine("Server's public key:\n" + publicKey);
+            writer.WriteLine("Server's public key:");
+            writer.WriteLine(publicKey);
+            writer.WriteLine();
 
             writer.Write(DateTime.Now.ToString() + Core.space);
             writer.WriteLine("Server started");

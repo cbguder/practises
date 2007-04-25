@@ -173,6 +173,29 @@ namespace PractiSES
             return publicKey;
         }
 
+        public String KeyObt(String email, DateTime date, String domainName) //get public key of a user ( complete )
+        {
+            Console.WriteLine("-------------------------");
+            Console.WriteLine(email + ": KeyObt");
+            String publicKey = null;
+            if ("Sabanci University" == domainName)
+            {
+                DatabaseConnection connection = new DatabaseConnection();
+                publicKey = connection.getPublicKey(email);
+                connection.close();
+                if (publicKey == null)
+                {
+                    Console.WriteLine("Error - " + email + ": Email does not exist!");
+                }
+            }
+            else
+            {
+                //Certificate certificate = new Certificate();
+                //certificate.GetPublicKey(domainName);
+            }
+            return publicKey;
+        }
+
         public bool KeyRem(String userID, String email, String signedMessage)
         {
             Console.WriteLine("-------------------------");
@@ -262,6 +285,7 @@ namespace PractiSES
             body.AppendLine(Crypto.BeginMessage);
             body.AppendLine(macPassword_encrypted);
             body.AppendLine(Crypto.EndMessage);
+            body.AppendLine();
             Email mailer = new Email(email, subject, body.ToString());    //recepient, subject, body
             mailer.Send();
             Console.WriteLine(email + ": Mail sent.");
