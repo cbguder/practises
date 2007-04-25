@@ -44,8 +44,11 @@ Section "PractiSES"
   SetOutPath $INSTDIR
 
   ;Put file there
-  File /oname=PractiSES.exe "bin\Debug\Client.exe"
-  File /oname=License.txt "..\GPL.txt"
+  File /oname=PractiSES.exe bin\Debug\Client.exe
+  File bin\Debug\Core.dll
+  File bin\Debug\Crypto.dll
+  File bin\Debug\Util.dll
+  File /oname=License.txt ..\GPL.txt
   
   ;Write the installation path into the registry
   WriteRegStr HKLM SOFTWARE\PractiSES "Install_Dir" "$INSTDIR"
