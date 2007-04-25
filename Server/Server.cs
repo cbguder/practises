@@ -21,8 +21,8 @@ namespace PractiSES
             Core core = new Core(passphrase);
             core.ReadQuestions();
             DatabaseConnection connection = new DatabaseConnection();
-            string publicKey = core.PublicKey;
-            string dbPublicKey = connection.getPublicKey("server");
+            String publicKey = core.PublicKey;
+            String dbPublicKey = connection.getPublicKey("server");
             connection.close();
             StreamWriter writer = new StreamWriter(core.ActionLogFile, true);        
             if (publicKey != dbPublicKey)
