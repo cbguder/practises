@@ -28,65 +28,60 @@ namespace PractiSES
                 return;
             }
 
+            String[][] options = Util.Getopt(args, "dehp:r:sv", new String[] { "--help", "--initialize", "--finalize-initialize", "--update", "--finalize-update", "--remove",  "--finalize-remove", "--strip"});
+
             Client client = new Client();
             String file = args[args.Length - 1];
+
             String passphrase = null;
             String recipient = null;
-            String command = null;
-            
-            switch (args[0])
-            {
-                case "--encrypt":
-                case "-e":
-                    command = "encrypt";
-                    break;
-                case "--decrypt":
-                case "-d":
-                    command = "decrypt";
-                    break;
-                case "--sign":
-                case "-s":
-                    command = "sign";
-                    break;
-                case "--verify":
-                case "-v":
-                    command = "verify";
-                    break;
-                case "--initialize":
-                    command = "initialize";
-                    break;
-                case "--finalize-initialize":
-                    command = "finalizeInitialize";
-                    break;
-                case "--update":
-                    command = "update";
-                    break;
-                case "--finalize-update":
-                    command = "finalizeUpdate";
-                    break;
-                case "--remove":
-                    command = "remove";
-                    break;
-                case "--finalize-remove":
-                    command = "finalizeRemove";
-                    break;
-                case "--strip":
-                    command = "strip";
-                    break;
-                default:
-                    command = "help";
-                    break;
-            }
+            String command = "help";
 
-            for (int i = 0; i < args.Length; i++)
+            foreach (String[] item in options)
             {
-                switch (args[i])
+                switch (item[0])
                 {
+                    case "-d":
+                        command = "decrypt";
+                        break;
+                    case "-e":
+                        command = "encrypt";
+                        break;
+                    case "-h":
+                        command = "help";
+                        break;
                     case "-p":
-                        passphrase = args[i + 1];
+                        passphrase = item[1];
                         break;
                     case "-r":
-                        recipient = args[i + 1];
+                        recipient = item[1];
+                        break;
+                    case "-s":
+                        command = "sign";
+                        break;
+                    case "-v":
+                        command = "verify";
+                        break;
+                    case "--initialize":
+                        command = "initialize";
+                        break;
+                    case "--finalize-initialize":
+                        command = "finalizeInitialize";
+                        break;
+                    case "--update":
+                        command = "update";
+                        break;
+                    case "--finalize-update":
+                        command = "finalizeUpdate";
+                        break;
+                    case "--remove":
+                        command = "remove";
+                        break;
+                    case "--finalize-remove":
+                        command = "finalizeRemove";
+                        break;
+                    case "--strip":
+                        command = "strip";
                         break;
                 }
             }

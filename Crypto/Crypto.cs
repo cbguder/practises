@@ -105,6 +105,8 @@ namespace PractiSES
 
         public static Boolean Verify(String message, String publicKey)
         {
+            RSACryptoServiceProvider rsa = Crypto.GetRSA(publicKey);
+
             return true;
         }
 
@@ -124,6 +126,12 @@ namespace PractiSES
         {
             RSACryptoServiceProvider rsa = Crypto.GetRSA(privateKey);
             return rsa.Decrypt(rgb, true);
+        }
+
+        private static bool RSAVerify(byte[] data, byte[] signature, String publicKey)
+        {
+            RSACryptoServiceProvider rsa = Crypto.GetRSA(publicKey);
+            return rsa.VerifyData(data, new SHA1CryptoServiceProvider(), signature);
         }
 
         private static String RSAGetSignature(String clearText, String privateKey)

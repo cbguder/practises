@@ -38,6 +38,7 @@
     <Compile Include="Certificate.cs" />
     <Compile Include="Crypto.cs" />
     <Compile Include="Hash.cs" />
+    <Compile Include="Message.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

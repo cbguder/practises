@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using System.Collections;
 
 namespace PractiSES
 {
@@ -72,6 +73,71 @@ namespace PractiSES
             }
 
             return true;
+        }
+
+        public static String[][] Getopt(String[] args, String options)
+        {
+            return Util.Getopt(args, options, null);
+        }
+
+        public static String[][] Getopt(String[] args, String options, String[] longOptions)
+        {
+            ArrayList result = new ArrayList();
+            String toSearch;
+            bool needsParameter;
+
+            for (int i = 0; i < options.Length; i++)
+            {
+                toSearch = "-" + options[i];
+                needsParameter = (i < options.Length - 1) && (options[i + 1] == ':');
+
+                for(int j = 0; j < args.Length; j++)
+                {
+                    if(args[j] == toSearch && !needsParameter)
+                    {
+                        result.Add(new String[] { toSearch, "" });
+                    }
+                    else if (args[j].StartsWith(toSearch) && needsParameter)
+                    {
+                        String[] item = new String[] { toSearch, "" };
+
+                        if (args[j].Length > 2)
+                        {
+                            item[1] = args[j].Substring(2);
+                        }
+                        else if (j < args.Length - 1)
+                        {
+                            item[1] = args[j + 1];
+                            j++;
+                        }
+
+                        result.Add(item);
+                        i++;
+                    }
+                }
+            }
+
+            if (longOptions != null)
+            {
+                foreach (String longOption in longOptions)
+                {
+                    needsParameter = longOption.EndsWith("=");
+
+                    foreach (String arg in args)
+                    {
+                        if (arg == longOption && !needsParameter)
+                        {
+                            result.Add(new String[] { longOption, "" });                            
+                        }
+                        else if (arg.StartsWith(longOption) && needsParameter)
+                        {
+                            result.Add(arg.Split('='));
+                        }
+                    }
+                }
+            }
+
+            return (String[][])result.ToArray(Type.GetType("System.String[]"));
         }
     }
 }

@@ -50,6 +50,10 @@
       <Project>{5762516A-00E1-458F-9788-0F57F4C646C0}</Project>
       <Name>IServer</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Util\Util.csproj">
+      <Project>{3EAA688C-89B4-4181-B139-1FC5A6F5A85D}</Project>
+      <Name>Util</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
