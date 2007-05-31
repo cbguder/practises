@@ -12,9 +12,48 @@ namespace PractiSES
     class Server
     {
         public static String passphrase;
+        private const String rootHost = "10.80.10.178";
+        private IRootServer rootServer;
+
+        private bool Connect(String host)
+        {
+            HttpClientChannel chan = new HttpClientChannel();
+            ChannelServices.RegisterChannel(chan, false);
+
+            Console.WriteLine("Connecting to PractiSES root server ({0})...", host);
+            rootServer = (IRootServer)Activator.GetObject(typeof(IRootServer), "http://" + host + "/PractiSES_Root");
+            Console.WriteLine("Connected.");
+
+            Console.Write("Domain Name: ");
+            String domainName = Console.ReadLine();
+            GetCertificate(domainName);
+
+            return true;
+        }
+
+        private void GetCertificate(String domainName)
+        {
+            /*String cert = rootServer.GetCertificate(domainName);
+            String[] certFields = cert.Split(',');
+            Console.WriteLine(cert);*/
+            byte[] rawCertData = rootServer.GetCertificate(domainName);
+            if (rawCertData != null)
+            {
+                Certificate.OpenCertificate();
+                Certificate.AddCertificate(rawCertData);
+                //Console.WriteLine(Convert.ToBase64String(rawCertData));
+                Console.WriteLine("Certificate has been downloaded successfully.");
+            }
+        }
 
         static void Main(string[] args)
         {
+            Server server = new Server();
+            server.Connect(rootHost);
+            ServerObject serverobj = new ServerObject();
+            serverobj.KeyObt("cbguder@su.sabanciuniv.edu", DateTime.Now);
+            
+
             Console.Write("Enter passphrase: ");
             passphrase = Console.ReadLine();
             passphrase.Trim();
