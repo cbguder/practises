@@ -54,6 +54,10 @@
       <Project>{FEAD5076-6DBF-4A17-8935-CA810964A835}</Project>
       <Name>Crypto</Name>
     </ProjectReference>
+    <ProjectReference Include="..\IRootServer\IRootServer.csproj">
+      <Project>{E5F1C91B-F9CA-4FE1-B4F2-DAFB2F998937}</Project>
+      <Name>IRootServer</Name>
+    </ProjectReference>
     <ProjectReference Include="..\IServer\IServer.csproj">
       <Project>{5762516A-00E1-458F-9788-0F57F4C646C0}</Project>
       <Name>IServer</Name>

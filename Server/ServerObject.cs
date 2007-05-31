@@ -4,12 +4,19 @@ using System.Text;
 using MySql.Data.MySqlClient;
 using PractiSES;
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.IO;
+using System.Runtime.Remoting;
+using System.Runtime.Remoting.Channels;
+using System.Runtime.Remoting.Channels.Http;
 
 namespace PractiSES
 {
     public class ServerObject : MarshalByRefObject, IServer
     {
+        private const String rootHost = "10.80.10.178";
+        private IRootServer rootServer;
+
         public String InitKeySet_AskQuestions(String userID, String email)
         {
             Core core = new Core(Server.passphrase);
@@ -173,12 +180,15 @@ namespace PractiSES
             return publicKey;
         }
 
-        public String KeyObt(String email, DateTime date, String domainName) //get public key of a user ( complete )
+        //date de eklenecek, settings e domain name eklenecek
+        public String KeyObt(String email, DateTime date) //get public key of a user ( complete )
         {
             Console.WriteLine("-------------------------");
             Console.WriteLine(email + ": KeyObt");
+            int index = email.IndexOf('@');
+            String domainName = email.Substring(index, email.Length - index); 
             String publicKey = null;
-            if ("Sabanci University" == domainName)
+            if ("@su.sabanciuniv.edu" == domainName)
             {
                 DatabaseConnection connection = new DatabaseConnection();
                 publicKey = connection.getPublicKey(email);
@@ -190,8 +200,23 @@ namespace PractiSES
             }
             else
             {
-                //Certificate certificate = new Certificate();
-                //certificate.GetPublicKey(domainName);
+                byte[] rawCertData = Certificate.SearchCertificate(domainName);
+                if (rawCertData == null)
+                {         
+                    if (Connect(rootHost))
+                    {
+                        if (GetCertificate(domainName))
+                        {
+                            DatabaseConnection connection = new DatabaseConnection();
+                            publicKey = connection.getPublicKey(email, date);
+                            connection.close();
+                            if (publicKey == null)
+                            {
+                                Console.WriteLine("Error - " + email + ": Email does not exist!");
+                            }
+                        }
+                    }
+                }
             }
             return publicKey;
         }
@@ -466,7 +491,39 @@ namespace PractiSES
             return false;
         }
         
-
         /***************************************************************************/
+
+        /*private X509Certificate2 GetCertificate(String domainName)
+        {
+            return rootServer.GetCertificate(domainName);
+        }*/
+
+        private bool Connect(String host)
+        {
+            HttpClientChannel chan = new HttpClientChannel();
+            ChannelServices.RegisterChannel(chan, false);
+
+            Console.WriteLine("Connecting to PractiSES root server ({0})...", host);
+            rootServer = (IRootServer)Activator.GetObject(typeof(IRootServer), "http://" + host + "/PractiSES_Root");
+            Console.WriteLine("Connected.");
+
+            return true;
+        }
+
+        private bool GetCertificate(String domainName)
+        {
+            byte[] rawCertData = rootServer.GetCertificate(domainName);
+            if (rawCertData != null)
+            {
+                Certificate.AddCertificate(rawCertData);
+                Console.WriteLine("Certificate has been downloaded successfully.");
+                return true;
+            }
+            else
+            {
+                Console.WriteLine("Certificate is not found.");
+                return false;
+            }
+        }
     }
 }
