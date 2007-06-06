@@ -16,6 +16,7 @@ namespace PractiSES
     {
         private const String rootHost = "10.80.10.178";
         private IRootServer rootServer;
+       
 
         public String InitKeySet_AskQuestions(String userID, String email)
         {
@@ -51,7 +52,7 @@ namespace PractiSES
             Console.WriteLine(email + ": InitKeySet_EnvelopeAnswers");
             DatabaseConnection connection = new DatabaseConnection();
             String dbUserid = connection.getUserID(email);
-            connection.close();
+            //connection.close();
             if (userID == null)
             {
                 Console.WriteLine(email + ": Email does not exist!");
@@ -69,7 +70,7 @@ namespace PractiSES
             AESInfo aesInfo = Crypto.Destruct(answersEnveloped, privateKey);
             String answers = Encoding.UTF8.GetString(Crypto.AESDecrypt(aesInfo.message, aes.CreateDecryptor(aesInfo.key, aesInfo.IV)));
 
-            connection = new DatabaseConnection();
+          //  connection = new DatabaseConnection();
             String dbAnswers = connection.getAnswers(email);
             connection.close();
             if (answers == dbAnswers)
@@ -96,7 +97,8 @@ namespace PractiSES
             connection.setMACPass(email, Convert.ToBase64String(hmac.Key));
             connection.close();
 
-            return Convert.ToBase64String(Crypto.AESEncrypt(hmac.Key, aes.CreateEncryptor(aesInfo.key, aesInfo.IV)));
+            String result = Util.Wrap(Convert.ToBase64String(Crypto.AESEncrypt(hmac.Key, aes.CreateEncryptor(aesInfo.key, aesInfo.IV))), 64);
+            return result;
         }
 
         private void InitKeySet_SendMail(String email, AESInfo aesInfo)
@@ -131,7 +133,7 @@ namespace PractiSES
             Console.WriteLine(email + ": InitKeySet_SendPublicKey");
             DatabaseConnection connection = new DatabaseConnection();
             String dbUserid = connection.getUserID(email);
-            connection.close();
+         //   connection.close();
             if (userID == null)
             {
                 Console.WriteLine("Error - " + email + ": Email does not exist!");
@@ -142,9 +144,9 @@ namespace PractiSES
                 Console.WriteLine("Error - " + email + ": User id does not exist!");
                 return false;
             }
-            connection = new DatabaseConnection();
+          //  connection = new DatabaseConnection();
             String dbMACPass = connection.getMACPass(email);
-            connection.close();
+         //   connection.close();
 
             HMAC hmac = HMACSHA1.Create();
             hmac.Key = Convert.FromBase64String(dbMACPass);
@@ -153,10 +155,10 @@ namespace PractiSES
             //if (hash.ValidateMAC(publicKey, macValue))
             if(Util.Compare(hash, Convert.FromBase64String(macValue)))
             {
-                connection = new DatabaseConnection();
+             //   connection = new DatabaseConnection();
                 connection.setPublicKey(userID, email, publicKey);
-                connection.close();
-                connection = new DatabaseConnection();
+             //   connection.close();
+            //    connection = new DatabaseConnection();
                 connection.removeMACPass(email);
                 connection.close();
                 Console.WriteLine(email +": Public key is set.");
@@ -188,11 +190,12 @@ namespace PractiSES
             int index = email.IndexOf('@');
             String domainName = email.Substring(index, email.Length - index); 
             String publicKey = null;
+            DatabaseConnection connection = new DatabaseConnection();
             if ("@su.sabanciuniv.edu" == domainName)
             {
-                DatabaseConnection connection = new DatabaseConnection();
+                
                 publicKey = connection.getPublicKey(email);
-                connection.close();
+               // connection.close();
                 if (publicKey == null)
                 {
                     Console.WriteLine("Error - " + email + ": Email does not exist!");
@@ -207,7 +210,7 @@ namespace PractiSES
                     {
                         if (GetCertificate(domainName))
                         {
-                            DatabaseConnection connection = new DatabaseConnection();
+                           // DatabaseConnection connection = new DatabaseConnection();
                             publicKey = connection.getPublicKey(email, date);
                             connection.close();
                             if (publicKey == null)
@@ -268,7 +271,7 @@ namespace PractiSES
             Console.WriteLine(email + ": USKeyRem_EnvelopeAnswers");
             DatabaseConnection connection = new DatabaseConnection();
             String dbUserid = connection.getUserID(email);
-            connection.close();
+           // connection.close();
             if (userID == null)
             {
                 Console.WriteLine(email + ": Email does not exist!");
@@ -286,7 +289,7 @@ namespace PractiSES
             AESInfo aesInfo = Crypto.Destruct(answersEnveloped, privateKey);
             String answers = Encoding.UTF8.GetString(Crypto.AESDecrypt(aesInfo.message, aes.CreateDecryptor(aesInfo.key, aesInfo.IV)));
 
-            connection = new DatabaseConnection();
+           // connection = new DatabaseConnection();
             String dbAnswers = connection.getAnswers(email);
             connection.close();
             if (answers == dbAnswers)
@@ -322,7 +325,7 @@ namespace PractiSES
             Console.WriteLine(email + ": USKeyRem_SendPublicKey");
             DatabaseConnection connection = new DatabaseConnection();
             String dbUserid = connection.getUserID(email);
-            connection.close();
+           // connection.close();
             if (userID == null)
             {
                 Console.WriteLine("Error - " + email + ": Email does not exist!");
@@ -333,9 +336,9 @@ namespace PractiSES
                 Console.WriteLine("Error - " + email + ": User id does not exist!");
                 return false;
             }
-            connection = new DatabaseConnection();
+           // connection = new DatabaseConnection();
             String dbMACPass = connection.getMACPass(email);
-            connection.close();
+          //  connection.close();
 
             HMAC hmac = HMACSHA1.Create();
             hmac.Key = Convert.FromBase64String(dbMACPass);
@@ -343,7 +346,7 @@ namespace PractiSES
 
             if (Convert.ToBase64String(hash) == macValue)
             {
-                connection = new DatabaseConnection();
+             //   connection = new DatabaseConnection();
                 connection.removePublicKey(userID, email);
                 connection.close();
                 Console.WriteLine(email + ": Public key is removed.");
@@ -384,7 +387,7 @@ namespace PractiSES
             Console.WriteLine(email + ": USKeyUpdate_EnvelopeAnswers");
             DatabaseConnection connection = new DatabaseConnection();
             String dbUserid = connection.getUserID(email);
-            connection.close();
+          //  connection.close();
             if (userID == null)
             {
                 Console.WriteLine(email + ": Email does not exist!");
@@ -402,7 +405,7 @@ namespace PractiSES
             AESInfo aesInfo = Crypto.Destruct(answersEnveloped, privateKey);
             String answers = Encoding.UTF8.GetString(Crypto.AESDecrypt(aesInfo.message, aes.CreateDecryptor(aesInfo.key, aesInfo.IV)));
 
-            connection = new DatabaseConnection();
+          //  connection = new DatabaseConnection();
             String dbAnswers = connection.getAnswers(email);
             connection.close();
             if (answers == dbAnswers)
@@ -460,7 +463,7 @@ namespace PractiSES
             Console.WriteLine(email + ": USKeyUpdate_SendPublicKey");
             DatabaseConnection connection = new DatabaseConnection();
             String dbUserid = connection.getUserID(email);
-            connection.close();
+           // connection.close();
             if (userID == null)
             {
                 Console.WriteLine("Error - " + email + ": Email does not exist!");
@@ -471,9 +474,9 @@ namespace PractiSES
                 Console.WriteLine("Error - " + email + ": User id does not exist!");
                 return false;
             }
-            connection = new DatabaseConnection();
+           // connection = new DatabaseConnection();
             String dbMACPass = connection.getMACPass(email);
-            connection.close();
+           // connection.close();
 
             HMAC hmac = HMACSHA1.Create();
             hmac.Key = Convert.FromBase64String(dbMACPass);
@@ -481,7 +484,7 @@ namespace PractiSES
        
             if (Util.Compare(hash, Convert.FromBase64String(macValue)))
             {
-                connection = new DatabaseConnection();
+               // connection = new DatabaseConnection();
                 connection.setPublicKey(userID, email, publicKey);
                 connection.close();
                 Console.WriteLine(email + ": Public key is set.");

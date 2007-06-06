@@ -37,8 +37,11 @@ namespace PractiSES
             read = cmd.ExecuteReader();
             if (read.Read())
             {
-                return read.GetString(0);
+                string result = read.GetString(0);
+                read.Close();
+                return result;
             }
+            read.Close();
             return null;
 
         }
@@ -97,8 +100,11 @@ namespace PractiSES
             read = cmd.ExecuteReader();
             if (read.Read())
             {
-                return read.GetString(0);
+                string result = read.GetString(0);
+                read.Close();
+                return result;
             }
+            read.Close();
             return null;
         }
 
@@ -111,8 +117,11 @@ namespace PractiSES
             read = cmd.ExecuteReader();
             if (read.Read())
             {
-                return read.GetString(0);
+                string result = read.GetString(0);
+                read.Close();
+                return result;
             }
+            read.Close();
             return null;
         }
 
@@ -121,10 +130,13 @@ namespace PractiSES
             string query = "SELECT u.semisecret1 from users u WHERE u.email='" + email + "';";   
             cmd = new MySqlCommand(query, conn);
             read = cmd.ExecuteReader();
-            if(read.Read())
+            if (read.Read())
             {
-                return read.GetString(0);
+                string result = read.GetString(0);
+                read.Close();
+                return result;
             }
+            read.Close();
             return email + ": No records exist";
         }
 
@@ -148,11 +160,14 @@ namespace PractiSES
         {
             string query = "SELECT u.macpass from users u WHERE u.email='" + email + "';";
             cmd = new MySqlCommand(query, conn);
-            read = cmd.ExecuteReader();         
+            read = cmd.ExecuteReader();
             if (read.Read())
             {
-                return read.GetString(0);
+                string result = read.GetString(0);
+                read.Close();
+                return result;
             }
+            read.Close();
             return "No records exist";
         }
 
@@ -163,8 +178,11 @@ namespace PractiSES
             read = cmd.ExecuteReader();
             if (read.Read())
             {
-                return read.GetString(0);
+                string result = read.GetString(0);
+                read.Close();
+                return result;
             }
+            read.Close();
             return "No records exist";
         }
 
