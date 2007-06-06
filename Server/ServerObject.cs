@@ -443,7 +443,10 @@ namespace PractiSES
             connection.setMACPass(email, Convert.ToBase64String(hmac.Key));
             connection.close();
 
-            return Convert.ToBase64String(Crypto.AESEncrypt(hmac.Key, aes.CreateEncryptor(aesInfo.key, aesInfo.IV)));
+           // return Convert.ToBase64String(Crypto.AESEncrypt(hmac.Key, aes.CreateEncryptor(aesInfo.key, aesInfo.IV)));
+
+            String result = Util.Wrap(Convert.ToBase64String(Crypto.AESEncrypt(hmac.Key, aes.CreateEncryptor(aesInfo.key, aesInfo.IV))), 64);
+            return result;
         }
 
         private void USKeyUpdate_SendMail(String email, AESInfo aesInfo)
