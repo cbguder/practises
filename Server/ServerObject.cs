@@ -179,6 +179,7 @@ namespace PractiSES
             {
                 Console.WriteLine("Error - " + email + ": Email does not exist!");
             }
+            
             return publicKey;
         }
 
@@ -223,7 +224,10 @@ namespace PractiSES
                     }
                 }
             }
-            return publicKey;
+            Message message = new Message(publicKey);
+            message.AddComment("Email",email);
+            String result = message.ToString();
+            return result;
         }
 
         public bool KeyRem(String userID, String email, String signedMessage)
