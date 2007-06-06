@@ -22,6 +22,15 @@ namespace PractiSES
 
             Console.WriteLine("Connecting to PractiSES root server ({0})...", host);
             rootServer = (IRootServer)Activator.GetObject(typeof(IRootServer), "http://" + host + "/PractiSES_Root");
+            try
+            {
+                rootServer.Hello();
+            }
+            catch
+            {
+                Console.WriteLine("Unable to connect to the PractiSES root server.");
+                return false;
+            }
             Console.WriteLine("Connected.");
 
             Console.Write("Domain Name: ");
@@ -49,7 +58,7 @@ namespace PractiSES
         static void Main(string[] args)
         {
             Server server = new Server();
-            server.Connect(rootHost);
+            //server.Connect(rootHost);
             ServerObject serverobj = new ServerObject();
             serverobj.KeyObt("cbguder@su.sabanciuniv.edu", DateTime.Now);
             
@@ -58,7 +67,7 @@ namespace PractiSES
             passphrase = Console.ReadLine();
             passphrase.Trim();
             Core core = new Core(passphrase);
-            core.ReadQuestions();
+            core.ReadSettingsFile();
             DatabaseConnection connection = new DatabaseConnection();
             String publicKey = core.PublicKey;
             String dbPublicKey = connection.getPublicKey("server");

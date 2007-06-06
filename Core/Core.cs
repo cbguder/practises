@@ -96,14 +96,18 @@ namespace PractiSES
                 settingsFile = Path.Combine(appDataFolder, "settings.xml");
                 errorLogFile = Path.Combine(appDataFolder, "error.log");
                 actionLogFile = Path.Combine(appDataFolder, "action.log");
-                CreateLogFile(errorLogFile);
-                CreateLogFile(actionLogFile);
             }
             keyFile = Path.Combine(appDataFolder, "private.key");
 
             if (!Directory.Exists(appDataFolder))
             {
                 Directory.CreateDirectory(appDataFolder);
+            }
+
+            if (processName == "Server" || processName == "Server.vshost")
+            {
+                CreateLogFile(errorLogFile);
+                CreateLogFile(actionLogFile);
             }
 
             if (autoInitialize)
@@ -193,11 +197,13 @@ namespace PractiSES
             return Encoding.ASCII.GetString(Crypto.AESDecrypt(rest, passphrase, salt));
         }
 
-        public String ReadQuestions()
+        public String ReadSettingsFile()
         {
             if (!File.Exists(settingsFile))
             {
+                XmlElement settingsElement;
                 XmlElement questionElement;
+                XmlElement domainElement;
                 XmlAttribute questionNumber;
                 XmlDocument settingsDocument;
                 XmlProcessingInstruction instruction;
@@ -209,8 +215,8 @@ namespace PractiSES
                     instruction = settingsDocument.CreateProcessingInstruction("xml", "version='1.0' encoding='UTF-8'");
                     settingsDocument.AppendChild(instruction);
 
-                    questionElement = settingsDocument.CreateElement("", "settings", "");
-                    settingsDocument.AppendChild(questionElement);
+                    settingsElement = settingsDocument.CreateElement("", "settings", "");
+                    settingsDocument.AppendChild(settingsElement);
 
                     questionElement = settingsDocument.CreateElement("", "question", "");
                     questionNumber = settingsDocument.CreateAttribute("one");
@@ -220,6 +226,19 @@ namespace PractiSES
                     questionNumber.InnerText = strQuestion;
                     questionElement.Attributes.Append(questionNumber);
                     settingsDocument.ChildNodes.Item(1).AppendChild(questionElement);
+
+                    domainElement = settingsDocument.CreateElement("", "domain", "");
+                    Console.WriteLine("Please enter domain name of the server:");
+                    String domainName = Console.ReadLine();
+                    Console.WriteLine("Thank you again!");
+                    if (domainName[1] != '@')
+                    {
+                        domainName = "@" + domainName;
+                    }
+                    domainElement.InnerText = domainName;
+                    settingsDocument.ChildNodes.Item(1).AppendChild(domainElement);
+
+
 
                     settingsDocument.Save(settingsFile);
                     Console.WriteLine(settingsFile + " has been created.");
@@ -252,5 +271,18 @@ namespace PractiSES
             }
         }
 
+        String GetDomainName()
+        {
+            XmlNode domainNode;
+            XmlDocument settingsDocument;
+
+            settingsDocument = new XmlDocument();
+            settingsDocument.Load(settingsFile);
+
+            domainNode = settingsDocument.SelectSingleNode("descendant::domain");
+            String domain = domainNode.Value;
+
+            return domain;             
+        }
     }
 }

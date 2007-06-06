@@ -14,5 +14,10 @@ namespace PractiSES
             //String certFields = cert.IssuerName.Name + "," + cert.PublicKey + "," + cert.SubjectName + "," + cert.SubjectName.Name + "," + cert.SerialNumber;
             return rawCertData;
         }
+
+        public bool Hello()
+        {
+            return true;
+        }
     }
 }
