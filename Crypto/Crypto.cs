@@ -93,6 +93,32 @@ namespace PractiSES
             return cipherText.ToString();
         }
 
+        public static byte[] RAWEncrypt(byte[] clearText, String publicKey)
+        {
+            Rijndael aes = Rijndael.Create();
+            ArrayList message = new ArrayList();
+
+            message.AddRange(Crypto.RSAEncrypt(aes.Key, publicKey));
+            message.AddRange(Crypto.RSAEncrypt(aes.IV, publicKey));
+            message.AddRange(Crypto.AESEncrypt(clearText, aes.CreateEncryptor()));
+
+            return (byte[])message.ToArray(Type.GetType("System.Byte"));
+        }
+
+        public static byte[] RAWDecrypt(byte[] cipherText, String privateKey)
+        {
+            int ebs = RSAKeySize / 8;
+            Rijndael aes = Rijndael.Create();
+            ArrayList bytes = new ArrayList(cipherText);
+            byte[] keyPart = (byte[])bytes.GetRange(0, ebs).ToArray(Type.GetType("System.Byte"));
+
+            byte[] key = RSADecrypt(keyPart, privateKey);
+            byte[] IV = RSADecrypt((byte[])bytes.GetRange(ebs, ebs).ToArray(Type.GetType("System.Byte")), privateKey);
+            byte[] message = (byte[])bytes.GetRange(ebs * 2, bytes.Count - ebs * 2).ToArray(Type.GetType("System.Byte"));
+
+            return AESDecrypt(message, aes.CreateDecryptor(key, IV));
+        }
+
         public static byte[] Decrypt(String cipherText, String privateKey)
         {
             Rijndael aes = Rijndael.Create();

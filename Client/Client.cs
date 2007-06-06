@@ -19,6 +19,7 @@ namespace PractiSES
         private String host;
         private IServer server;
         private Core core;
+        private String serverKey;
 
         static void Main(string[] args)
         {
@@ -151,6 +152,8 @@ namespace PractiSES
         public Client(String host)
         {
             this.host = host;
+            this.core = new Core("", false);
+            this.serverKey = File.ReadAllText(Path.Combine(core.ApplicationDataFolder, "server.key"));
         }
 
         private bool Connect(String host)
@@ -222,8 +225,9 @@ namespace PractiSES
                 return;
 
             Message message = new Message(File.ReadAllBytes(filename));
+            message.Encrypt(publicKey);
 
-            if (Write(outFile, message.Ciphertext))
+            if (Write(outFile, message.ToString()))
             {
                 Console.Error.WriteLine("Output written to {0}", outFile);
             }
@@ -231,14 +235,22 @@ namespace PractiSES
 
         private void Decrypt(String filename, String passphrase)
         {
-            core = new Core(passphrase);
+            try
+            {
+                core.InitializeKeys(passphrase);
+            }
+            catch
+            {
+                Console.Error.WriteLine("Invalid passphrase");
+                return;
+            }
 
-            String cipherText = File.ReadAllText(filename);
-            byte[] clearText = Crypto.Decrypt(cipherText, core.PrivateKey);
+            Message message = new Message(File.ReadAllText(filename));
+            message.Decrypt(core.PrivateKey);
 
             String outFile = filename + ".pses";
 
-            if (Write(outFile, clearText))
+            if (Write(outFile, message.ToString()))
             {
                 Console.Error.WriteLine("Output written to {0}", outFile);
             }
@@ -248,7 +260,7 @@ namespace PractiSES
         {
             try
             {
-                core = new Core(passphrase);
+                core.InitializeKeys(passphrase);
             }
             catch
             {
@@ -269,7 +281,15 @@ namespace PractiSES
 
         private void SignDetached(String filename, String passphrase, String outfile)
         {
-            core = new Core(passphrase);
+            try
+            {
+                core.InitializeKeys(passphrase);
+            }
+            catch
+            {
+                Console.Error.WriteLine("Invalid passphrase");
+                return;
+            }
 
             byte[] data = File.ReadAllBytes(filename);
             String signature = Crypto.SignDetached(data, core.PrivateKey);
@@ -312,7 +332,6 @@ namespace PractiSES
 
         private void Verify(Message message, String sender)
         {
-            Core core = new Core();
             String publicKey = FetchPublicKey(sender);
 
             if (publicKey == null)
@@ -328,7 +347,15 @@ namespace PractiSES
 
         private void Initialize(String passphrase)
         {
-            core = new Core(passphrase);
+            try
+            {
+                core.InitializeKeys(passphrase);
+            }
+            catch
+            {
+                Console.Error.WriteLine("Invalid passphrase");
+                return;
+            }
 
             Console.Write("Username: ");
             String username = Console.ReadLine();
@@ -366,7 +393,15 @@ namespace PractiSES
 
         private void FinalizeInitialize(String filename, String passphrase)
         {
-            core = new Core(passphrase);
+            try
+            {
+                core.InitializeKeys(passphrase);
+            }
+            catch
+            {
+                Console.Error.WriteLine("Invalid passphrase");
+                return;
+            }
 
             StreamReader sr = new StreamReader(Path.Combine(core.ApplicationDataFolder, "identity"));
             String username = sr.ReadLine();
@@ -408,7 +443,6 @@ namespace PractiSES
 
         private void Update(String passphrase)
         {
-            core = new Core(passphrase, false);
             File.Delete(core.KeyFile);
             core.InitializeKeys(passphrase);
 
@@ -443,7 +477,15 @@ namespace PractiSES
 
         private void FinalizeUpdate(String filename, String passphrase)
         {
-            core = new Core(passphrase);
+            try
+            {
+                core.InitializeKeys(passphrase);
+            }
+            catch
+            {
+                Console.Error.WriteLine("Invalid passphrase");
+                return;
+            }
 
             StreamReader sr = new StreamReader(Path.Combine(core.ApplicationDataFolder, "identity"));
             String username = sr.ReadLine();
@@ -485,7 +527,15 @@ namespace PractiSES
 
         private void Remove(String passphrase)
         {
-            core = new Core(passphrase);
+            try
+            {
+                core.InitializeKeys(passphrase);
+            }
+            catch
+            {
+                Console.Error.WriteLine("Invalid passphrase");
+                return;
+            }
 
             StreamReader sr = new StreamReader(Path.Combine(core.ApplicationDataFolder, "identity"));
             String username = sr.ReadLine();
@@ -518,7 +568,15 @@ namespace PractiSES
 
         private void FinalizeRemove(String filename, String passphrase)
         {
-            core = new Core(passphrase);
+            try
+            {
+                core.InitializeKeys(passphrase);
+            }
+            catch
+            {
+                Console.Error.WriteLine("Invalid passphrase");
+                return;
+            }
 
             StreamReader sr = new StreamReader(Path.Combine(core.ApplicationDataFolder, "identity"));
             String username = sr.ReadLine();
@@ -599,13 +657,24 @@ namespace PractiSES
 
             String publicKey = server.KeyObt(userID);
 
-            if (publicKey == "No records exist")
+            if (publicKey == null)
             {
                 Console.Error.WriteLine("Invalid recipient");
                 return null;
             }
 
-            return publicKey;
+            Message message = new Message(publicKey);
+            
+            if (message.Verify(serverKey))
+            {
+                return Encoding.UTF8.GetString(message.Cleartext);
+            }
+            else
+            {
+                Console.Error.WriteLine("WARNING: Message from server is tampered with.");
+                return null;
+            }
+            
         }
     }
 }

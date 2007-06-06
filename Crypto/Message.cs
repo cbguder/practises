@@ -64,7 +64,11 @@ namespace PractiSES
             if (lines[0] == Crypto.BeginMessage || lines[0] == Crypto.BeginSignedMessage)
             {
                 while (lines[i] != "")
+                {
+                    String[] commentParts = lines[i].Split(new String[] { ": " }, StringSplitOptions.None);
+                    this.AddComment(commentParts[0], commentParts[1]);
                     i++;
+                }
             }
 
             if (lines[0] == Crypto.BeginMessage)
@@ -112,12 +116,17 @@ namespace PractiSES
             this.comments.Add(new Comment(name, content));
         }
 
-        public void Encrypt()
+        public void Encrypt(String publicKey)
         {
+            this.ciphertext = Crypto.RAWEncrypt(this.cleartext, publicKey);
         }
 
-        public void Decrypt()
+        public void Decrypt(String privateKey)
         {
+            Message temp = new Message(Crypto.RAWDecrypt(this.ciphertext, privateKey));
+            this.cleartext = temp.cleartext;
+            this.signature = temp.signature;
+            this.comments = temp.comments;
         }
 
         public void Sign(String privateKey)
