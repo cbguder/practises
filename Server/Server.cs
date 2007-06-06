@@ -60,7 +60,7 @@ namespace PractiSES
             Server server = new Server();
             //server.Connect(rootHost);
             ServerObject serverobj = new ServerObject();
-            serverobj.KeyObt("cbguder@su.sabanciuniv.edu", DateTime.Now);
+            //serverobj.KeyObt("cbguder@su.sabanciuniv.edu", DateTime.Now);
             
 
             Console.Write("Enter passphrase: ");
