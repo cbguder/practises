@@ -369,26 +369,35 @@ namespace PractiSES
             
             Connect(host);
 
-            String questions = server.InitKeySet_AskQuestions(username, email);
-            String strippedQuestions = Crypto.StripMessage(questions);
+            Message questions = new Message(server.InitKeySet_AskQuestions(username, email));
+
+            if (!questions.Verify(serverKey))
+            {
+                Console.Error.WriteLine("WARNING: Message from server is tampered with.");
+                return;
+            }
+
             Console.WriteLine("Questions:");
-            Console.WriteLine(strippedQuestions);
+            Console.WriteLine(questions.getCleartext());
             Console.Write("Answers: ");
             String answers = Console.ReadLine();
-            String serverPublicKey = server.KeyObt("server");
-            byte[] message = Encoding.UTF8.GetBytes(answers);
-            Rijndael aes = Rijndael.Create();
-            String encrypted = Crypto.Encrypt(message, serverPublicKey, aes);
 
-            ArrayList key = new ArrayList();
-            key.AddRange(aes.Key);
-            key.AddRange(aes.IV);
+            Message reply = new Message(answers);
+            reply.Encrypt(serverKey);
 
-            File.WriteAllBytes(Path.Combine(core.ApplicationDataFolder, "answers.key"), (byte[])key.ToArray(Type.GetType("System.Byte")));
+            File.WriteAllBytes(Path.Combine(core.ApplicationDataFolder, "answers"), reply.Ciphertext);
 
-            server.InitKeySet_EnvelopeAnswers(username, email, encrypted);
+            try
+            {
+                server.InitKeySet_EnvelopeAnswers(username, email, reply.ToString());
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine(e);
+                return;
+            }
 
-            Console.Error.WriteLine("Answers sent. Please check your email to finalize PractiSES initialization.");
+            Console.Error.WriteLine("Answers could not be sent. Please check your email to finalize PractiSES initialization.");
         }
 
         private void FinalizeInitialize(String filename, String passphrase)
@@ -413,7 +422,9 @@ namespace PractiSES
 
             Connect(host);
 
-            ArrayList key = new ArrayList(File.ReadAllBytes(Path.Combine(core.ApplicationDataFolder, "answers.key")));
+            byte[] answers = File.ReadAllBytes(Path.Combine(core.ApplicationDataFolder, "answers"));
+            ArrayList key = new ArrayList(File.ReadAllBytes(Path.Combine(core.ApplicationDataFolder, "answers")));
+
             AESInfo info = new AESInfo();
             info.key = (byte[])key.GetRange(0, Crypto.AESKeySize / 8).ToArray(Type.GetType("System.Byte"));
             info.IV = (byte[])key.GetRange(Crypto.AESKeySize / 8, Crypto.AESIVSize / 8).ToArray(Type.GetType("System.Byte"));

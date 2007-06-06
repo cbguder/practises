@@ -146,8 +146,7 @@ namespace PractiSES
             if (this.ciphertext != null)
             {
                 result.WriteLine(Crypto.BeginMessage);
-                foreach (Comment c in comments)
-                    result.WriteLine(c.name + ": " + c.content);
+                result.WriteLine(this.getComments());
                 result.WriteLine();
                 result.WriteLine(Util.Wrap(Convert.ToBase64String(ciphertext), wrap));
                 result.WriteLine(Crypto.EndMessage);
@@ -155,21 +154,44 @@ namespace PractiSES
             else if (this.signature != null)
             {
                 result.WriteLine(Crypto.BeginSignedMessage);
-                foreach (Comment c in comments)
-                    result.WriteLine(c.name + ": " + c.content);
+                result.WriteLine(this.getComments());
                 result.WriteLine();
-                result.WriteLine(Encoding.UTF8.GetString(cleartext));
-                result.WriteLine(Crypto.BeginSignature);
-                result.WriteLine(Util.Wrap(Convert.ToBase64String(signature), wrap));
-                result.WriteLine(Crypto.EndSignature);
+                result.WriteLine(this.getCleartext());
+                result.WriteLine(this.getSignature());
             }
             else
             {
-                result.WriteLine(Encoding.UTF8.GetString(cleartext));
+                result.WriteLine(this.getCleartext());
             }
 
             result.Flush();
             return result.ToString();
+        }
+
+        public String getSignature()
+        {
+            String result = Crypto.BeginSignature;
+            result += Environment.NewLine;
+            result += Util.Wrap(Convert.ToBase64String(signature), wrap);
+            result += Environment.NewLine;
+            result += Crypto.EndSignature;
+            return result;
+        }
+
+        public String getComments()
+        {
+            String result = "";
+            foreach (Comment c in this.comments)
+            {
+                result += c.name + ": " + c.content;
+                result += Environment.NewLine;
+            }
+            return result;
+        }
+
+        public String getCleartext()
+        {
+            return Encoding.UTF8.GetString(cleartext);
         }
     }
 }
