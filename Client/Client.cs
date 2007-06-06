@@ -250,7 +250,7 @@ namespace PractiSES
 
             String outFile = filename + ".pses";
 
-            if (Write(outFile, message.ToString()))
+            if (Write(outFile, message.Cleartext))
             {
                 Console.Error.WriteLine("Output written to {0}", outFile);
             }
