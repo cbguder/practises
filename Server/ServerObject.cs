@@ -179,8 +179,12 @@ namespace PractiSES
             {
                 Console.WriteLine("Error - " + email + ": Email does not exist!");
             }
-            
-            return publicKey;
+            Core core = new Core(Server.passphrase);
+            Message message = new Message(publicKey);
+            message.AddComment("Email", email);
+            message.Sign(core.PrivateKey);
+            String result = message.ToString();
+            return result;
         }
 
         //date de eklenecek, settings e domain name eklenecek
@@ -192,7 +196,7 @@ namespace PractiSES
             String domainName = email.Substring(index, email.Length - index); 
             String publicKey = null;
             DatabaseConnection connection = new DatabaseConnection();
-            Core core = new Core();
+            Core core = new Core(Server.passphrase);
             if (core.GetDomainName() == domainName)
             {
                 
