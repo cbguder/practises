@@ -226,6 +226,7 @@ namespace PractiSES
             }
             Message message = new Message(publicKey);
             message.AddComment("Email",email);
+            message.Sign(core.PrivateKey);
             String result = message.ToString();
             return result;
         }
