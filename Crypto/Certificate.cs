@@ -67,5 +67,19 @@ namespace PractiSES
             myStore.Add(certName);
             return true;
         }
+
+        public static String GetPublicKey(byte[] data)
+        {
+            X509Certificate2 myCert = new X509Certificate2(data);
+            String publicKey = myCert.GetPublicKeyString();
+            return publicKey;
+        }
+
+        public static String GetHostName(byte[] data)
+        {
+            X509Certificate2 myCert = new X509Certificate2(data);
+            String hostName = myCert.Subject;
+            return hostName;
+        }
     }
 }

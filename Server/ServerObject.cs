@@ -195,18 +195,13 @@ namespace PractiSES
             int index = email.IndexOf('@');
             String domainName = email.Substring(index, email.Length - index); 
             String publicKey = null;
-            DatabaseConnection connection = new DatabaseConnection();
             Core core = new Core(Server.passphrase);
             if (core.GetDomainName() == domainName)
             {
-                
+                DatabaseConnection connection = new DatabaseConnection();
                 publicKey = connection.getPublicKey(email, date);
+                connection.close();
                 Console.WriteLine(publicKey);
-               // connection.close();
-                if (publicKey == null)
-                {
-                    Console.WriteLine("Error - " + email + ": Email does not exist!");
-                }
             }
             else
             {
@@ -218,15 +213,30 @@ namespace PractiSES
                         if (GetCertificate(domainName))
                         {
                            // DatabaseConnection connection = new DatabaseConnection();
-                            publicKey = connection.getPublicKey(email, date);
-                            connection.close();
-                            if (publicKey == null)
+                            rawCertData = Certificate.SearchCertificate(domainName);
+                            String foreignServerPublicKey = Certificate.GetPublicKey(rawCertData);
+                            String foreignServerHost = Certificate.GetHostName(rawCertData);
+
+                            HttpClientChannel chan = new HttpClientChannel();
+                            ChannelServices.RegisterChannel(chan, false);
+                            Console.WriteLine("Connecting to foreign PractiSES server ({0})...", foreignServerHost);
+                            IServer foreignServer = (IServer)Activator.GetObject(typeof(IServer), "http://" + foreignServerHost + "/PractiSES");
+                            String signedPublicKey = foreignServer.KeyObt(email, date);
+                            if (signedPublicKey != null)
                             {
-                                Console.WriteLine("Error - " + email + ": Email does not exist!");
-                            }
+                                Message foreignmessage = new Message(signedPublicKey);
+                                if (foreignmessage.Verify(foreignServerPublicKey))
+                                {
+                                    publicKey = foreignmessage.getCleartext();
+                                }
+                            }                    
                         }
                     }
                 }
+            }
+            if (publicKey == null)
+            {
+                Console.WriteLine("Error - " + email + ": Email does not exist!");
             }
             Message message = new Message(publicKey);
             message.AddComment("Email",email);
