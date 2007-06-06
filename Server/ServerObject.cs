@@ -34,12 +34,12 @@ namespace PractiSES
             if (userID == null)
             {
                 Console.WriteLine(email + ": Email does not exist!");
-                return null;
+                throw new Exception("Invalid user");
             }
             if (userID != dbUserid)
             {
                 Console.WriteLine(email + ": User id does not exist!");
-                return null;
+                throw new Exception("Invalid user");
             }
             String questions = core.ReadSettingsFile();
             String signQuestions = Crypto.Sign(questions, core.PrivateKey);
@@ -137,12 +137,12 @@ namespace PractiSES
             if (userID == null)
             {
                 Console.WriteLine("Error - " + email + ": Email does not exist!");
-                return false;
+                throw new Exception("Invalid user");
             }
             if (userID != dbUserid)
             {
                 Console.WriteLine("Error - " + email + ": User id does not exist!");
-                return false;
+                throw new Exception("Invalid user");
             }
           //  connection = new DatabaseConnection();
             String dbMACPass = connection.getMACPass(email);
@@ -165,7 +165,7 @@ namespace PractiSES
                 return true;
             }
             Console.WriteLine("Error - " + email + ": MAC value is tampered, public key is not set.");
-            return false;
+            throw new Exception("MAC value is tampered, public key is not set");
         }
         
         public String KeyObt(String email) //get public key of a user ( complete )
@@ -237,6 +237,7 @@ namespace PractiSES
             if (publicKey == null)
             {
                 Console.WriteLine("Error - " + email + ": Email does not exist!");
+                throw new Exception("Invalid user");
             }
             Message message = new Message(publicKey);
             message.AddComment("Email",email);
@@ -273,12 +274,12 @@ namespace PractiSES
             if (userID == null)
             {
                 Console.WriteLine(email + ": Email does not exist!");
-                return null;
+                throw new Exception("Invalid user");
             }
             if (userID != dbUserid)
             {
                 Console.WriteLine(email + ": User id does not exist!");
-                return null;
+                throw new Exception("Invalid user");
             }
             Core core = new Core(Server.passphrase);
             String questions = core.ReadSettingsFile();
@@ -351,12 +352,12 @@ namespace PractiSES
             if (userID == null)
             {
                 Console.WriteLine("Error - " + email + ": Email does not exist!");
-                return false;
+                throw new Exception("Invalid user");
             }
             if (userID != dbUserid)
             {
                 Console.WriteLine("Error - " + email + ": User id does not exist!");
-                return false;
+                throw new Exception("Invalid user");
             }
            // connection = new DatabaseConnection();
             String dbMACPass = connection.getMACPass(email);
@@ -376,7 +377,7 @@ namespace PractiSES
             }
 
             Console.WriteLine("Error - " + email + ": MAC value is tampered, public key is not set.");
-            return false;
+            throw new Exception("MAC value is tampered, public key is not set.");
         }
         /***************************************************************************/
 
@@ -390,12 +391,12 @@ namespace PractiSES
             if (userID == null)
             {
                 Console.WriteLine(email + ": Email does not exist!");
-                return null;
+                throw new Exception("Invalid user");
             }
             if (userID != dbUserid)
             {
                 Console.WriteLine(email + ": User id does not exist!");
-                return null;
+                throw new Exception("Invalid user");
             }
             Core core = new Core(Server.passphrase);
             String questions = core.ReadSettingsFile();
@@ -493,12 +494,12 @@ namespace PractiSES
             if (userID == null)
             {
                 Console.WriteLine("Error - " + email + ": Email does not exist!");
-                return false;
+                throw new Exception("Invalid user");
             }
             if (userID != dbUserid)
             {
                 Console.WriteLine("Error - " + email + ": User id does not exist!");
-                return false;
+                throw new Exception("Invalid user");
             }
            // connection = new DatabaseConnection();
             String dbMACPass = connection.getMACPass(email);
@@ -517,7 +518,7 @@ namespace PractiSES
                 return true;
             }
             Console.WriteLine("Error - " + email + ": MAC value is tampered, public key is not set.");
-            return false;
+            throw new Exception("MAC value is tampered, public key is not set.");
         }
         
         /***************************************************************************/
