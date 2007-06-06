@@ -271,7 +271,7 @@ namespace PractiSES
             }
         }
 
-        String GetDomainName()
+        public String GetDomainName()
         {
             XmlNode domainNode;
             XmlDocument settingsDocument;
@@ -280,7 +280,7 @@ namespace PractiSES
             settingsDocument.Load(settingsFile);
 
             domainNode = settingsDocument.SelectSingleNode("descendant::domain");
-            String domain = domainNode.Value;
+            String domain = domainNode.InnerText;
 
             return domain;             
         }

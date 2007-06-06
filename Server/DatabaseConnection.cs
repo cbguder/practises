@@ -112,7 +112,7 @@ namespace PractiSES
         {
             DateTime unixStart = new DateTime(1970, 1, 1);
             TimeSpan timestamp = date - unixStart;
-            string query = string.Format("SELECT k.key from users u, `keys` k WHERE u.email='{0}' AND k.userid=u.userid AND k.`start`<'{1}' AND (k.`end`=0 OR k.`end`>'{2}');", email, timestamp, timestamp);
+            string query = string.Format("SELECT k.key from users u, `keys` k WHERE u.email='{0}' AND k.userid=u.userid AND k.`start`<'{1}' AND (k.`end`=0 OR k.`end`>'{2}');", email, timestamp.Ticks, timestamp.Ticks);
             cmd = new MySqlCommand(query, conn);
             read = cmd.ExecuteReader();
             if (read.Read())

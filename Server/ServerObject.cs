@@ -41,7 +41,7 @@ namespace PractiSES
                 Console.WriteLine(email + ": User id does not exist!");
                 return null;
             }
-            String questions = core.ReadQuestions();
+            String questions = core.ReadSettingsFile();
             String signQuestions = Crypto.Sign(questions, core.PrivateKey);
             return signQuestions;
         }
@@ -191,10 +191,12 @@ namespace PractiSES
             String domainName = email.Substring(index, email.Length - index); 
             String publicKey = null;
             DatabaseConnection connection = new DatabaseConnection();
-            if ("@su.sabanciuniv.edu" == domainName)
+            Core core = new Core();
+            if (core.GetDomainName() == domainName)
             {
                 
-                publicKey = connection.getPublicKey(email);
+                publicKey = connection.getPublicKey(email, date);
+                Console.WriteLine(publicKey);
                // connection.close();
                 if (publicKey == null)
                 {
@@ -260,7 +262,7 @@ namespace PractiSES
                 return null;
             }
             Core core = new Core(Server.passphrase);
-            String questions = core.ReadQuestions();
+            String questions = core.ReadSettingsFile();
             String signQuestions = Crypto.Sign(questions, core.PrivateKey);
             return signQuestions;
         }
@@ -376,7 +378,7 @@ namespace PractiSES
                 return null;
             }
             Core core = new Core(Server.passphrase);
-            String questions = core.ReadQuestions();
+            String questions = core.ReadSettingsFile();
             String signQuestions = Crypto.Sign(questions, core.PrivateKey);
             return signQuestions;
         }
