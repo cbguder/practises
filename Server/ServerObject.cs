@@ -56,12 +56,12 @@ namespace PractiSES
             if (userID == null)
             {
                 Console.WriteLine(email + ": Email does not exist!");
-                return false;
+                throw new Exception("Invalid user");
             }
             if (userID != dbUserid)
             {
                 Console.WriteLine(email + ": User id does not exist!");
-                return false;
+                throw new Exception("Invalid user");
             }
             Core core = new Core(Server.passphrase);
             String privateKey = core.PrivateKey;
@@ -83,7 +83,7 @@ namespace PractiSES
                //protocol stops and socket is closed.
                 InitKeySet_ErrorMail(email);
                 Console.WriteLine("Error - " + email + ": Answers are not correct!");
-                return false;
+                throw new Exception("Answers are not correct");
             }
         }
 
