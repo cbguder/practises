@@ -139,5 +139,24 @@ namespace PractiSES
 
             return (String[][])result.ToArray(Type.GetType("System.String[]"));
         }
+
+        public static String[] GetLines(String input)
+        {
+            ArrayList lines = new ArrayList();
+            StringReader sr = new StringReader(input);
+            String line;
+
+            while (true)
+            {
+                line = sr.ReadLine();
+                
+                if (line == null)
+                    break;
+
+                lines.Add(line);
+            }
+
+            return (String[])lines.ToArray(Type.GetType("System.String"));
+        }
     }
 }

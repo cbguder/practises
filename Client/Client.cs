@@ -16,7 +16,7 @@ namespace PractiSES
 {
     class Client
     {
-        private const String host = "practises2.no-ip.org";
+        private String host;
         private IServer server;
         private Core core;
 
@@ -28,14 +28,13 @@ namespace PractiSES
                 return;
             }
 
-            String[][] options = Util.Getopt(args, "dehp:r:sv", new String[] { "--help", "--initialize", "--finalize-initialize", "--update", "--finalize-update", "--remove",  "--finalize-remove", "--strip"});
-
-            Client client = new Client();
+            String[][] options = Util.Getopt(args, "dehH:O:p:r:sv", new String[] { "--help", "--initialize", "--finalize-initialize", "--update", "--finalize-update", "--remove",  "--finalize-remove", "--strip", "--sign-detached", "--verify-detached"});
             String file = args[args.Length - 1];
-
+            String host = "practises2.no-ip.org";
             String passphrase = null;
             String recipient = null;
             String command = "help";
+            String outfile = null;
 
             foreach (String[] item in options)
             {
@@ -49,6 +48,12 @@ namespace PractiSES
                         break;
                     case "-h":
                         command = "help";
+                        break;
+                    case "-H":
+                        host = item[1];
+                        break;
+                    case "-O":
+                        outfile = item[1];
                         break;
                     case "-p":
                         passphrase = item[1];
@@ -80,12 +85,20 @@ namespace PractiSES
                     case "--finalize-remove":
                         command = "finalizeRemove";
                         break;
+                    case "--sign-detached":
+                        command = "signDetached";
+                        break;
+                    case "--verify-detached":
+                        command = "verifyDetached";
+                        break;
                     case "--strip":
                         command = "strip";
                         break;
                 }
             }
-          
+
+            Client client = new Client(host);
+
             switch (command)
             {
                 case "encrypt":
@@ -98,7 +111,7 @@ namespace PractiSES
                     client.Sign(file, passphrase);
                     break;
                 case "verify":
-                    client.Verify(file);
+                    client.Verify(file, recipient);
                     break;
                 case "initialize":
                     client.Initialize(passphrase);
@@ -121,6 +134,12 @@ namespace PractiSES
                 case "strip":
                     client.Strip(file);
                     break;
+                case "signDetached":
+                    client.SignDetached(file, passphrase, outfile);
+                    break;
+                case "verifyDetached":
+                    client.VerifyDetached(file, recipient);
+                    break;
                 case "help":
                     Usage();
                     break;
@@ -129,8 +148,9 @@ namespace PractiSES
             return;
         }
 
-        public Client()
+        public Client(String host)
         {
+            this.host = host;
         }
 
         private bool Connect(String host)
@@ -144,12 +164,17 @@ namespace PractiSES
 
             return true;
         }
-        
+
         private bool Write(String path, byte[] contents)
+        {
+            return this.Write(path, contents, false);
+        }
+
+        private bool Write(String path, byte[] contents, Boolean overwrite)
         {
             bool write = true;
 
-            if (File.Exists(path))
+            if (!overwrite && File.Exists(path))
             {
                 Console.Write("{0} exists, overwrite? (y/N): ", path);
                 String response = Console.ReadLine();
@@ -175,6 +200,11 @@ namespace PractiSES
             return Write(path, Encoding.UTF8.GetBytes(contents));
         }
 
+        private bool Write(String path, String contents, Boolean overwrite)
+        {
+            return Write(path, Encoding.UTF8.GetBytes(contents), overwrite);
+        }
+
         private void WriteIdentity(String username, String email)
         {
             StreamWriter sw = new StreamWriter(Path.Combine(core.ApplicationDataFolder, "identity"));
@@ -187,35 +217,13 @@ namespace PractiSES
         {
             String outFile = filename + ".pses";
 
-            while (recipient == null || recipient == "")
-            {
-                Console.Write("Recipient: ");
-                recipient = Console.ReadLine();
-                recipient.Trim();
-            }
-
-            try
-            {
-                Connect(host);
-            }
-            catch (Exception e)
-            {
-                Console.Error.WriteLine("Error: {0}", e.Message);
+            String publicKey = FetchPublicKey(recipient);
+            if (publicKey == null)
                 return;
-            }
 
-            String publicKey = server.KeyObt(recipient);
+            Message message = new Message(File.ReadAllBytes(filename));
 
-            if (publicKey == "No records exist")
-            {
-                Console.Error.WriteLine("Invalid recipient");
-                return;
-            }
-
-            byte[] clearText = File.ReadAllBytes(filename);
-            String cipherText = Crypto.Encrypt(clearText, publicKey);
-
-            if (Write(outFile, cipherText))
+            if (Write(outFile, message.Ciphertext))
             {
                 Console.Error.WriteLine("Output written to {0}", outFile);
             }
@@ -238,21 +246,84 @@ namespace PractiSES
 
         private void Sign(String filename, String passphrase)
         {
-            core = new Core(passphrase);
+            try
+            {
+                core = new Core(passphrase);
+            }
+            catch
+            {
+                Console.Error.WriteLine("Invalid passphrase");
+                return;
+            }
 
             String outFile = filename + ".pses";
 
-            String clearText = File.ReadAllText(filename, Encoding.UTF8);
-            String signed = Crypto.Sign(clearText, core.PrivateKey);
+            Message message = new Message(File.ReadAllText(filename, Encoding.UTF8));
+            message.Sign(core.PrivateKey);
 
-            if (Write(outFile, signed))
+            if (Write(outFile, message.ToString()))
             {
                 Console.Error.WriteLine("Output written to {0}", outFile);
             }
         }
 
-        private void Verify(String filename)
+        private void SignDetached(String filename, String passphrase, String outfile)
         {
+            core = new Core(passphrase);
+
+            byte[] data = File.ReadAllBytes(filename);
+            String signature = Crypto.SignDetached(data, core.PrivateKey);
+
+            if (outfile == null)
+            {
+                outfile = filename + ".pses";
+            }
+
+            if (Write(outfile, signature, true))
+            {
+                Console.Error.WriteLine("Output written to {0}", outfile);
+            }
+        }
+
+        private void Verify(String filename, String sender)
+        {
+            Message message;
+
+            try
+            {
+                message = new Message(File.ReadAllText(filename, Encoding.UTF8));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return;
+            }
+
+            Verify(message, sender);
+        }
+
+        private void VerifyDetached(String filename, String sender)
+        {
+            Message message = new Message(File.ReadAllBytes(filename));
+            String[] siglines = Util.GetLines(File.ReadAllText(filename + ".pses"));
+            message.Signature = Convert.FromBase64String(String.Join("", siglines, 1, siglines.Length - 2));
+            Verify(message, sender);
+        }
+
+        private void Verify(Message message, String sender)
+        {
+            Core core = new Core();
+            String publicKey = FetchPublicKey(sender);
+
+            if (publicKey == null)
+                return;
+
+            bool result = message.Verify(publicKey);
+
+            if (result)
+                Console.WriteLine("Message verification succeeded.");
+            else
+                Console.WriteLine("Message verification failed.");
         }
 
         private void Initialize(String passphrase)
@@ -498,13 +569,43 @@ namespace PractiSES
             Console.Error.WriteLine("Usage: practises command filename");
             Console.Error.WriteLine();
             Console.Error.WriteLine("Commands:");
-            Console.Error.WriteLine("    -d, --decrypt");
-            Console.Error.WriteLine("    -e, --encrypt");
-            Console.Error.WriteLine("    -s, --sign");
-            Console.Error.WriteLine("    -v, --verify");
+            Console.Error.WriteLine("    -d                  Decrypt");
+            Console.Error.WriteLine("    -e                  Encrypt");
+            Console.Error.WriteLine("    -s                  Sign");
+            Console.Error.WriteLine("    -v                  Verify");
             Console.Error.WriteLine("        --initialize");
             Console.Error.WriteLine("        --remove");
             Console.Error.WriteLine("        --update");
+        }
+
+        private String FetchPublicKey(String userID)
+        {
+            while (userID == null || userID == "")
+            {
+                Console.Write("Sender: ");
+                userID = Console.ReadLine();
+                userID.Trim();
+            }
+
+            try
+            {
+                Connect(host);
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine("Error: {0}", e);
+                return null;
+            }
+
+            String publicKey = server.KeyObt(userID);
+
+            if (publicKey == "No records exist")
+            {
+                Console.Error.WriteLine("Invalid recipient");
+                return null;
+            }
+
+            return publicKey;
         }
     }
 }

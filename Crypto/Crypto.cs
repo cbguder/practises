@@ -15,8 +15,7 @@ namespace PractiSES
         public const int RSAKeySize = 2048;
         public const int AESKeySize = 256;
         public const int AESIVSize = 128;
-
-        private const int Wrap = 64;
+        public const int Wrap = 64;
 
         public const String BeginSignedMessage = "-----BEGIN PRACTISES SIGNED MESSAGE-----";
         public const String BeginSignature = "-----BEGIN PRACTISES SIGNATURE-----";
@@ -46,6 +45,23 @@ namespace PractiSES
             sw.WriteLine(clearText);
             sw.WriteLine(BeginSignature);
             sw.WriteLine(Util.Wrap(Crypto.RSAGetSignature(clearText, privateKey), Wrap));
+            sw.WriteLine(EndSignature);
+
+            return sw.ToString();
+        }
+
+        public static byte[] Sign(byte[] cleartext, String privatekey)
+        {
+            RSACryptoServiceProvider rsa = Crypto.GetRSA(privatekey);
+            return rsa.SignData(cleartext, new SHA1CryptoServiceProvider());
+        }
+
+        public static String SignDetached(byte[] data, String privateKey)
+        {
+            StringWriter sw = new StringWriter();
+
+            sw.WriteLine(BeginSignature);
+            sw.WriteLine(Util.Wrap(Crypto.RSAGetSignature(data, privateKey), Wrap));
             sw.WriteLine(EndSignature);
 
             return sw.ToString();
@@ -103,13 +119,6 @@ namespace PractiSES
             return result;
         }
 
-        public static Boolean Verify(String message, String publicKey)
-        {
-            RSACryptoServiceProvider rsa = Crypto.GetRSA(publicKey);
-
-            return true;
-        }
-
         public static String SignAndEncrypt(String clearText, String publicKey, String privateKey)
         {
             String signedMessage = Crypto.Sign(clearText, privateKey);
@@ -128,7 +137,7 @@ namespace PractiSES
             return rsa.Decrypt(rgb, true);
         }
 
-        private static bool RSAVerify(byte[] data, byte[] signature, String publicKey)
+        public static bool Verify(byte[] data, byte[] signature, String publicKey)
         {
             RSACryptoServiceProvider rsa = Crypto.GetRSA(publicKey);
             return rsa.VerifyData(data, new SHA1CryptoServiceProvider(), signature);
@@ -136,11 +145,13 @@ namespace PractiSES
 
         private static String RSAGetSignature(String clearText, String privateKey)
         {
-            RSACryptoServiceProvider rsa = Crypto.GetRSA(privateKey);
-
             byte[] bytes = Encoding.UTF8.GetBytes(clearText);
-            byte[] signature = rsa.SignData(bytes, new SHA1CryptoServiceProvider());
-            return Convert.ToBase64String(signature);
+            return Crypto.RSAGetSignature(bytes, privateKey);
+        }
+
+        private static String RSAGetSignature(byte[] data, String privateKey)
+        {
+            return Convert.ToBase64String(Sign(data, privateKey));
         }
 
         private static AESInfo DeriveKeyAndIV(String passphrase, byte[] salt, int keyLen, int IVLen)
