@@ -17,6 +17,7 @@ namespace PractiSES
         private byte[] cleartext;
         private byte[] ciphertext;
         private byte[] signature;
+        private ArrayList comments;
 
         public byte[] Cleartext
         {
@@ -51,6 +52,8 @@ namespace PractiSES
             this.cleartext = null;
             this.ciphertext = null;
             this.signature = null;
+            this.comments = new ArrayList();
+            comments.Add(new Comment("Version", "PractiSES " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString(2)+ " (Win32)"));
         }
 
         public Message(String message) : this()
@@ -104,6 +107,11 @@ namespace PractiSES
             this.cleartext = message;
         }
 
+        public void AddComment(String name, String content)
+        {
+            this.comments.Add(new Comment(name, content));
+        }
+
         public void Encrypt()
         {
         }
@@ -129,7 +137,8 @@ namespace PractiSES
             if (this.ciphertext != null)
             {
                 result.WriteLine(Crypto.BeginMessage);
-                result.WriteLine("Version: PractiSES {0} (Win32)", System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString(2));
+                foreach (Comment c in comments)
+                    result.WriteLine(c.name + ": " + c.content);
                 result.WriteLine();
                 result.WriteLine(Util.Wrap(Convert.ToBase64String(ciphertext), wrap));
                 result.WriteLine(Crypto.EndMessage);
@@ -137,7 +146,8 @@ namespace PractiSES
             else if (this.signature != null)
             {
                 result.WriteLine(Crypto.BeginSignedMessage);
-                result.WriteLine("Version: PractiSES {0} (Win32)", System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString(2));
+                foreach (Comment c in comments)
+                    result.WriteLine(c.name + ": " + c.content);
                 result.WriteLine();
                 result.WriteLine(Encoding.UTF8.GetString(cleartext));
                 result.WriteLine(Crypto.BeginSignature);

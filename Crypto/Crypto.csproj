@@ -37,6 +37,7 @@
   <ItemGroup>
     <Compile Include="AESInfo.cs" />
     <Compile Include="Certificate.cs" />
+    <Compile Include="Comment.cs" />
     <Compile Include="Crypto.cs" />
     <Compile Include="Hash.cs" />
     <Compile Include="Message.cs" />
