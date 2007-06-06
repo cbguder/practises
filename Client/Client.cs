@@ -368,8 +368,19 @@ namespace PractiSES
             sw.Close();
             
             Connect(host);
+            String questionsFromServer;
 
-            Message questions = new Message(server.InitKeySet_AskQuestions(username, email));
+            try
+            {
+                questionsFromServer = server.InitKeySet_AskQuestions(username, email);
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine(e);
+                return;
+            }
+
+            Message questions = new Message(questionsFromServer);
 
             if (!questions.Verify(serverKey))
             {
@@ -385,7 +396,7 @@ namespace PractiSES
             Message reply = new Message(answers);
             reply.Encrypt(serverKey);
 
-            File.WriteAllBytes(Path.Combine(core.ApplicationDataFolder, "answers"), reply.Ciphertext);
+            File.WriteAllText(Path.Combine(core.ApplicationDataFolder, "answers"), reply.ToString());
 
             try
             {
@@ -422,13 +433,8 @@ namespace PractiSES
 
             Connect(host);
 
-            byte[] answers = File.ReadAllBytes(Path.Combine(core.ApplicationDataFolder, "answers"));
-            ArrayList key = new ArrayList(File.ReadAllBytes(Path.Combine(core.ApplicationDataFolder, "answers")));
-
-            AESInfo info = new AESInfo();
-            info.key = (byte[])key.GetRange(0, Crypto.AESKeySize / 8).ToArray(Type.GetType("System.Byte"));
-            info.IV = (byte[])key.GetRange(Crypto.AESKeySize / 8, Crypto.AESIVSize / 8).ToArray(Type.GetType("System.Byte"));
-            File.Delete(Path.Combine(core.ApplicationDataFolder, "answers.key"));
+            AESInfo info = Crypto.Destruct(File.ReadAllText(Path.Combine(core.ApplicationDataFolder, "answers")), core.PrivateKey);
+            File.Delete(Path.Combine(core.ApplicationDataFolder, "answers"));
 
             Rijndael aes = Rijndael.Create();
             
