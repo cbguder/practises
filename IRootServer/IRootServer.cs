@@ -7,5 +7,6 @@ namespace PractiSES
     public interface IRootServer
     {
         byte[] GetCertificate(String domainName);
+        bool Hello();
     }
 }
