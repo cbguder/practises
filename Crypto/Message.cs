@@ -63,8 +63,6 @@ namespace PractiSES
             this.ciphertext = null;
             this.signature = null;
             this.comments = new ArrayList();
-            comments.Add(new Comment("Version", "PractiSES " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString(2)+ " (Win32)"));
-            comments.Add(new Comment("Time", this.time.ToUniversalTime().ToString("u")));
         }
 
         public Message(String message) : this()
@@ -114,12 +112,16 @@ namespace PractiSES
             else
             {
                 this.cleartext = Encoding.UTF8.GetBytes(message);
+                this.comments.Add(new Comment("Version", "PractiSES " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString(2) + " (Win32)"));
+                this.comments.Add(new Comment("Time", this.time.ToUniversalTime().ToString("u")));
             }
         }
 
         public Message(byte[] message) : this()
         {
             this.cleartext = message;
+            this.comments.Add(new Comment("Version", "PractiSES " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString(2) + " (Win32)"));
+            this.comments.Add(new Comment("Time", this.time.ToUniversalTime().ToString("u")));
         }
 
         public void AddComment(String name, String content)
@@ -151,8 +153,20 @@ namespace PractiSES
 
         public void Sign(String privateKey)
         {
-            byte[] commentBytes = Encoding.UTF8.GetBytes(this.getComments());
-            this.signature = Crypto.Sign(Util.Join(commentBytes, cleartext), privateKey);
+            this.Sign(privateKey, true);
+        }
+
+        public void Sign(String privateKey, bool signComments)
+        {
+            if (signComments)
+            {
+                byte[] commentBytes = Encoding.UTF8.GetBytes(this.getComments());
+                this.signature = Crypto.Sign(Util.Join(commentBytes, cleartext), privateKey);
+            }
+            else
+            {
+                this.signature = Crypto.Sign(cleartext, privateKey);
+            }
         }
 
         public bool Verify(String publicKey)

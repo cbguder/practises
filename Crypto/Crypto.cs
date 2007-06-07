@@ -157,7 +157,7 @@ namespace PractiSES
             return rsa.Encrypt(rgb, true);
         }
 
-        private static byte[] RSADecrypt(byte[] rgb, String privateKey)
+        public static byte[] RSADecrypt(byte[] rgb, String privateKey)
         {
             RSACryptoServiceProvider rsa = Crypto.GetRSA(privateKey);
             return rsa.Decrypt(rgb, true);

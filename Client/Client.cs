@@ -291,15 +291,15 @@ namespace PractiSES
                 return;
             }
 
-            byte[] data = File.ReadAllBytes(filename);
-            String signature = Crypto.SignDetached(data, core.PrivateKey);
+            Message message = new Message(File.ReadAllBytes(filename));
+            message.Sign(core.PrivateKey, false);
 
             if (outfile == null)
             {
                 outfile = filename + ".pses";
             }
 
-            if (Write(outfile, signature, true))
+            if (Write(outfile, message.getSignature(), true))
             {
                 Console.Error.WriteLine("Output written to {0}", outfile);
             }
@@ -315,7 +315,7 @@ namespace PractiSES
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                Console.Error.WriteLine(e.Message);
                 return;
             }
 
@@ -397,6 +397,7 @@ namespace PractiSES
             if (!questions.Verify(serverKey))
             {
                 Console.Error.WriteLine("WARNING: Message from server is tampered with.");
+                Console.Error.WriteLine(questionsFromServer);
                 return;
             }
 
@@ -405,14 +406,19 @@ namespace PractiSES
             Console.Write("Answers: ");
             String answers = Console.ReadLine();
 
-            Message reply = new Message(answers);
-            reply.Encrypt(serverKey);
+            byte[] message = Encoding.UTF8.GetBytes(answers);
+            Rijndael aes = Rijndael.Create();
+            String encrypted = Crypto.Encrypt(message, serverKey, aes);
 
-            File.WriteAllText(Path.Combine(core.ApplicationDataFolder, "answers"), reply.ToString());
+            ArrayList key = new ArrayList();
+            key.AddRange(aes.Key);
+            key.AddRange(aes.IV);
+
+            File.WriteAllBytes(Path.Combine(core.ApplicationDataFolder, "answers.key"), (byte[])key.ToArray(Type.GetType("System.Byte")));
 
             try
             {
-                server.InitKeySet_EnvelopeAnswers(username, email, reply.ToString());
+                server.InitKeySet_EnvelopeAnswers(username, email, encrypted);
             }
             catch (Exception e)
             {
@@ -420,7 +426,7 @@ namespace PractiSES
                 return;
             }
 
-            Console.Error.WriteLine("Answers could not be sent. Please check your email to finalize PractiSES initialization.");
+            Console.Error.WriteLine("Answers sent. Please check your email to finalize PractiSES initialization.");
         }
 
         private void FinalizeInitialize(String filename, String passphrase)
@@ -445,8 +451,11 @@ namespace PractiSES
 
             Connect(host);
 
-            AESInfo info = Crypto.Destruct(File.ReadAllText(Path.Combine(core.ApplicationDataFolder, "answers")), core.PrivateKey);
-            File.Delete(Path.Combine(core.ApplicationDataFolder, "answers"));
+            ArrayList key = new ArrayList(File.ReadAllBytes(Path.Combine(core.ApplicationDataFolder, "answers.key")));
+            AESInfo info = new AESInfo();
+            info.key = (byte[])key.GetRange(0, Crypto.AESKeySize / 8).ToArray(Type.GetType("System.Byte"));
+            info.IV = (byte[])key.GetRange(Crypto.AESKeySize / 8, Crypto.AESIVSize / 8).ToArray(Type.GetType("System.Byte"));
+            File.Delete(Path.Combine(core.ApplicationDataFolder, "answers.key"));
 
             Rijndael aes = Rijndael.Create();
             
@@ -465,6 +474,7 @@ namespace PractiSES
                 if (server.InitKeySet_SendPublicKey(username, email, core.PublicKey, Convert.ToBase64String(hash)))
                 {
                     Console.WriteLine("Public key successfully sent.");
+                    File.Delete(Path.Combine(core.ApplicationDataFolder, "answers"));
                 }
             }
             catch (Exception e)
