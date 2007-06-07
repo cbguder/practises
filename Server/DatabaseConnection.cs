@@ -66,9 +66,8 @@ namespace PractiSES
         {
             try
             {
-                string query = String.Format("UPDATE `keys` SET `key` = '{0}' WHERE `userID` ='{1}';",key,userID);
-                cmd = new MySqlCommand(query, conn);
-                cmd.ExecuteNonQuery();
+                removePublicKey(userID, email);
+                setPublicKey(userID, email, key);
                 return true;
             }
             catch (Exception e)
@@ -82,7 +81,7 @@ namespace PractiSES
         {
             try
             {
-                string query = String.Format("UPDATE `keys` SET `deleted` = 1 WHERE `userID` ='{0}';", userID);
+                string query = String.Format("UPDATE `keys` SET `deleted` = 1, `end` = NOW() WHERE `userID` ='{0}' AND `deleted` = 0;", userID);
                 cmd = new MySqlCommand(query, conn);
                 cmd.ExecuteNonQuery();
                 return true;
@@ -95,7 +94,7 @@ namespace PractiSES
         }
         public string getPublicKey(string email) //return public key (complete)
         {
-            string query = "SELECT k.key from users u, `keys` k WHERE u.email='" + email + "' AND k.userid=u.userid ORDER BY k.`start` DESC LIMIT 1;";
+            string query = String.Format("SELECT k.key FROM users u, `keys` k WHERE u.email='{0}' AND k.deleted=0 AND k.userid=u.userid ORDER BY k.`start` DESC LIMIT 1;", email);
             cmd = new MySqlCommand(query, conn);
             read = cmd.ExecuteReader();
             if (read.Read())
@@ -112,7 +111,7 @@ namespace PractiSES
         {
             DateTime unixStart = new DateTime(1970, 1, 1);
             TimeSpan timestamp = date - unixStart;
-            string query = string.Format("SELECT k.key from users u, `keys` k WHERE u.email='{0}' AND k.userid=u.userid AND k.`start`<{1} AND (k.`end`=0 OR k.`end`>{2});", email, timestamp.Ticks, timestamp.Ticks);
+            string query = string.Format("SELECT k.key from users u, `keys` k WHERE u.email='{0}' AND k.deleted=0 AND k.userid=u.userid AND k.`start`<{1} AND (k.`end`=0 OR k.`end`>{2});", email, timestamp.Ticks, timestamp.Ticks);
             cmd = new MySqlCommand(query, conn);
             read = cmd.ExecuteReader();
             if (read.Read())
@@ -144,7 +143,7 @@ namespace PractiSES
         {
             try
             {
-                string query = "UPDATE users u SET u.macpass='" + key + "' WHERE u.email='" + email + "';";
+                string query = string.Format("UPDATE users u SET u.macpass='{0}' WHERE u.email='{1}';", key, email);
                 cmd = new MySqlCommand(query, conn);
                 cmd.ExecuteNonQuery();
                 return true;
@@ -158,7 +157,7 @@ namespace PractiSES
 
         public string getMACPass(string email)
         {
-            string query = "SELECT u.macpass from users u WHERE u.email='" + email + "';";
+            string query = string.Format("SELECT u.macpass from users u WHERE u.email='{0}';", email);
             cmd = new MySqlCommand(query, conn);
             read = cmd.ExecuteReader();
             if (read.Read())
