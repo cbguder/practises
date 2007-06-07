@@ -113,6 +113,15 @@ namespace PractiSES
 
         public void AddComment(String name, String content)
         {
+            foreach (Comment c in comments)
+            {
+                if (c.name == name)
+                {
+                    c.content = content;
+                    return;
+                }
+            }
+
             this.comments.Add(new Comment(name, content));
         }
 
