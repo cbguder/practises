@@ -246,20 +246,33 @@ namespace PractiSES
             return result;
         }
 
-        public bool KeyRem(String userID, String email, String signedMessage)
+        public bool KeyRem(String userID, String email, Message signedMessage)
         {
             Console.WriteLine("-------------------------");
-            Console.WriteLine("Connected");
-            DatabaseConnection connection = new DatabaseConnection();
-            bool result = connection.removeEntry(email, userID);
-            connection.close();
-            return result;
+            Console.WriteLine(email + ": KeyRem");
+            if (DateTime.Compare(signedMessage.Time, DateTime.Now.AddHours(-1)) >= 0 )
+            {
+                DatabaseConnection connection = new DatabaseConnection();
+                bool result = connection.removePublicKey(userID, email);
+                connection.close();
+                return result;
+            }
+            throw new Exception("Incorrect message");
+            
         }
 
-        public bool KeyUpdate(String userID, String email, String signedMessage)
+        public bool KeyUpdate(String userID, String email, Message signedMessage)
         {
             Console.WriteLine("-------------------------");
-            return true;
+            Console.WriteLine(email + ": KeyUpdate");
+            if (DateTime.Compare(signedMessage.Time, DateTime.Now.AddHours(-1)) >= 0)
+            {
+                DatabaseConnection connection = new DatabaseConnection();
+                bool result = connection.updatePublicKey(userID, email,signedMessage.getCleartext());
+                connection.close();
+                return result;
+            }
+            throw new Exception("Incorrect message");
         }
 
 
