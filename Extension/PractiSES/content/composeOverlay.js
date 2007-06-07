@@ -110,22 +110,23 @@ var practises = {
 	addDetachedSignature: function(passphrase, url) {
 		var filename = url.substring(url.lastIndexOf("\\") + 1, url.length);
 
-//		var tmp_file = Components.classes["@mozilla.org/file/directory_service;1"].getService(Components.interfaces.nsIProperties).get("TmpD", Components.interfaces.nsIFile);
-//		tmp_file.append(filename + ".pses");
+		var tmp_file = Components.classes["@mozilla.org/file/directory_service;1"].getService(Components.interfaces.nsIProperties).get("TmpD", Components.interfaces.nsIFile);
+		tmp_file.append(filename + ".pses");
 
-		var tmp_file = "D:\\" + filename + ".pses";
+//		var tmp_file = "D:\\" + filename + ".pses";
 
 		var gpg_file = Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces.nsILocalFile);
 		var gpg_process = Components.classes["@mozilla.org/process/util;1"].createInstance(Components.interfaces.nsIProcess);
-		var gpg_args = ["--sign-detached", "-H", host, "-p", passphrase, "-O", tmp_file, url];
+		var gpg_args = ["--sign-detached", "-H", host, "-p", passphrase, "-O", tmp_file.path, url];
 		gpg_file.initWithPath(clientpath);
 		gpg_process.init(gpg_file);
 		gpg_process.run(true, gpg_args, gpg_args.length);
 		
+		var protocolhandler = Components.classes["@mozilla.org/network/protocol;1?name=file"].createInstance(Components.interfaces.nsIFileProtocolHandler);			
+		var url = protocolhandler.getURLSpecFromFile(tmp_file);
+
 		var attachment = Components.classes["@mozilla.org/messengercompose/attachment;1"].createInstance(Components.interfaces.nsIMsgAttachment);
-		var finalurl = tmp_file.replace(/\\/g, "/");
-		finalurl = "file:///" + encodeURI(finalurl);
-		attachment.url = finalurl;
+		attachment.url = url;
 
 		if(attachment && attachment.url) {
 		    var bucket = document.getElementById("attachmentBucket");
@@ -133,17 +134,8 @@ var practises = {
 
 			if (!attachment.name)
 				attachment.name = filename + ".pses";
-
-			item.setAttribute("label", attachment.name);    //use for display only
-			item.attachment = attachment;   //full attachment object stored here
-			try {
-				item.setAttribute("tooltiptext", decodeURI(attachment.url));
-			} catch(e) {
-				item.setAttribute("tooltiptext", attachment.url);
-			}
-			item.setAttribute("class", "listitem-iconic");
-			item.setAttribute("image", "moz-icon:" + attachment.url);
-			bucket.appendChild(item);
+			
+			AddAttachment(attachment);
 		}
   	}
 };
@@ -169,7 +161,7 @@ function onComposerSendMessage()
 	}
 
 	if(sign) {
-//		practises.sign();
+		practises.sign();
 	}
 
 	if(encrypt) {
@@ -177,5 +169,5 @@ function onComposerSendMessage()
 	}
 };
 
-window.addEventListener("load", function(e) { practises.onLoad(e); }, false);
+window.addEventListener('load', function(e) { practises.onLoad(e); }, false);
 window.addEventListener('compose-send-message', onComposerSendMessage, true);

@@ -68,9 +68,14 @@ namespace PractiSES
         public Message(String message) : this()
         {
             String[] lines = Util.GetLines(message);
-            int i = 1;
 
-            if (lines[0] == Crypto.BeginMessage || lines[0] == Crypto.BeginSignedMessage)
+            int firstLine = 0;
+            while (lines[firstLine] == "")
+                firstLine++;
+            
+            int i = firstLine + 1;
+
+            if (lines[firstLine] == Crypto.BeginMessage || lines[firstLine] == Crypto.BeginSignedMessage)
             {
                 while (lines[i] != "")
                 {
@@ -80,7 +85,7 @@ namespace PractiSES
                 }
             }
 
-            if (lines[0] == Crypto.BeginMessage)
+            if (lines[firstLine] == Crypto.BeginMessage)
             {
                 int startIndex, endIndex;
 
@@ -91,7 +96,7 @@ namespace PractiSES
 
                 this.ciphertext = Convert.FromBase64String(String.Join("", lines, startIndex, endIndex - startIndex));
             }
-            else if (lines[0] == Crypto.BeginSignedMessage)
+            else if (lines[firstLine] == Crypto.BeginSignedMessage)
             {
                 int startIndex, endIndex;
                 

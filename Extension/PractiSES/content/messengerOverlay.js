@@ -28,6 +28,7 @@ var practises = {
 		var msgPaneDocChildren = messagePane.contentDocument.childNodes;
 		var ndHTML = msgPaneDocChildren.item(0);
 		var ndBODY = ndHTML.childNodes.item(1);
+		var ndDIV = ndHTML.childNodes.item(1);
 
 		var tmp_file = Components.classes["@mozilla.org/file/directory_service;1"].getService(Components.interfaces.nsIProperties).get("TmpD", Components.interfaces.nsIFile);
 		tmp_file.append("message.tmp");
@@ -65,17 +66,19 @@ var practises = {
 		istream.QueryInterface(Components.interfaces.nsIInputStream);
 			var is = Components.classes["@mozilla.org/intl/converter-input-stream;1"].createInstance(Components.interfaces.nsIConverterInputStream);
 			is.init(istream, CHARSET, 1024, REPLACEMENTCHAR);
-
 			var data = "";
-			var str = {};
-			while(is.readString(1024, str) != 0)
-			{
-				data += str.value;
-			};
-			is.close();
+			if (is instanceof Components.interfaces.nsIUnicharLineInputStream) {
+				var line = {};
+				var cont;
+				do {
+					cont = is.readLine(line);
+					data = data + line.value + "\n<br>";
+				} while (cont);
+			}
+		is.close();
 		istream.close();
 
-		ndBODY.textContent = data;
+		ndDIV.innerHTML = data;
 
 		tmp_file.remove(false);
 		signed_file.remove(false);
