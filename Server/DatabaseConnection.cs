@@ -111,7 +111,7 @@ namespace PractiSES
         {
             DateTime unixStart = new DateTime(1970, 1, 1);
             TimeSpan timestamp = date - unixStart;
-            string query = string.Format("SELECT k.key from users u, `keys` k WHERE u.email='{0}' AND k.deleted=0 AND k.userid=u.userid AND k.`start`<{1} AND (k.`end`=0 OR k.`end`>{2});", email, timestamp.Ticks, timestamp.Ticks);
+            string query = string.Format("SELECT k.key FROM users u, `keys` k WHERE u.email='{0}' AND k.deleted=0 AND k.userid=u.userid AND k.`start`<{1} AND (k.`end`=0 OR k.`end`>{2}) ORDER BY k.`start` DESC LIMIT 1;", email, timestamp.Ticks, timestamp.Ticks);
             cmd = new MySqlCommand(query, conn);
             read = cmd.ExecuteReader();
             if (read.Read())
@@ -185,12 +185,23 @@ namespace PractiSES
             return "No records exist";
         }
 
-        public void insertEntry()
+        public bool insertEntry(String userID, String name, String lastName, String email, String semiSecret1)
         {
-
+            try
+            {
+                string query = String.Format("INSERT INTO users (`userID`, `name`, `lastname`, `email`, `semisecret1`) VALUES ('{0}', NOW(), 0, '{1}', 0);", userID, name, lastName, email, semiSecret1);
+                cmd = new MySqlCommand(query, conn);
+                cmd.ExecuteNonQuery();
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception: " + e.Message);
+                return false;
+            }
         }
 
-        public bool removeEntry(string email, string userID) //remove entry (complete)
+        public bool removeEntry(String email, String userID) //remove entry (complete)
         {
             try
             {
