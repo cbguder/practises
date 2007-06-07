@@ -448,13 +448,16 @@ namespace PractiSES
             hmac.Key = macpass;
             byte[] hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(core.PublicKey));
 
-            if (server.InitKeySet_SendPublicKey(username, email, core.PublicKey, Convert.ToBase64String(hash)))
+            try
             {
-                Console.WriteLine("Public key successfully sent.");
+                if (server.InitKeySet_SendPublicKey(username, email, core.PublicKey, Convert.ToBase64String(hash)))
+                {
+                    Console.WriteLine("Public key successfully sent.");
+                }
             }
-            else
+            catch (Exception e)
             {
-                Console.WriteLine("Public key could not be sent, please try again.");
+                Console.Error.WriteLine(e);
             }
         }
 
@@ -468,18 +471,27 @@ namespace PractiSES
             String email = sr.ReadLine();
             sr.Close();
 
+            String questions;
             Connect(host);
 
-            String questions = server.USKeyUpdate_AskQuestions(username, email);
+            try
+            {
+                questions = server.USKeyUpdate_AskQuestions(username, email);
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine(e);
+                return;
+            }
+
             String strippedQuestions = Crypto.StripMessage(questions);
             Console.WriteLine("Questions:");
             Console.WriteLine(strippedQuestions);
             Console.Write("Answers: ");
             String answers = Console.ReadLine();
-            String serverPublicKey = server.KeyObt("server");
             byte[] message = Encoding.UTF8.GetBytes(answers);
             Rijndael aes = Rijndael.Create();
-            String encrypted = Crypto.Encrypt(message, serverPublicKey, aes);
+            String encrypted = Crypto.Encrypt(message, serverKey, aes);
 
             ArrayList key = new ArrayList();
             key.AddRange(aes.Key);
@@ -487,9 +499,15 @@ namespace PractiSES
 
             File.WriteAllBytes(Path.Combine(core.ApplicationDataFolder, "answers.key"), (byte[])key.ToArray(Type.GetType("System.Byte")));
 
-            server.USKeyUpdate_EnvelopeAnswers(username, email, encrypted);
-
-            Console.Error.WriteLine("Answers sent. Please check your email to finalize PractiSES key update.");
+            try
+            {
+                server.USKeyUpdate_EnvelopeAnswers(username, email, encrypted);
+                Console.Error.WriteLine("Answers sent. Please check your email to finalize PractiSES key update.");
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine(e);
+            }
         }
 
         private void FinalizeUpdate(String filename, String passphrase)
@@ -560,17 +578,26 @@ namespace PractiSES
             sr.Close();
 
             Connect(host);
+            String questions;
 
-            String questions = server.USKeyRem_AskQuestions(username, email);
+            try
+            {
+                questions = server.USKeyRem_AskQuestions(username, email);
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine(e);
+                return;
+            }
+
             String strippedQuestions = Crypto.StripMessage(questions);
             Console.WriteLine("Questions:");
             Console.WriteLine(strippedQuestions);
             Console.Write("Answers: ");
             String answers = Console.ReadLine();
-            String serverPublicKey = server.KeyObt("server");
             byte[] message = Encoding.UTF8.GetBytes(answers);
             Rijndael aes = Rijndael.Create();
-            String encrypted = Crypto.Encrypt(message, serverPublicKey, aes);
+            String encrypted = Crypto.Encrypt(message, serverKey, aes);
 
             ArrayList key = new ArrayList();
             key.AddRange(aes.Key);
@@ -578,9 +605,15 @@ namespace PractiSES
 
             File.WriteAllBytes(Path.Combine(core.ApplicationDataFolder, "answers.key"), (byte[])key.ToArray(Type.GetType("System.Byte")));
 
-            server.USKeyRem_EnvelopeAnswers(username, email, encrypted);
-
-            Console.Error.WriteLine("Answers sent. Please check your email to finalize PractiSES key removal.");
+            try
+            {
+                server.USKeyRem_EnvelopeAnswers(username, email, encrypted);
+                Console.Error.WriteLine("Answers sent. Please check your email to finalize PractiSES key removal.");
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine(e);
+            }
         }
 
         private void FinalizeRemove(String filename, String passphrase)
@@ -623,13 +656,16 @@ namespace PractiSES
             hmac.Key = macpass;
             byte[] hash = hmac.ComputeHash(Encoding.UTF8.GetBytes("I want to remove my current public key"));
 
-            if (server.USKeyRem_SendRemoveRequest(username, email, Convert.ToBase64String(hash)))
+            try
             {
-                Console.WriteLine("Removal request successfully sent.");
+                if (server.USKeyRem_SendRemoveRequest(username, email, Convert.ToBase64String(hash)))
+                {
+                    Console.WriteLine("Removal request successfully sent.");
+                }
             }
-            else
+            catch (Exception e)
             {
-                Console.WriteLine("Removal request could not be sent, please try again.");
+                Console.Error.WriteLine(e);
             }
         }
 
@@ -655,6 +691,8 @@ namespace PractiSES
 
         private String FetchPublicKey(String userID)
         {
+            String publicKey;
+
             while (userID == null || userID == "")
             {
                 Console.Write("Sender: ");
@@ -672,11 +710,13 @@ namespace PractiSES
                 return null;
             }
 
-            String publicKey = server.KeyObt(userID);
-
-            if (publicKey == null)
+            try
             {
-                Console.Error.WriteLine("Invalid recipient");
+                publicKey = server.KeyObt(userID);
+            }
+            catch (Exception e)
+            {
+                Console.Error.WriteLine(e);
                 return null;
             }
 
@@ -689,6 +729,7 @@ namespace PractiSES
             else
             {
                 Console.Error.WriteLine("WARNING: Message from server is tampered with.");
+                Console.Error.WriteLine(message.ToString());
                 return null;
             }
             

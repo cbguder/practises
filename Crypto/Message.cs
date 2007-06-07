@@ -147,7 +147,6 @@ namespace PractiSES
             {
                 result.WriteLine(Crypto.BeginMessage);
                 result.WriteLine(this.getComments());
-                result.WriteLine();
                 result.WriteLine(Util.Wrap(Convert.ToBase64String(ciphertext), wrap));
                 result.WriteLine(Crypto.EndMessage);
             }
@@ -155,7 +154,6 @@ namespace PractiSES
             {
                 result.WriteLine(Crypto.BeginSignedMessage);
                 result.WriteLine(this.getComments());
-                result.WriteLine();
                 result.WriteLine(this.getCleartext());
                 result.WriteLine(this.getSignature());
             }
