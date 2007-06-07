@@ -36,6 +36,12 @@
     <Compile Include="IServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Crypto\Crypto.csproj">
+      <Project>{FEAD5076-6DBF-4A17-8935-CA810964A835}</Project>
+      <Name>Crypto</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
