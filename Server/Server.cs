@@ -79,8 +79,8 @@ namespace PractiSES
             {
                 writer.Write(DateTime.Now.ToString() + Core.space);
                 writer.WriteLine("Server's old public key:");
-                writer.WriteLine(dbPublicKey);
-                writer.WriteLine();
+                writer.WriteLine("\n" + dbPublicKey + "\n");
+
                 connection = new DatabaseConnection();
                 connection.setPublicKey("server", "server", publicKey);
                 Console.Write(DateTime.Now.ToString() + Core.space);
@@ -89,12 +89,12 @@ namespace PractiSES
             connection.close();
             writer.Write(DateTime.Now.ToString() + Core.space);
             writer.WriteLine("Server's public key:");
-            writer.WriteLine(publicKey);
-            writer.WriteLine();
+            writer.WriteLine("\n" + publicKey + "\n");
 
             writer.Write(DateTime.Now.ToString() + Core.space);
             writer.WriteLine("Server started");
             writer.Close();
+
             Console.Write(DateTime.Now.ToString() + Core.space);
             Console.WriteLine("Server started.");
 

@@ -64,7 +64,7 @@ namespace PractiSES
             return result.ToString();
         }
 
-        private bool EnvelopeAnswers(String userID, String email, String answersEnveloped)
+        private bool EnvelopeAnswers(String userID, String email, String answersEnveloped, String bodyMsg)
         {
             DatabaseConnection connection = new DatabaseConnection();
             String dbUserid = connection.getUserID(email);
@@ -93,7 +93,7 @@ namespace PractiSES
             connection.close();
             if (answers == dbAnswers)
             {
-                SendMail(email, aesInfo);
+                SendMail(email, aesInfo, bodyMsg);
                 return true;
             }
             else
@@ -120,11 +120,11 @@ namespace PractiSES
             return result;
         }
 
-        private void SendMail(String email, AESInfo aesInfo)
+        private void SendMail(String email, AESInfo aesInfo, String bodyMsg)
         {
             String macPassword_encrypted = EncryptMACPass(email, aesInfo);
             String subject = "PractiSES notification";
-            StringBuilder body = new StringBuilder("Please double click the message to open this mail message in new window.\n Then follow Tools -> PractiSES -> Finalize Initialization links to finish initialization.");
+            StringBuilder body = new StringBuilder(bodyMsg);
             body.AppendLine();
             body.AppendLine(Crypto.BeginMessage);
             body.AppendLine();
@@ -213,7 +213,8 @@ namespace PractiSES
             Console.WriteLine("-------------------------");
             Console.WriteLine(email + ": InitKeySet_EnvelopeAnswers");
 
-            return EnvelopeAnswers(userID, email, answersEnveloped);
+            return EnvelopeAnswers(userID, email, answersEnveloped, 
+                "Please double click the message to open this mail message in new window.\n Then follow Tools -> PractiSES -> Finalize Initialization links to finish initialization.");
         }
 
         public bool InitKeySet_SendPublicKey(String userID, String email, String publicKey, String macValue)
@@ -229,7 +230,7 @@ namespace PractiSES
                 connection.setPublicKey(userID, email, publicKey);
                 connection.close();
 
-                ActionLog_Write(email + ": Public key is set to:\n" + publicKey);
+                ActionLog_Write(email + ": Public key is set to:\n\n" + publicKey + "\n");
                 Console.WriteLine(email + ": Public key is set.");
 
                 return true;
@@ -383,7 +384,7 @@ namespace PractiSES
             Console.WriteLine("-------------------------");
             Console.WriteLine(email + ": USKeyRem_EnvelopeAnswers");
 
-            return EnvelopeAnswers(userID, email, answersEnveloped);
+            return EnvelopeAnswers(userID, email, answersEnveloped, "Please double click the message to open this mail message in new window.\n Then follow Tools -> PractiSES -> Finalize Key Removal links to finish removal of your key.");
         }
 
         public bool USKeyRem_SendRemoveRequest(String userID, String email, String macValue)
@@ -424,7 +425,8 @@ namespace PractiSES
             Console.WriteLine("-------------------------");
             Console.WriteLine(email + ": USKeyUpdate_EnvelopeAnswers");
 
-            return EnvelopeAnswers(userID, email, answersEnveloped);
+            return EnvelopeAnswers(userID, email, answersEnveloped, 
+                "Please double click the message to open this mail message in new window.\n Then follow Tools -> PractiSES -> Finalize Update links to finish update operation.");
         }
 
         public bool USKeyUpdate_SendPublicKey(String userID, String email, String newPublicKey, String macValue)
@@ -440,7 +442,7 @@ namespace PractiSES
                 connection.updatePublicKey(userID, email, newPublicKey);
                 connection.close();
 
-                ActionLog_Write(email + ": Public key is updated to:\n" + newPublicKey);
+                ActionLog_Write(email + ": Public key is updated to:\n\n" + newPublicKey + "\n");
                 Console.WriteLine(email + ": Public key is updated.");
 
                 return true;
