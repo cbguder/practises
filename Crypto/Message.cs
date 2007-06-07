@@ -151,12 +151,14 @@ namespace PractiSES
 
         public void Sign(String privateKey)
         {
-            this.signature = Crypto.Sign(this.cleartext, privateKey);
+            byte[] commentBytes = Encoding.UTF8.GetBytes(this.getComments());
+            this.signature = Crypto.Sign(Util.Join(commentBytes, cleartext), privateKey);
         }
 
         public bool Verify(String publicKey)
         {
-            return Crypto.Verify(cleartext, signature, publicKey);
+            byte[] commentBytes = Encoding.UTF8.GetBytes(this.getComments());
+            return Crypto.Verify(Util.Join(commentBytes, cleartext), signature, publicKey);
         }
 
         public override String ToString()
