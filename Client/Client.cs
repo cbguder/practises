@@ -347,6 +347,18 @@ namespace PractiSES
 
         private void Initialize(String passphrase)
         {
+            if (File.Exists(core.KeyFile))
+            {
+                Console.Write("Are you ABSOLUTELY sure that you want to delete your existing keys FOREVER? (y/N): ");
+                String response = Console.ReadLine();
+                response.Trim();
+
+                if (response == "y")
+                    File.Delete(core.KeyFile);
+                else
+                    return;
+            }
+
             try
             {
                 core.InitializeKeys(passphrase);
@@ -376,7 +388,7 @@ namespace PractiSES
             }
             catch (Exception e)
             {
-                Console.Error.WriteLine(e);
+                Console.Error.WriteLine(e.Message);
                 return;
             }
 
@@ -404,7 +416,7 @@ namespace PractiSES
             }
             catch (Exception e)
             {
-                Console.Error.WriteLine(e);
+                Console.Error.WriteLine(e.Message);
                 return;
             }
 
@@ -457,7 +469,7 @@ namespace PractiSES
             }
             catch (Exception e)
             {
-                Console.Error.WriteLine(e);
+                Console.Error.WriteLine(e.Message);
             }
         }
 
@@ -480,7 +492,7 @@ namespace PractiSES
             }
             catch (Exception e)
             {
-                Console.Error.WriteLine(e);
+                Console.Error.WriteLine(e.Message);
                 return;
             }
 
@@ -506,7 +518,7 @@ namespace PractiSES
             }
             catch (Exception e)
             {
-                Console.Error.WriteLine(e);
+                Console.Error.WriteLine(e.Message);
             }
         }
 
@@ -586,7 +598,7 @@ namespace PractiSES
             }
             catch (Exception e)
             {
-                Console.Error.WriteLine(e);
+                Console.Error.WriteLine(e.Message);
                 return;
             }
 
@@ -612,7 +624,7 @@ namespace PractiSES
             }
             catch (Exception e)
             {
-                Console.Error.WriteLine(e);
+                Console.Error.WriteLine(e.Message);
             }
         }
 
@@ -665,7 +677,7 @@ namespace PractiSES
             }
             catch (Exception e)
             {
-                Console.Error.WriteLine(e);
+                Console.Error.WriteLine(e.Message);
             }
         }
 
@@ -716,7 +728,7 @@ namespace PractiSES
             }
             catch (Exception e)
             {
-                Console.Error.WriteLine(e);
+                Console.Error.WriteLine(e.Message);
                 return null;
             }
 

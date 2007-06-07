@@ -42,8 +42,9 @@ namespace PractiSES
                 throw new Exception("Invalid user");
             }
             String questions = core.ReadSettingsFile();
-            String signQuestions = Crypto.Sign(questions, core.PrivateKey);
-            return signQuestions;
+            Message result = new Message(questions);
+            result.Sign(core.PrivateKey);
+            return result.ToString();
         }
 
         public bool InitKeySet_EnvelopeAnswers(String userID, String email, String answersEnveloped)
