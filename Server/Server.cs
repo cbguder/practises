@@ -57,6 +57,8 @@ namespace PractiSES
 
         static void Main(string[] args)
         {
+            RemotingConfiguration.Configure(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile, false);
+
             Server server = new Server();
             //server.Connect(rootHost);
             ServerObject serverobj = new ServerObject();

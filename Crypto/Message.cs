@@ -14,6 +14,7 @@ namespace PractiSES
     {
         private const int wrap = 64;
 
+        private DateTime time;
         private byte[] cleartext;
         private byte[] ciphertext;
         private byte[] signature;
@@ -47,13 +48,23 @@ namespace PractiSES
             }
         }
 
+        public DateTime Time
+        {
+            get
+            {
+                return this.time;
+            }
+        }
+
         public Message()
         {
+            this.time = DateTime.Now;
             this.cleartext = null;
             this.ciphertext = null;
             this.signature = null;
             this.comments = new ArrayList();
             comments.Add(new Comment("Version", "PractiSES " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString(2)+ " (Win32)"));
+            comments.Add(new Comment("Time", this.time.ToUniversalTime().ToString("u")));
         }
 
         public Message(String message) : this()

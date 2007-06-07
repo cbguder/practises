@@ -721,7 +721,6 @@ namespace PractiSES
             }
 
             Message message = new Message(publicKey);
-            Console.Error.WriteLine(publicKey);
             
             if (message.Verify(serverKey))
             {
