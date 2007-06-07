@@ -18,6 +18,6 @@ namespace PractiSES
         bool USKeyRem_SendRemoveRequest(String userID, String email, String macValue);
         String USKeyUpdate_AskQuestions(String userID, String email);
         bool USKeyUpdate_EnvelopeAnswers(String userID, String email, String answersEnveloped);
-        bool USKeyUpdate_SendPublicKey(String userID, String email, String publicKey, String macValue);
+        bool USKeyUpdate_SendPublicKey(String userID, String email, String newPublicKey, String macValue);
     }
 }
