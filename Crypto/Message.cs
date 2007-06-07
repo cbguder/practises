@@ -156,23 +156,43 @@ namespace PractiSES
             this.Sign(privateKey, true);
         }
 
-        public void Sign(String privateKey, bool signComments)
+        public void Sign(String privateKey, bool includeComments)
         {
-            if (signComments)
+            byte[] toSign;
+
+            if (includeComments)
             {
                 byte[] commentBytes = Encoding.UTF8.GetBytes(this.getComments());
-                this.signature = Crypto.Sign(Util.Join(commentBytes, cleartext), privateKey);
+                toSign = Util.Join(commentBytes, this.cleartext);
             }
             else
             {
-                this.signature = Crypto.Sign(cleartext, privateKey);
+                toSign = this.cleartext;
             }
+
+            this.signature = Crypto.Sign(toSign, privateKey);
         }
 
         public bool Verify(String publicKey)
         {
-            byte[] commentBytes = Encoding.UTF8.GetBytes(this.getComments());
-            return Crypto.Verify(Util.Join(commentBytes, cleartext), signature, publicKey);
+            return this.Verify(publicKey, true);
+        }
+
+        public bool Verify(String publicKey, bool includeComments)
+        {
+            byte[] toVerify;
+
+            if (includeComments)
+            {
+                byte[] commentBytes = Encoding.UTF8.GetBytes(this.getComments());
+                toVerify = Util.Join(commentBytes, this.cleartext);
+            }
+            else
+            {
+                toVerify = this.cleartext;
+            }
+
+            return Crypto.Verify(toVerify, this.signature, publicKey);
         }
 
         public override String ToString()

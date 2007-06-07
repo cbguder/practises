@@ -319,7 +319,7 @@ namespace PractiSES
                 return;
             }
 
-            Verify(message, sender);
+            Verify(message, sender, true);
         }
 
         private void VerifyDetached(String filename, String sender)
@@ -327,17 +327,17 @@ namespace PractiSES
             Message message = new Message(File.ReadAllBytes(filename));
             String[] siglines = Util.GetLines(File.ReadAllText(filename + ".pses"));
             message.Signature = Convert.FromBase64String(String.Join("", siglines, 1, siglines.Length - 2));
-            Verify(message, sender);
+            Verify(message, sender, false);
         }
 
-        private void Verify(Message message, String sender)
+        private void Verify(Message message, String sender, bool includeComments)
         {
             String publicKey = FetchPublicKey(sender);
 
             if (publicKey == null)
                 return;
 
-            bool result = message.Verify(publicKey);
+            bool result = message.Verify(publicKey, includeComments);
 
             if (result)
                 Console.WriteLine("Message verification succeeded.");
