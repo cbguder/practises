@@ -1,8 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Net.Mail;
 using System.Net;
+using System.Net.Mail;
+using System.Text;
 
 namespace PractiSES
 {
@@ -19,7 +18,7 @@ namespace PractiSES
             message.Subject = pstrSubject;
             message.Priority = MailPriority.High;
             message.Body = pstrBody;
-            message.BodyEncoding = System.Text.Encoding.UTF8;
+            message.BodyEncoding = Encoding.UTF8;
         }
 
         public bool Send()
@@ -39,7 +38,6 @@ namespace PractiSES
                 Console.WriteLine("Exception: " + e.Message);
             }
             return messageSent;
-
         }
     }
 }

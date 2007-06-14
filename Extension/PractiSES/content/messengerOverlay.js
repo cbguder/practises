@@ -6,9 +6,10 @@ const CHARSET			= "UTF-8";
 const REPLACEMENTCHAR	= Components.interfaces.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER;
 
 var practises = {
-	onLoad: function() {
+	onLoad: function(e) {
 		this.initialized = true;
 		this.strings = document.getElementById("practises-strings");
+		this.messagePane = document.getElementById("messagepane");
 	},
 	prompt: function(title, message) {
 		var prompts = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
@@ -24,8 +25,7 @@ var practises = {
 		return input.value;
 	},
 	callPractises: function(command, argument) {
-		var messagePane = document.getElementById("messagepane");
-		var msgPaneDocChildren = messagePane.contentDocument.childNodes;
+		var msgPaneDocChildren = this.messagePane.contentDocument.childNodes;
 		var ndHTML = msgPaneDocChildren.item(0);
 		var ndBODY = ndHTML.childNodes.item(1);
 		var ndDIV = ndHTML.childNodes.item(1);
@@ -98,6 +98,11 @@ var practises = {
 	decrypt: function(e) {
 		var passphrase = practises.prompt("PractiSES", "Enter passphrase:");
 		practises.callPractises("-d", passphrase);
+	};
+	verify: function(e) {
+		var efb = document.getElementById("expandedfromBox");
+		var recipient = "";
+		practises.callPractises("-v", recipient);
 	}
 };
 

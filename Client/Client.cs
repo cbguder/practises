@@ -3,25 +3,23 @@
  */
 
 using System;
+using System.Collections;
 using System.IO;
-using System.Net;
-using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Http;
 using System.Security.Cryptography;
 using System.Text;
-using System.Collections;
 
 namespace PractiSES
 {
-    class Client
+    internal class Client
     {
         private String host;
         private IServer server;
         private Core core;
         private String serverKey;
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             if (args.Length == 0)
             {
@@ -29,7 +27,13 @@ namespace PractiSES
                 return;
             }
 
-            String[][] options = Util.Getopt(args, "dehH:O:p:r:sv", new String[] { "--help", "--initialize", "--finalize-initialize", "--update", "--finalize-update", "--remove",  "--finalize-remove", "--strip", "--sign-detached", "--verify-detached"});
+            String[][] options =
+                Util.Getopt(args, "dehH:O:p:r:sv",
+                            new String[]
+                                {
+                                    "--help", "--initialize", "--finalize-initialize", "--update", "--finalize-update",
+                                    "--remove", "--finalize-remove", "--strip", "--sign-detached", "--verify-detached"
+                                });
             String file = args[args.Length - 1];
             String host = "practises2.no-ip.org";
             String passphrase = null;
@@ -133,7 +137,7 @@ namespace PractiSES
                     client.FinalizeRemove(file, passphrase);
                     break;
                 case "strip":
-                    client.Strip(file);
+                    Strip(file);
                     break;
                 case "signDetached":
                     client.SignDetached(file, passphrase, outfile);
@@ -152,62 +156,23 @@ namespace PractiSES
         public Client(String host)
         {
             this.host = host;
-            this.core = new Core("", false);
-            this.serverKey = File.ReadAllText(Path.Combine(core.ApplicationDataFolder, "server.key"));
+            core = new Core("", false);
+            serverKey = File.ReadAllText(Path.Combine(core.ApplicationDataFolder, "server.key"));
         }
 
-        private bool Connect(String host)
+        private bool Connect()
         {
             HttpClientChannel chan = new HttpClientChannel();
             ChannelServices.RegisterChannel(chan, false);
 
             Console.Error.WriteLine("Connecting to PractiSES server ({0})...", host);
 
-            server = (IServer)Activator.GetObject(typeof(IServer), "http://" + host + "/PractiSES");
+            server = (IServer) Activator.GetObject(typeof (IServer), "http://" + host + "/PractiSES");
 
             return true;
         }
 
-        private bool Write(String path, byte[] contents)
-        {
-            return this.Write(path, contents, false);
-        }
-
-        private bool Write(String path, byte[] contents, Boolean overwrite)
-        {
-            bool write = true;
-
-            if (!overwrite && File.Exists(path))
-            {
-                Console.Write("{0} exists, overwrite? (y/N): ", path);
-                String response = Console.ReadLine();
-                response.Trim();
-
-                if (response != "y")
-                {
-                    write = false;
-                }
-            }
-
-            if (write)
-            {
-                File.WriteAllBytes(path, contents);
-                return true;
-            }
-
-            return false;
-        }
-
-        private bool Write(String path, String contents)
-        {
-            return Write(path, Encoding.UTF8.GetBytes(contents));
-        }
-
-        private bool Write(String path, String contents, Boolean overwrite)
-        {
-            return Write(path, Encoding.UTF8.GetBytes(contents), overwrite);
-        }
-
+/*
         private void WriteIdentity(String username, String email)
         {
             StreamWriter sw = new StreamWriter(Path.Combine(core.ApplicationDataFolder, "identity"));
@@ -215,7 +180,8 @@ namespace PractiSES
             sw.WriteLine(email);
             sw.Close();
         }
-        
+*/
+
         private void Encrypt(String filename, String recipient)
         {
             String outFile = filename + ".pses";
@@ -227,7 +193,7 @@ namespace PractiSES
             Message message = new Message(File.ReadAllBytes(filename));
             message.Encrypt(publicKey);
 
-            if (Write(outFile, message.ToString()))
+            if (Util.Write(outFile, message.ToString()))
             {
                 Console.Error.WriteLine("Output written to {0}", outFile);
             }
@@ -250,7 +216,7 @@ namespace PractiSES
 
             String outFile = filename + ".pses";
 
-            if (Write(outFile, message.Cleartext))
+            if (Util.Write(outFile, message.Cleartext))
             {
                 Console.Error.WriteLine("Output written to {0}", outFile);
             }
@@ -273,7 +239,7 @@ namespace PractiSES
             Message message = new Message(File.ReadAllText(filename, Encoding.UTF8));
             message.Sign(core.PrivateKey);
 
-            if (Write(outFile, message.ToString()))
+            if (Util.Write(outFile, message.ToString()))
             {
                 Console.Error.WriteLine("Output written to {0}", outFile);
             }
@@ -299,7 +265,7 @@ namespace PractiSES
                 outfile = filename + ".pses";
             }
 
-            if (Write(outfile, message.getSignature(), true))
+            if (Util.Write(outfile, message.getSignature(), true))
             {
                 Console.Error.WriteLine("Output written to {0}", outfile);
             }
@@ -378,8 +344,8 @@ namespace PractiSES
             sw.WriteLine(username);
             sw.WriteLine(email);
             sw.Close();
-            
-            Connect(host);
+
+            Connect();
             String questionsFromServer;
 
             try
@@ -414,7 +380,8 @@ namespace PractiSES
             key.AddRange(aes.Key);
             key.AddRange(aes.IV);
 
-            File.WriteAllBytes(Path.Combine(core.ApplicationDataFolder, "answers.key"), (byte[])key.ToArray(Type.GetType("System.Byte")));
+            File.WriteAllBytes(Path.Combine(core.ApplicationDataFolder, "answers.key"),
+                               (byte[]) key.ToArray(Type.GetType("System.Byte")));
 
             try
             {
@@ -449,21 +416,22 @@ namespace PractiSES
             username.Trim();
             email.Trim();
 
-            Connect(host);
+            Connect();
 
             ArrayList key = new ArrayList(File.ReadAllBytes(Path.Combine(core.ApplicationDataFolder, "answers.key")));
             AESInfo info = new AESInfo();
-            info.key = (byte[])key.GetRange(0, Crypto.AESKeySize / 8).ToArray(Type.GetType("System.Byte"));
-            info.IV = (byte[])key.GetRange(Crypto.AESKeySize / 8, Crypto.AESIVSize / 8).ToArray(Type.GetType("System.Byte"));
+            info.key = (byte[]) key.GetRange(0, Crypto.AESKeySize/8).ToArray(Type.GetType("System.Byte"));
+            info.IV =
+                (byte[]) key.GetRange(Crypto.AESKeySize/8, Crypto.AESIVSize/8).ToArray(Type.GetType("System.Byte"));
             File.Delete(Path.Combine(core.ApplicationDataFolder, "answers.key"));
 
             Rijndael aes = Rijndael.Create();
-            
+
             String e_macpass = File.ReadAllText(filename);
             e_macpass = Crypto.StripMessage(e_macpass);
 
-            byte[] macpass = Crypto.AESDecrypt(Convert.FromBase64String(e_macpass), aes.CreateDecryptor(info.key, info.IV));
-            String abik = Convert.ToBase64String(macpass);
+            byte[] macpass =
+                Crypto.AESDecrypt(Convert.FromBase64String(e_macpass), aes.CreateDecryptor(info.key, info.IV));
 
             HMAC hmac = HMACSHA1.Create();
             hmac.Key = macpass;
@@ -494,7 +462,7 @@ namespace PractiSES
             sr.Close();
 
             String questions;
-            Connect(host);
+            Connect();
 
             try
             {
@@ -519,7 +487,8 @@ namespace PractiSES
             key.AddRange(aes.Key);
             key.AddRange(aes.IV);
 
-            File.WriteAllBytes(Path.Combine(core.ApplicationDataFolder, "answers.key"), (byte[])key.ToArray(Type.GetType("System.Byte")));
+            File.WriteAllBytes(Path.Combine(core.ApplicationDataFolder, "answers.key"),
+                               (byte[]) key.ToArray(Type.GetType("System.Byte")));
 
             try
             {
@@ -552,12 +521,13 @@ namespace PractiSES
             username.Trim();
             email.Trim();
 
-            Connect(host);
+            Connect();
 
             ArrayList key = new ArrayList(File.ReadAllBytes(Path.Combine(core.ApplicationDataFolder, "answers.key")));
             AESInfo info = new AESInfo();
-            info.key = (byte[])key.GetRange(0, Crypto.AESKeySize / 8).ToArray(Type.GetType("System.Byte"));
-            info.IV = (byte[])key.GetRange(Crypto.AESKeySize / 8, Crypto.AESIVSize / 8).ToArray(Type.GetType("System.Byte"));
+            info.key = (byte[]) key.GetRange(0, Crypto.AESKeySize/8).ToArray(Type.GetType("System.Byte"));
+            info.IV =
+                (byte[]) key.GetRange(Crypto.AESKeySize/8, Crypto.AESIVSize/8).ToArray(Type.GetType("System.Byte"));
             File.Delete(Path.Combine(core.ApplicationDataFolder, "answers.key"));
 
             Rijndael aes = Rijndael.Create();
@@ -565,8 +535,8 @@ namespace PractiSES
             String e_macpass = File.ReadAllText(filename);
             e_macpass = Crypto.StripMessage(e_macpass);
 
-            byte[] macpass = Crypto.AESDecrypt(Convert.FromBase64String(e_macpass), aes.CreateDecryptor(info.key, info.IV));
-            String abik = Convert.ToBase64String(macpass);
+            byte[] macpass =
+                Crypto.AESDecrypt(Convert.FromBase64String(e_macpass), aes.CreateDecryptor(info.key, info.IV));
 
             HMAC hmac = HMACSHA1.Create();
             hmac.Key = macpass;
@@ -599,7 +569,7 @@ namespace PractiSES
             String email = sr.ReadLine();
             sr.Close();
 
-            Connect(host);
+            Connect();
             String questions;
 
             try
@@ -625,7 +595,8 @@ namespace PractiSES
             key.AddRange(aes.Key);
             key.AddRange(aes.IV);
 
-            File.WriteAllBytes(Path.Combine(core.ApplicationDataFolder, "answers.key"), (byte[])key.ToArray(Type.GetType("System.Byte")));
+            File.WriteAllBytes(Path.Combine(core.ApplicationDataFolder, "answers.key"),
+                               (byte[]) key.ToArray(Type.GetType("System.Byte")));
 
             try
             {
@@ -658,12 +629,13 @@ namespace PractiSES
             username.Trim();
             email.Trim();
 
-            Connect(host);
+            Connect();
 
             ArrayList key = new ArrayList(File.ReadAllBytes(Path.Combine(core.ApplicationDataFolder, "answers.key")));
             AESInfo info = new AESInfo();
-            info.key = (byte[])key.GetRange(0, Crypto.AESKeySize / 8).ToArray(Type.GetType("System.Byte"));
-            info.IV = (byte[])key.GetRange(Crypto.AESKeySize / 8, Crypto.AESIVSize / 8).ToArray(Type.GetType("System.Byte"));
+            info.key = (byte[]) key.GetRange(0, Crypto.AESKeySize/8).ToArray(Type.GetType("System.Byte"));
+            info.IV =
+                (byte[]) key.GetRange(Crypto.AESKeySize/8, Crypto.AESIVSize/8).ToArray(Type.GetType("System.Byte"));
             File.Delete(Path.Combine(core.ApplicationDataFolder, "answers.key"));
 
             Rijndael aes = Rijndael.Create();
@@ -671,8 +643,8 @@ namespace PractiSES
             String e_macpass = File.ReadAllText(filename);
             e_macpass = Crypto.StripMessage(e_macpass);
 
-            byte[] macpass = Crypto.AESDecrypt(Convert.FromBase64String(e_macpass), aes.CreateDecryptor(info.key, info.IV));
-            String abik = Convert.ToBase64String(macpass);
+            byte[] macpass =
+                Crypto.AESDecrypt(Convert.FromBase64String(e_macpass), aes.CreateDecryptor(info.key, info.IV));
 
             HMAC hmac = HMACSHA1.Create();
             hmac.Key = macpass;
@@ -691,7 +663,7 @@ namespace PractiSES
             }
         }
 
-        private void Strip(String filename)
+        private static void Strip(String filename)
         {
             String message = File.ReadAllText(filename);
             Console.WriteLine(Crypto.StripMessage(message));
@@ -724,7 +696,7 @@ namespace PractiSES
 
             try
             {
-                Connect(host);
+                Connect();
             }
             catch (Exception e)
             {
@@ -743,7 +715,7 @@ namespace PractiSES
             }
 
             Message message = new Message(publicKey);
-            
+
             if (message.Verify(serverKey))
             {
                 return Encoding.UTF8.GetString(message.Cleartext);
@@ -753,7 +725,6 @@ namespace PractiSES
                 Console.Error.WriteLine("WARNING: Message from server is tampered with.");
                 return null;
             }
-            
         }
     }
 }

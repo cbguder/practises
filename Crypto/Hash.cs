@@ -1,7 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace PractiSES
 {
@@ -11,10 +10,7 @@ namespace PractiSES
 
         public byte[] SecretKey
         {
-            get
-            {
-                return this.secretkey;
-            }
+            get { return secretkey; }
         }
 
         public Hash()

@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using WseX509 = Microsoft.Web.Services3.Security.X509;
 
@@ -17,7 +14,7 @@ namespace PractiSES
             // the local machine account.
             //X509SecurityToken securityToken = null;
             myStore = new X509Store(StoreName.CertificateAuthority,
-              StoreLocation.CurrentUser);
+                                    StoreLocation.CurrentUser);
             myStore.Open(OpenFlags.ReadWrite);
         }
 
@@ -27,8 +24,8 @@ namespace PractiSES
             // add all matching certificates 
             // to the certificate collection.
             X509Certificate2Collection myCerts =
-              myStore.Certificates.Find(X509FindType.FindBySubjectName, certName, true);
-            X509Certificate2 myCert = null;
+                myStore.Certificates.Find(X509FindType.FindBySubjectName, certName, true);
+            X509Certificate2 myCert;
 
             // Find the first certificate in the collection 
             // that matches the supplied name, if any.

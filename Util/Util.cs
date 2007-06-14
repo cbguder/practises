@@ -3,10 +3,9 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.IO;
 using System.Collections;
+using System.IO;
+using System.Text;
 
 namespace PractiSES
 {
@@ -51,7 +50,7 @@ namespace PractiSES
 
             for (int i = 0; i < min; i++)
             {
-                result[i] = (byte)(a[i] ^ b[i]);
+                result[i] = (byte) (a[i] ^ b[i]);
             }
 
             return result;
@@ -77,29 +76,28 @@ namespace PractiSES
 
         public static String[][] Getopt(String[] args, String options)
         {
-            return Util.Getopt(args, options, null);
+            return Getopt(args, options, null);
         }
 
         public static String[][] Getopt(String[] args, String options, String[] longOptions)
         {
             ArrayList result = new ArrayList();
-            String toSearch;
             bool needsParameter;
 
             for (int i = 0; i < options.Length; i++)
             {
-                toSearch = "-" + options[i];
+                String toSearch = "-" + options[i];
                 needsParameter = (i < options.Length - 1) && (options[i + 1] == ':');
 
-                for(int j = 0; j < args.Length; j++)
+                for (int j = 0; j < args.Length; j++)
                 {
-                    if(args[j] == toSearch && !needsParameter)
+                    if (args[j] == toSearch && !needsParameter)
                     {
-                        result.Add(new String[] { toSearch, "" });
+                        result.Add(new String[] {toSearch, ""});
                     }
                     else if (args[j].StartsWith(toSearch) && needsParameter)
                     {
-                        String[] item = new String[] { toSearch, "" };
+                        String[] item = new String[] {toSearch, ""};
 
                         if (args[j].Length > 2)
                         {
@@ -127,7 +125,7 @@ namespace PractiSES
                     {
                         if (arg == longOption && !needsParameter)
                         {
-                            result.Add(new String[] { longOption, "" });                            
+                            result.Add(new String[] {longOption, ""});
                         }
                         else if (arg.StartsWith(longOption) && needsParameter)
                         {
@@ -137,26 +135,65 @@ namespace PractiSES
                 }
             }
 
-            return (String[][])result.ToArray(Type.GetType("System.String[]"));
+            return (String[][]) result.ToArray(Type.GetType("System.String[]"));
         }
 
         public static String[] GetLines(String input)
         {
             ArrayList lines = new ArrayList();
             StringReader sr = new StringReader(input);
-            String line;
 
             while (true)
             {
-                line = sr.ReadLine();
-                
+                String line = sr.ReadLine();
+
                 if (line == null)
                     break;
 
                 lines.Add(line);
             }
 
-            return (String[])lines.ToArray(Type.GetType("System.String"));
+            return (String[]) lines.ToArray(Type.GetType("System.String"));
+        }
+
+        public static bool Write(String path, byte[] contents)
+        {
+            return Write(path, contents, false);
+        }
+
+        public static bool Write(String path, byte[] contents, Boolean overwrite)
+        {
+            bool write = true;
+
+            if (!overwrite && File.Exists(path))
+            {
+                Console.Write("{0} exists, overwrite? (y/N): ", path);
+                String response = Console.ReadLine();
+                response.Trim();
+
+                if (response != "y")
+                {
+                    write = false;
+                }
+            }
+
+            if (write)
+            {
+                File.WriteAllBytes(path, contents);
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool Write(String path, String contents)
+        {
+            return Write(path, Encoding.UTF8.GetBytes(contents));
+        }
+
+        public static bool Write(String path, String contents, Boolean overwrite)
+        {
+            return Write(path, Encoding.UTF8.GetBytes(contents), overwrite);
         }
     }
 }

@@ -3,12 +3,12 @@
  */
 
 using System;
-using System.IO;
-using System.Xml;
-using System.Security.Cryptography;
-using System.Text;
 using System.Collections;
 using System.Diagnostics;
+using System.IO;
+using System.Security.Cryptography;
+using System.Text;
+using System.Xml;
 
 namespace PractiSES
 {
@@ -27,52 +27,34 @@ namespace PractiSES
 
         public String PublicKey
         {
-            get
-            {
-                return this.publicKey;
-            }
+            get { return publicKey; }
         }
 
         public String PrivateKey
         {
-            get
-            {
-                return this.privateKey;
-            }
+            get { return privateKey; }
         }
 
         public String ApplicationDataFolder
         {
-            get
-            {
-                return this.appDataFolder;
-            }
+            get { return appDataFolder; }
         }
 
         public String KeyFile
         {
-            get
-            {
-                return this.keyFile;
-            }
+            get { return keyFile; }
         }
 
         public String ActionLogFile
         {
-            get
-            {
-                return this.actionLogFile;
-            }
+            get { return actionLogFile; }
         }
 
         public String ErrorLogFile
         {
-            get
-            {
-                return this.errorLogFile;
-            }
+            get { return errorLogFile; }
         }
-        
+
         public Core() : this(null)
         {
         }
@@ -90,7 +72,7 @@ namespace PractiSES
             {
                 appDataFolder = Path.Combine(appDataFolder, "PractiSES\\Client");
             }
-            if(processName == "Server" || processName == "Server.vshost")
+            if (processName == "Server" || processName == "Server.vshost")
             {
                 appDataFolder = Path.Combine(appDataFolder, "PractiSES\\Server");
                 settingsFile = Path.Combine(appDataFolder, "settings.xml");
@@ -112,7 +94,7 @@ namespace PractiSES
 
             if (autoInitialize)
             {
-                this.InitializeKeys(passphrase);
+                InitializeKeys(passphrase);
             }
         }
 
@@ -135,11 +117,11 @@ namespace PractiSES
                 if (processName == "Server" || processName == "Server.vshost")
                 {
                     StreamWriter writer = new StreamWriter(actionLogFile, true);
-                    writer.Write(DateTime.Now.ToString() + space);
+                    writer.Write(DateTime.Now + space);
                     writer.WriteLine("Public/Private key pair written to " + keyFile);
                     writer.Close();
                 }
-                Console.Write(DateTime.Now.ToString() + Core.space);
+                Console.Write(DateTime.Now + space);
                 Console.WriteLine("Public/Private key pair written.");
             }
             else
@@ -151,16 +133,16 @@ namespace PractiSES
                 if (processName == "Server" || processName == "Server.vshost")
                 {
                     StreamWriter writer = new StreamWriter(actionLogFile, true);
-                    writer.Write(DateTime.Now.ToString() + space);
+                    writer.Write(DateTime.Now + space);
                     writer.WriteLine("Public/Private key pair read from " + keyFile);
                     writer.Close();
                 }
-                Console.Write(DateTime.Now.ToString() + Core.space);
+                Console.Write(DateTime.Now + space);
                 Console.WriteLine("Public/Private key pair read.");
             }
         }
 
-        private void CreateLogFile(String logFile)
+        private static void CreateLogFile(String logFile)
         {
             bool fileExists = true;
             if (!File.Exists(logFile))
@@ -169,31 +151,29 @@ namespace PractiSES
             }
             StreamWriter writer = new StreamWriter(logFile, true);
             if (!fileExists)
-            {               
+            {
                 writer.WriteLine(separator);
-                writer.Write(DateTime.Now.ToString() + space);
+                writer.Write(DateTime.Now + space);
                 writer.WriteLine("Log file has been created.");
             }
             writer.WriteLine();
             writer.WriteLine(separator);
-            writer.Write(DateTime.Now.ToString() + space);
+            writer.Write(DateTime.Now + space);
             writer.WriteLine("Logging started.");
             writer.Close();
         }
 
-        private void WriteKey(String path, String key, String passphrase)
+        private static void WriteKey(String path, String key, String passphrase)
         {
-            Rijndael aes = Rijndael.Create();
             AESInfo info = Crypto.AESEncrypt(Encoding.ASCII.GetBytes(key), passphrase);
             File.WriteAllText(path, Convert.ToBase64String(Util.Join(info.salt, info.message)));
         }
 
-        private String ReadKey(String path, String passphrase)
+        private static String ReadKey(String path, String passphrase)
         {
-            Rijndael aes = Rijndael.Create();
             ArrayList file = new ArrayList(Convert.FromBase64String(File.ReadAllText(path)));
-            byte[] salt = (byte [])file.GetRange(0, 8).ToArray(Type.GetType("System.Byte"));
-            byte[] rest = (byte[])file.GetRange(8, file.Count - 8).ToArray(Type.GetType("System.Byte"));
+            byte[] salt = (byte[]) file.GetRange(0, 8).ToArray(Type.GetType("System.Byte"));
+            byte[] rest = (byte[]) file.GetRange(8, file.Count - 8).ToArray(Type.GetType("System.Byte"));
             return Encoding.ASCII.GetString(Crypto.AESDecrypt(rest, passphrase, salt));
         }
 
@@ -201,24 +181,20 @@ namespace PractiSES
         {
             if (!File.Exists(settingsFile))
             {
-                XmlElement settingsElement;
-                XmlElement questionElement;
-                XmlElement domainElement;
-                XmlAttribute questionNumber;
                 XmlDocument settingsDocument;
-                XmlProcessingInstruction instruction;
 
                 settingsDocument = new XmlDocument();
 
                 try
                 {
-                    instruction = settingsDocument.CreateProcessingInstruction("xml", "version='1.0' encoding='UTF-8'");
+                    XmlProcessingInstruction instruction = settingsDocument.CreateProcessingInstruction("xml", "version='1.0' encoding='UTF-8'");
                     settingsDocument.AppendChild(instruction);
 
-                    settingsElement = settingsDocument.CreateElement("", "settings", "");
+                    XmlElement settingsElement = settingsDocument.CreateElement("", "settings", "");
                     settingsDocument.AppendChild(settingsElement);
 
-                    questionElement = settingsDocument.CreateElement("", "question", "");
+                    XmlElement questionElement = settingsDocument.CreateElement("", "question", "");
+                    XmlAttribute questionNumber;
                     questionNumber = settingsDocument.CreateAttribute("one");
                     Console.WriteLine("Please enter asked secret question:");
                     String strQuestion = Console.ReadLine();
@@ -227,6 +203,7 @@ namespace PractiSES
                     questionElement.Attributes.Append(questionNumber);
                     settingsDocument.ChildNodes.Item(1).AppendChild(questionElement);
 
+                    XmlElement domainElement;
                     domainElement = settingsDocument.CreateElement("", "domain", "");
                     Console.WriteLine("Please enter domain name of the server:");
                     String domainName = Console.ReadLine();
@@ -237,7 +214,6 @@ namespace PractiSES
                     }
                     domainElement.InnerText = domainName;
                     settingsDocument.ChildNodes.Item(1).AppendChild(domainElement);
-
 
 
                     settingsDocument.Save(settingsFile);
@@ -261,13 +237,13 @@ namespace PractiSES
                 String question = questionNode.Attributes.GetNamedItem("one").Value;
 
                 StreamWriter writer = new StreamWriter(actionLogFile, true);
-                writer.Write(DateTime.Now.ToString() + space);
+                writer.Write(DateTime.Now + space);
                 writer.WriteLine("'" + question + "'" + " has been read from " + settingsFile);
                 writer.Close();
-                Console.Write(DateTime.Now.ToString() + Core.space);
+                Console.Write(DateTime.Now + space);
                 Console.WriteLine("'" + question + "'" + " has been read.");
 
-                return question;             
+                return question;
             }
         }
 
@@ -282,7 +258,7 @@ namespace PractiSES
             domainNode = settingsDocument.SelectSingleNode("descendant::domain");
             String domain = domainNode.InnerText;
 
-            return domain;             
+            return domain;
         }
     }
 }
