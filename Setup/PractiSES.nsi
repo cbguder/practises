@@ -17,6 +17,8 @@
 
 	InstallDir $PROGRAMFILES\PractiSES
 	InstallDirRegKey HKLM "Software\PractiSES" "Install Directory"
+	
+	!define RELEASE "Debug"
 
 ;--------------------------------
 ; Interface Settings
@@ -34,6 +36,10 @@
 	!define MUI_WELCOMEFINISHPAGE_BITMAP "${NSISDIR}\Contrib\Graphics\Wizard\orange.bmp"
 	!define MUI_UNWELCOMEFINISHPAGE_BITMAP "${NSISDIR}\Contrib\Graphics\Wizard\orange-uninstall.bmp"
 
+	!define MUI_FINISHPAGE_NOREBOOTSUPPORT
+	!define MUI_FINISHPAGE_RUN $INSTDIR\ConfigurationWizard.exe
+	!define MUI_FINISHPAGE_RUN_TEXT "Initialize keys now"
+
 ;--------------------------------
 ; Macros
 
@@ -47,9 +53,7 @@
 	!insertmacro MUI_PAGE_LICENSE "..\GPL.txt"
 	!insertmacro MUI_PAGE_DIRECTORY
 	!insertmacro MUI_PAGE_INSTFILES
-	Page custom InitKeySet1
-	Page custom InitKeySet2
-	;!insertmacro MUI_PAGE_FINISH
+	!insertmacro MUI_PAGE_FINISH
 
 	!insertmacro MUI_UNPAGE_WELCOME
 	!insertmacro MUI_UNPAGE_CONFIRM
@@ -61,6 +65,17 @@
 ; Languages
 
 	!insertmacro MUI_LANGUAGE "English"
+	
+;--------------------------------
+; Version Info
+
+	VIProductVersion "1.0.0.0"
+	VIAddVersionKey /LANG=${LANG_ENGLISH} "ProductName" "PractiSES"
+	VIAddVersionKey /LANG=${LANG_ENGLISH} "CompanyName" "PractiSES Team"
+	VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalCopyright" "(c) 2006-2007 PractiSES Team"
+	VIAddVersionKey /LANG=${LANG_ENGLISH} "FileDescription" "PractiSES Client"
+	VIAddVersionKey /LANG=${LANG_ENGLISH} "FileVersion" "1.0.0.0"
+
 
 ;--------------------------------
 ; Install Types
@@ -78,11 +93,13 @@ Section "Install"
 	SetOutPath $INSTDIR
 
 	;Put file there
-	File /oname=PractiSES.exe ..\Client\bin\Debug\Client.exe
-	File ..\Client\bin\Debug\Core.dll
-	File ..\Client\bin\Debug\Crypto.dll
-	File ..\Client\bin\Debug\IServer.dll
-	File ..\Client\bin\Debug\Util.dll
+	File /oname=PractiSES.exe ..\Client\bin\${RELEASE}\Client.exe
+	File ..\ConfigurationWizard\bin\${RELEASE}\ConfigurationWizard.exe
+	File ..\Client\bin\${RELEASE}\Core.dll
+	File ..\Client\bin\${RELEASE}\Crypto.dll
+	File ..\Client\bin\${RELEASE}\IServer.dll
+	File ..\Client\bin\${RELEASE}\Util.dll
+	File ..\Extension\PractiSES.xpi
 	File /oname=License.txt ..\GPL.txt
 	
 	;Write the installation path into the registry
@@ -105,20 +122,22 @@ Section "un.PractiSES"
 
 	; Remove files and uninstaller
 	Delete $INSTDIR\PractiSES.exe
+	Delete $INSTDIR\ConfigurationWizard.exe
 	Delete $INSTDIR\Core.dll
 	Delete $INSTDIR\Crypto.dll
 	Delete $INSTDIR\IServer.dll
 	Delete $INSTDIR\Util.dll
+	Delete $INSTDIR\PractiSES.xpi
 	Delete $INSTDIR\License.txt
 	Delete $INSTDIR\uninstall.exe
-
+	
 	; Remove directories used
 	RMDir $INSTDIR
 SectionEnd
 
 Section "un.User Keys"
 	; Remove user profile files
-    Delete $APPDATA\PractiSES\Client\answers
+    Delete $APPDATA\PractiSES\Client\answers.key
     Delete $APPDATA\PractiSES\Client\identity
     Delete $APPDATA\PractiSES\Client\private.key
 	Delete $APPDATA\PractiSES\Client\server.key
@@ -129,9 +148,6 @@ Section "un.User Keys"
 SectionEnd
 
 Function .onInit
-	!insertmacro MUI_INSTALLOPTIONS_EXTRACT "initKeySet_1.ini"
-	!insertmacro MUI_INSTALLOPTIONS_EXTRACT "initKeySet_2.ini"
-	
 	Call GetThunderbirdVersion
 	Pop $0
 	
@@ -156,14 +172,4 @@ Function GetThunderbirdVersion
 	
 	Pop $1
 	Exch $0
-FunctionEnd
-
-Function InitKeySet1
-	!insertmacro MUI_HEADER_TEXT "Initialize Keys" "Initialize your PractiSES keys" 
-	!insertmacro MUI_INSTALLOPTIONS_DISPLAY "initKeySet_1.ini" 
-FunctionEnd
-
-Function InitKeySet2
-	!insertmacro MUI_HEADER_TEXT "Initialize Keys" "Initialize your PractiSES keys" 
-	!insertmacro MUI_INSTALLOPTIONS_DISPLAY "initKeySet_2.ini" 
 FunctionEnd

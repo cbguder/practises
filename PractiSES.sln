@@ -49,6 +49,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IRootServer", "IRootServer\
 		Release.AspNetCompiler.Debug = "False"
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigurationWizard", "ConfigurationWizard\ConfigurationWizard.csproj", "{0A80A8FA-59C9-4B53-905C-598A6899FA86}"
+	ProjectSection(WebsiteProperties) = preProject
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.Debug = "False"
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +93,10 @@ Global
 		{E5F1C91B-F9CA-4FE1-B4F2-DAFB2F998937}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E5F1C91B-F9CA-4FE1-B4F2-DAFB2F998937}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E5F1C91B-F9CA-4FE1-B4F2-DAFB2F998937}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0A80A8FA-59C9-4B53-905C-598A6899FA86}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A80A8FA-59C9-4B53-905C-598A6899FA86}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A80A8FA-59C9-4B53-905C-598A6899FA86}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A80A8FA-59C9-4B53-905C-598A6899FA86}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

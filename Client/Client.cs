@@ -12,7 +12,7 @@ using System.Text;
 
 namespace PractiSES
 {
-    internal class Client
+    public class Client
     {
         private String host;
         private IServer server;
