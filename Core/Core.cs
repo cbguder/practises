@@ -68,7 +68,7 @@ namespace PractiSES
             appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             processName = Process.GetCurrentProcess().ProcessName;
 
-            if (processName == "Client" || processName == "PractiSES" || processName == "Client.vshost" || processName == "ConfigurationWizard.vshost")
+            if (processName == "Client" || processName == "PractiSES" || processName == "Client.vshost" || processName == "ConfigurationWizard" || processName == "ConfigurationWizard.vshost")
             {
                 appDataFolder = Path.Combine(appDataFolder, "PractiSES\\Client");
             }

@@ -98,7 +98,7 @@ var practises = {
 	decrypt: function(e) {
 		var passphrase = practises.prompt("PractiSES", "Enter passphrase:");
 		practises.callPractises("-d", passphrase);
-	};
+	},
 	verify: function(e) {
 		var efb = document.getElementById("expandedfromBox");
 		var recipient = "";
