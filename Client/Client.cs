@@ -430,7 +430,6 @@ namespace PractiSES
             info.key = (byte[]) key.GetRange(0, Crypto.AESKeySize/8).ToArray(Type.GetType("System.Byte"));
             info.IV =
                 (byte[]) key.GetRange(Crypto.AESKeySize/8, Crypto.AESIVSize/8).ToArray(Type.GetType("System.Byte"));
-            File.Delete(Path.Combine(core.ApplicationDataFolder, "answers.key"));
 
             Rijndael aes = Rijndael.Create();
 
@@ -456,6 +455,8 @@ namespace PractiSES
             {
                 Console.Error.WriteLine(e.Message);
             }
+
+            File.Delete(Path.Combine(core.ApplicationDataFolder, "answers.key"));
         }
 
         private void Update(String passphrase)
@@ -535,7 +536,6 @@ namespace PractiSES
             info.key = (byte[]) key.GetRange(0, Crypto.AESKeySize/8).ToArray(Type.GetType("System.Byte"));
             info.IV =
                 (byte[]) key.GetRange(Crypto.AESKeySize/8, Crypto.AESIVSize/8).ToArray(Type.GetType("System.Byte"));
-            File.Delete(Path.Combine(core.ApplicationDataFolder, "answers.key"));
 
             Rijndael aes = Rijndael.Create();
 
@@ -557,6 +557,8 @@ namespace PractiSES
             {
                 Console.WriteLine("Public key could not be sent, please try again.");
             }
+
+            File.Delete(Path.Combine(core.ApplicationDataFolder, "answers.key"));
         }
 
         private void Remove(String passphrase)
@@ -643,7 +645,6 @@ namespace PractiSES
             info.key = (byte[]) key.GetRange(0, Crypto.AESKeySize/8).ToArray(Type.GetType("System.Byte"));
             info.IV =
                 (byte[]) key.GetRange(Crypto.AESKeySize/8, Crypto.AESIVSize/8).ToArray(Type.GetType("System.Byte"));
-            File.Delete(Path.Combine(core.ApplicationDataFolder, "answers.key"));
 
             Rijndael aes = Rijndael.Create();
 
@@ -668,6 +669,8 @@ namespace PractiSES
             {
                 Console.Error.WriteLine(e.Message);
             }
+
+            File.Delete(Path.Combine(core.ApplicationDataFolder, "answers.key"));
         }
 
         private static void Strip(String filename)
