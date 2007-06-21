@@ -1,0 +1,14 @@
+#psesVerifyIcon[signed="ok"] {
+  list-style-image: url("chrome://practises/skin/ok.png");
+  visibility: visible;
+}
+
+#psesVerifyIcon[signed="notok"] {
+  list-style-image: url("chrome://practises/skin/notok.png");
+  visibility: visible;
+}
+
+#psesVerifyIcon[signed="unknown"] {
+  list-style-image: url("chrome://practises/skin/unknown.png");
+  visibility: visible;
+}

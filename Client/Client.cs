@@ -19,12 +19,12 @@ namespace PractiSES
         private Core core;
         private String serverKey;
 
-        private static void Main(string[] args)
+        private static int Main(string[] args)
         {
             if (args.Length == 0)
             {
                 Usage();
-                return;
+                return 0;
             }
 
             String[][] options =
@@ -116,8 +116,7 @@ namespace PractiSES
                     client.Sign(file, passphrase);
                     break;
                 case "verify":
-                    client.Verify(file, recipient);
-                    break;
+                    return client.Verify(file, recipient);
                 case "initialize":
                     client.Initialize(passphrase);
                     break;
@@ -143,14 +142,13 @@ namespace PractiSES
                     client.SignDetached(file, passphrase, outfile);
                     break;
                 case "verifyDetached":
-                    client.VerifyDetached(file, recipient);
-                    break;
+                    return client.VerifyDetached(file, recipient);
                 case "help":
                     Usage();
                     break;
             }
 
-            return;
+            return 0;
         }
 
         public Client(String host)
@@ -271,7 +269,7 @@ namespace PractiSES
             }
         }
 
-        private void Verify(String filename, String sender)
+        private int Verify(String filename, String sender)
         {
             Message message;
 
@@ -282,33 +280,42 @@ namespace PractiSES
             catch (Exception e)
             {
                 Console.Error.WriteLine(e.Message);
-                return;
+                return 2;
             }
 
-            Verify(message, sender, true);
+            if (Verify(message, sender, true))
+                return 0;
+            else
+                return 1;
         }
 
-        private void VerifyDetached(String filename, String sender)
+        private int VerifyDetached(String filename, String sender)
         {
             Message message = new Message(File.ReadAllBytes(filename));
             String[] siglines = Util.GetLines(File.ReadAllText(filename + ".pses"));
             message.Signature = Convert.FromBase64String(String.Join("", siglines, 1, siglines.Length - 2));
-            Verify(message, sender, false);
+
+            if (Verify(message, sender, false))
+                return 0;
+            else
+                return 1;
         }
 
-        private void Verify(Message message, String sender, bool includeComments)
+        private bool Verify(Message message, String sender, bool includeComments)
         {
             String publicKey = FetchPublicKey(sender);
 
             if (publicKey == null)
-                return;
+                return false;
 
             bool result = message.Verify(publicKey, includeComments);
 
             if (result)
-                Console.WriteLine("Message verification succeeded.");
+                Console.Error.WriteLine("Message verification succeeded.");
             else
-                Console.WriteLine("Message verification failed.");
+                Console.Error.WriteLine("Message verification failed.");
+
+            return result;
         }
 
         private void Initialize(String passphrase)

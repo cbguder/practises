@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE overlay SYSTEM "chrome://practises/locale/practises.dtd">
 <overlay id="practises-overlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-	<script src="messengerOverlay.js"/>
+	<script type="text/javascript" src="practises.js"/>
+	<script type="text/javascript" src="messengerOverlay.js"/>
 	<stringbundleset id="stringbundleset">
 		<stringbundle id="practises-strings" src="chrome://practises/locale/practises.properties"/>
 	</stringbundleset>
@@ -16,4 +17,11 @@
 			</menupopup>
 		</menu>
 	</menupopup>
+	<hbox id="expandedHeaderView">
+		<vbox id="psesBox" insertafter="expandedHeaders" collapsed="true">
+			<spacer flex="1"/>
+			<image id="psesVerifyIcon" signed="ok" />
+			<spacer flex="1"/>
+		</vbox>
+	</hbox>
 </overlay>
