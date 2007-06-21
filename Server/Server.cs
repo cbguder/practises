@@ -17,7 +17,7 @@ namespace PractiSES
 
         private bool Connect(String host)
         {
-            HttpChannel chan = new HttpChannel(81);
+            HttpChannel chan = new HttpServerChannel(81);
             ChannelServices.RegisterChannel(chan, false);
 
             Console.WriteLine("Connecting to PractiSES root server ({0})...", host);
