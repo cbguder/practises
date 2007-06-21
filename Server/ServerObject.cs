@@ -14,27 +14,37 @@ namespace PractiSES
 {
     public class ServerObject : MarshalByRefObject, IServer
     {
-        private const String rootHost = "practises3.no-ip.org";
-        private const String beginProtocol = "-------------------------";
+        private const String rootHost = "practises2.no-ip.org";
+        private const String beginProtocol = "--------------------";
         private IRootServer rootServer;
        
         private void ActionLog_Write(String logMessage)
         {
-            Core core = new Core(Server.passphrase);
+            Core core = new Core(Server.passphrase, false);
             StreamWriter writer = new StreamWriter(core.ActionLogFile, true);
-            writer.Write(DateTime.Now.ToString() + Core.space);
             writer.WriteLine(beginProtocol);
-            writer.WriteLine(logMessage);
+            writer.Write(DateTime.Now.ToString() + Core.space);
+            String[] logMessageArray = logMessage.Split('\n');
+            foreach (String element in logMessageArray)
+            {
+                writer.WriteLine(element);
+            }
+            //writer.WriteLine(logMessage);
             writer.Close();
         }
 
         private void ErrorLog_Write(String logMessage)
         {
-            Core core = new Core(Server.passphrase);
+            Core core = new Core(Server.passphrase, false);
             StreamWriter writer = new StreamWriter(core.ErrorLogFile, true);
-            writer.Write(DateTime.Now.ToString() + Core.space);
             writer.WriteLine(beginProtocol);
-            writer.WriteLine(logMessage);
+            writer.Write(DateTime.Now.ToString() + Core.space);
+            String[] logMessageArray = logMessage.Split('\n');
+            foreach (String element in logMessageArray)
+            {
+                writer.WriteLine(element);
+            }
+            //writer.WriteLine(logMessage);
             writer.Close();
         }
 
@@ -210,18 +220,19 @@ namespace PractiSES
         {
             ActionLog_Write(email + ": InitKeySet_EnvelopeAnswers");
 
-            Console.WriteLine("-------------------------");
+            Console.WriteLine(beginProtocol);
             Console.WriteLine(email + ": InitKeySet_EnvelopeAnswers");
 
             return EnvelopeAnswers(userID, email, answersEnveloped, 
-                "Please double click the message to open this mail message in new window.\n Then follow Tools -> PractiSES -> Finalize Initialization links to finish initialization.");
+                "Please double click the message to open this mail message in new window.\n"+
+                "Then follow Tools -> PractiSES -> Finalize Initialization links to finish initialization.");
         }
 
         public bool InitKeySet_SendPublicKey(String userID, String email, String publicKey, String macValue)
         {
             ActionLog_Write(email + ": InitKeySet_SendPublicKey");
 
-            Console.WriteLine("-------------------------");
+            Console.WriteLine(beginProtocol);
             Console.WriteLine(email + ": InitKeySet_SendPublicKey");
 
             if (SendQuery(userID, email, publicKey, macValue))
@@ -349,7 +360,7 @@ namespace PractiSES
         {
             ActionLog_Write(email + ": KeyUpdate");
 
-            Console.WriteLine("-------------------------");
+            Console.WriteLine(beginProtocol);
             Console.WriteLine(email + ": KeyUpdate");
 
             DatabaseConnection connection = new DatabaseConnection();
@@ -381,17 +392,18 @@ namespace PractiSES
         {
             ActionLog_Write(email + ": USKeyRem_EnvelopeAnswers");
 
-            Console.WriteLine("-------------------------");
+            Console.WriteLine(beginProtocol);
             Console.WriteLine(email + ": USKeyRem_EnvelopeAnswers");
 
-            return EnvelopeAnswers(userID, email, answersEnveloped, "Please double click the message to open this mail message in new window.\n Then follow Tools -> PractiSES -> Finalize Key Removal links to finish removal of your key.");
+            return EnvelopeAnswers(userID, email, answersEnveloped, "Please double click the message to open this mail message in new window.\n"+
+                "Then follow Tools -> PractiSES -> Finalize Key Removal links to finish removal of your key.");
         }
 
         public bool USKeyRem_SendRemoveRequest(String userID, String email, String macValue)
         {
             ActionLog_Write(email + ": USKeyRem_SendPublicKey");
 
-            Console.WriteLine("-------------------------");
+            Console.WriteLine(beginProtocol);
             Console.WriteLine(email + ": USKeyRem_SendPublicKey");
 
             if (SendQuery(userID, email, "I want to remove my current public key", macValue))
@@ -412,7 +424,7 @@ namespace PractiSES
         {
             ActionLog_Write(email + ": USKeyUpdate_AskQuestions");
 
-            Console.WriteLine("-------------------------");
+            Console.WriteLine(beginProtocol);
             Console.WriteLine(email + ": USKeyUpdate_AskQuestions");
 
             return AskQuestions(userID, email);
@@ -422,18 +434,19 @@ namespace PractiSES
         {
             ActionLog_Write(email + ": USKeyUpdate_EnvelopeAnswers");
 
-            Console.WriteLine("-------------------------");
+            Console.WriteLine(beginProtocol);
             Console.WriteLine(email + ": USKeyUpdate_EnvelopeAnswers");
 
             return EnvelopeAnswers(userID, email, answersEnveloped, 
-                "Please double click the message to open this mail message in new window.\n Then follow Tools -> PractiSES -> Finalize Update links to finish update operation.");
+                "Please double click the message to open this mail message in new window.\n"+
+                "Then follow Tools -> PractiSES -> Finalize Update links to finish update operation.");
         }
 
         public bool USKeyUpdate_SendPublicKey(String userID, String email, String newPublicKey, String macValue)
         {
             ActionLog_Write(email + ": USKeyUpdate_SendPublicKey");
 
-            Console.WriteLine("-------------------------");
+            Console.WriteLine(beginProtocol);
             Console.WriteLine(email + ": USKeyUpdate_SendPublicKey");
 
             if (SendQuery(userID, email, newPublicKey, macValue))

@@ -12,12 +12,12 @@ namespace PractiSES
     class Server
     {
         public static String passphrase;
-        private const String rootHost = "10.80.10.178";
+        private const String rootHost = "practises3.no-ip.org";//"localhost";
         private IRootServer rootServer;
 
         private bool Connect(String host)
         {
-            HttpClientChannel chan = new HttpClientChannel();
+            HttpChannel chan = new HttpChannel(81);
             ChannelServices.RegisterChannel(chan, false);
 
             Console.WriteLine("Connecting to PractiSES root server ({0})...", host);
@@ -33,18 +33,18 @@ namespace PractiSES
             }
             Console.WriteLine("Connected.");
 
-            Console.Write("Domain Name: ");
+            /*Console.Write("Domain Name: ");
             String domainName = Console.ReadLine();
-            GetCertificate(domainName);
+            GetCertificate(domainName);*/
 
             return true;
         }
 
-        private void GetCertificate(String domainName)
+        /*private void GetCertificate(String domainName)
         {
-            /*String cert = rootServer.GetCertificate(domainName);
-            String[] certFields = cert.Split(',');
-            Console.WriteLine(cert);*/
+            //String cert = rootServer.GetCertificate(domainName);
+            //String[] certFields = cert.Split(',');
+            //Console.WriteLine(cert);
             byte[] rawCertData = rootServer.GetCertificate(domainName);
             if (rawCertData != null)
             {
@@ -53,14 +53,14 @@ namespace PractiSES
                 //Console.WriteLine(Convert.ToBase64String(rawCertData));
                 Console.WriteLine("Certificate has been downloaded successfully.");
             }
-        }
+        }*/
 
         static void Main(string[] args)
         {
             RemotingConfiguration.Configure(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile, false);
 
             Server server = new Server();
-            //server.Connect(rootHost);
+            server.Connect(rootHost);
             ServerObject serverobj = new ServerObject();
             //serverobj.KeyObt("cbguder@su.sabanciuniv.edu", DateTime.Now);
             
@@ -79,7 +79,9 @@ namespace PractiSES
             {
                 writer.Write(DateTime.Now.ToString() + Core.space);
                 writer.WriteLine("Server's old public key:");
-                writer.WriteLine("\n" + dbPublicKey + "\n");
+                writer.WriteLine();
+                writer.WriteLine(dbPublicKey);
+                writer.WriteLine();
 
                 connection = new DatabaseConnection();
                 connection.setPublicKey("server", "server", publicKey);
@@ -89,7 +91,9 @@ namespace PractiSES
             connection.close();
             writer.Write(DateTime.Now.ToString() + Core.space);
             writer.WriteLine("Server's public key:");
-            writer.WriteLine("\n" + publicKey + "\n");
+            writer.WriteLine();
+            writer.WriteLine(publicKey);
+            writer.WriteLine();
 
             writer.Write(DateTime.Now.ToString() + Core.space);
             writer.WriteLine("Server started");
