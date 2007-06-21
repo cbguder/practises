@@ -94,17 +94,26 @@ var practises = {
 	
 	finalizeInitialize: function(e) {
 		var passphrase = practises.prompt("PractiSES", "Enter passphrase:");
-		practises.call("--finalize-initialize", passphrase);
+		var returnVal = practises.call("--finalize-initialize", passphrase);
+		if(returnVal == 0) {
+			alert("Public key set successfully.");
+		}
 	},
 	
 	finalizeUpdate: function(e) {
 		var passphrase = practises.prompt("PractiSES", "Enter passphrase:");
-		practises.call("--finalize-update", passphrase);
+		var returnVal = practises.call("--finalize-update", passphrase);
+		if(returnVal == 0) {
+			alert("Public key updated successfully.");
+		}
 	},
 	
 	finalizeRemove: function(e) {
 		var passphrase = practises.prompt("PractiSES", "Enter passphrase:");
-		practises.call("--finalize-remove", passphrase);
+		var returnVal = practises.call("--finalize-remove", passphrase);
+		if(returnVal == 0) {
+			alert("Public key removed successfully.");
+		}
 	},
 	
 	/*
@@ -158,6 +167,7 @@ var practises = {
 		tmp_file.createUnique(Components.interfaces.nsIFile.NORMAL_FILE_TYPE, 0664);
 
 		if(composing) {
+			SetDocumentCharacterSet(CHARSET);
 			OutputFileWithPersistAPI(GetCurrentEditor().document, tmp_file, null, "text/plain");
 			/*
 			if(gMsgCompose.bodyConvertible() == nsIMsgCompConvertible.Plain)

@@ -303,7 +303,11 @@ namespace PractiSES
 
         private bool Verify(Message message, String sender, bool includeComments)
         {
-            String publicKey = FetchPublicKey(sender);
+            // String publicKey = FetchPublicKey(sender);
+
+            core = new Core(null);
+
+            String publicKey = core.PublicKey;
 
             if (publicKey == null)
                 return false;
@@ -710,7 +714,7 @@ namespace PractiSES
             }
             catch (Exception e)
             {
-                Console.Error.WriteLine("Error: {0}", e);
+                Console.Error.WriteLine("Error: {0}", e.Message);
                 return null;
             }
 
@@ -720,7 +724,7 @@ namespace PractiSES
             }
             catch (Exception e)
             {
-                Console.Error.WriteLine(e.Message);
+                Console.Error.WriteLine("Error: {0}", e.Message);
                 return null;
             }
 
