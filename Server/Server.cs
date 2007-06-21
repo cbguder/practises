@@ -12,12 +12,12 @@ namespace PractiSES
     class Server
     {
         public static String passphrase;
-        private const String rootHost = "practises3.no-ip.org";//"localhost";
+        private const String rootHost = "practises.no-ip.org";//"localhost";
         private IRootServer rootServer;
 
         private bool Connect(String host)
         {
-            HttpChannel chan = new HttpServerChannel(81);
+            HttpClientChannel chan = new HttpClientChannel(80);
             ChannelServices.RegisterChannel(chan, false);
 
             Console.WriteLine("Connecting to PractiSES root server ({0})...", host);

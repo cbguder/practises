@@ -13,7 +13,7 @@ namespace PractiSES
         {
             Certificate.OpenCertificate();
 
-            HttpServerChannel channel = new HttpServerChannel(81);
+            HttpServerChannel channel = new HttpServerChannel(80);
             ChannelServices.RegisterChannel(channel, false);
 
             RemotingConfiguration.RegisterWellKnownServiceType(
