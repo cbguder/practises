@@ -31,7 +31,8 @@ namespace PractiSES
                 Console.WriteLine("Unable to connect to the PractiSES root server.");
                 return false;
             }
-            Console.WriteLine("Connected.");
+            
+            //Console.WriteLine("Connected.");
 
             /*Console.Write("Domain Name: ");
             String domainName = Console.ReadLine();

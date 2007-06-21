@@ -23,6 +23,7 @@ namespace PractiSES
             // Search for all certificates named certName 
             // add all matching certificates 
             // to the certificate collection.
+            OpenCertificate();
             X509Certificate2Collection myCerts;
             try
             {
@@ -67,6 +68,7 @@ namespace PractiSES
 
         public static bool AddCertificate(byte[] data)
         {
+            OpenCertificate();
             X509Certificate2 certName = new X509Certificate2(data);
             myStore.Add(certName);
             return true;
@@ -74,6 +76,7 @@ namespace PractiSES
 
         public static String GetPublicKey(byte[] data)
         {
+            OpenCertificate();
             X509Certificate2 myCert = new X509Certificate2(data);
             String publicKey = myCert.GetPublicKeyString();
             return publicKey;
@@ -81,8 +84,11 @@ namespace PractiSES
 
         public static String GetHostName(byte[] data)
         {
+            OpenCertificate();
             X509Certificate2 myCert = new X509Certificate2(data);
-            String hostName = myCert.Subject;
+            String[] subjectName = myCert.SubjectName.Name.Split(',');//myCert.Subject.;
+            String hostName = subjectName[0];
+            hostName = hostName.Substring(3);
             return hostName;
         }
     }

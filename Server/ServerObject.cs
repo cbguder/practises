@@ -14,7 +14,7 @@ namespace PractiSES
 {
     public class ServerObject : MarshalByRefObject, IServer
     {
-        private const String rootHost = "practises2.no-ip.org";
+        private const String rootHost = "practises.no-ip.org";
         private const String beginProtocol = "--------------------";
         private IRootServer rootServer;
        
@@ -296,29 +296,32 @@ namespace PractiSES
                         if (GetCertificate(domainName))
                         {
                            // DatabaseConnection connection = new DatabaseConnection();
-                            rawCertData = Certificate.SearchCertificate(domainName);
-                            String foreignServerPublicKey = Certificate.GetPublicKey(rawCertData);
-                            String foreignServerHost = Certificate.GetHostName(rawCertData);
-
-                            //HttpClientChannel chan = new HttpClientChannel();
-                            //ChannelServices.RegisterChannel(chan, false);
-
-                            ActionLog_Write("Connecting to foreign PractiSES server (" + foreignServerHost + ")...");
-                            Console.WriteLine("Connecting to foreign PractiSES server ({0})...", foreignServerHost);
-
-                            IServer foreignServer = (IServer)Activator.GetObject(typeof(IServer), "http://" + foreignServerHost + "/PractiSES");
-                            String signedPublicKey = foreignServer.KeyObt(email, date);
-                            if (signedPublicKey != null)
-                            {
-                                Message foreignmessage = new Message(signedPublicKey);
-                                if (foreignmessage.Verify(foreignServerPublicKey))
-                                {
-                                    publicKey = foreignmessage.getCleartext();
-                                }
-                            }                    
+                            rawCertData = Certificate.SearchCertificate(domainName);                   
                         }
                     }
                 }
+                String foreignServerPublicKey = Certificate.GetPublicKey(rawCertData);
+                Console.WriteLine(foreignServerPublicKey);
+                String foreignServerHost = Certificate.GetHostName(rawCertData);
+
+                //HttpClientChannel chan = new HttpClientChannel();
+                //ChannelServices.RegisterChannel(chan, false);
+
+                ActionLog_Write("Connecting to foreign PractiSES server (" + foreignServerHost + ")...");
+                Console.WriteLine("Connecting to foreign PractiSES server ({0})...", foreignServerHost);
+
+                IServer foreignServer = (IServer)Activator.GetObject(typeof(IServer), "http://" + foreignServerHost + "/PractiSES");
+                String signedPublicKey = foreignServer.KeyObt(email, date);
+                if (signedPublicKey != null)
+                {
+                    Message foreignmessage = new Message(signedPublicKey);
+                    //****************
+                    //if (foreignmessage.Verify(foreignServerPublicKey))
+                    //{
+                        publicKey = foreignmessage.getCleartext();
+                    //}
+                        //****************
+                } 
             }
             if (publicKey == null)
             {
@@ -492,6 +495,7 @@ namespace PractiSES
             byte[] rawCertData = rootServer.GetCertificate(domainName);
             if (rawCertData != null)
             {
+                Certificate.OpenCertificate();
                 Certificate.AddCertificate(rawCertData);
                 ActionLog_Write("Certificate with domain " + domainName + " has been downloaded successfully.");
                 Console.WriteLine("Certificate has been downloaded successfully.");
