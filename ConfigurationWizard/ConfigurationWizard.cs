@@ -92,9 +92,7 @@ namespace PractiSES
             {
                 MessageBox.Show("Server key not installed. Please download server key and install it.", "Error",
                                 MessageBoxButtons.OK, MessageBoxIcon.Error);
-                Server.Enabled =
-                    Username.Enabled =
-                    Email.Enabled = Passphrase.Enabled = ConfirmPassphrase.Enabled = Next.Enabled = true;
+                panel1.Enabled = true;
                 return;
             }
         }
