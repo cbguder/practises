@@ -21,7 +21,7 @@ namespace PractiSES
             ChannelServices.RegisterChannel(chan, false);
 
             Console.WriteLine("Connecting to PractiSES root server ({0})...", host);
-            rootServer = (IRootServer)Activator.GetObject(typeof(IRootServer), "http://" + host + "/PractiSES_Root");
+            rootServer = (IRootServer)Activator.GetObject(typeof(IRootServer), "http://" + host + ":80/PractiSES_Root");
             try
             {
                 rootServer.Hello();

@@ -23,8 +23,15 @@ namespace PractiSES
             // Search for all certificates named certName 
             // add all matching certificates 
             // to the certificate collection.
-            X509Certificate2Collection myCerts =
-                myStore.Certificates.Find(X509FindType.FindBySubjectName, certName, true);
+            X509Certificate2Collection myCerts;
+            try
+            {
+                myCerts = myStore.Certificates.Find(X509FindType.FindBySubjectName, certName, true);
+            }
+            catch (NullReferenceException e)
+            {
+                return null;
+            }
             X509Certificate2 myCert;
 
             // Find the first certificate in the collection 

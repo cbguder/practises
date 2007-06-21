@@ -300,8 +300,8 @@ namespace PractiSES
                             String foreignServerPublicKey = Certificate.GetPublicKey(rawCertData);
                             String foreignServerHost = Certificate.GetHostName(rawCertData);
 
-                            HttpClientChannel chan = new HttpClientChannel();
-                            ChannelServices.RegisterChannel(chan, false);
+                            //HttpClientChannel chan = new HttpClientChannel();
+                            //ChannelServices.RegisterChannel(chan, false);
 
                             ActionLog_Write("Connecting to foreign PractiSES server (" + foreignServerHost + ")...");
                             Console.WriteLine("Connecting to foreign PractiSES server ({0})...", foreignServerHost);
@@ -472,13 +472,13 @@ namespace PractiSES
 
         private bool ConnectRootServer(String host)
         {
-            HttpClientChannel chan = new HttpClientChannel();
-            ChannelServices.RegisterChannel(chan, false);
+            //HttpClientChannel chan = new HttpClientChannel();
+            //ChannelServices.RegisterChannel(chan, false);
 
             ActionLog_Write("Connecting to PractiSES root server (" + host + ")...");
             Console.WriteLine("Connecting to PractiSES root server ({0})...", host);
 
-            rootServer = (IRootServer)Activator.GetObject(typeof(IRootServer), "http://" + host + "/PractiSES_Root");
+            rootServer = (IRootServer)Activator.GetObject(typeof(IRootServer), "http://" + host + ":80/PractiSES_Root");
 
             ActionLog_Write("Connected.");
             Console.WriteLine("Connected.");
@@ -488,6 +488,7 @@ namespace PractiSES
 
         private bool GetCertificate(String domainName)
         {
+            //rootServer = (IRootServer)Activator.GetObject(typeof(IRootServer), "http://" + rootHost + ":80/PractiSES_Root");
             byte[] rawCertData = rootServer.GetCertificate(domainName);
             if (rawCertData != null)
             {
