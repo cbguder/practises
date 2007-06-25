@@ -484,8 +484,19 @@ namespace PractiSES
 
             rootServer = (IRootServer)Activator.GetObject(typeof(IRootServer), "http://" + host + ":88/PractiSES_Root");
 
-            ActionLog_Write("Connected.");
-            Console.WriteLine("Connected.");
+            try
+            {
+                if (rootServer.Hello())
+                {
+                    ActionLog_Write("Connected to PractiSES root server..");
+                    Console.WriteLine("Connected to PractiSES root server.");
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message + "\nUnable to connect to PractiSES root server.");
+                return false;
+            }
 
             return true;
         }

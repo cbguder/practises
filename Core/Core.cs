@@ -334,7 +334,7 @@ namespace PractiSES
             return domain;
         }
 
-        public String GetRootHost()
+        public String GetDbAddress()
         {
             XmlNode rootServerNode;
             XmlDocument settingsDocument;
@@ -342,7 +342,49 @@ namespace PractiSES
             settingsDocument = new XmlDocument();
             settingsDocument.Load(settingsFile);
 
-            rootServerNode = settingsDocument.SelectSingleNode("descendant::root_server");
+            rootServerNode = settingsDocument.SelectSingleNode("descendant::server");
+            String domain = rootServerNode.InnerText;
+
+            return domain;
+        }
+
+        public String GetDbUid()
+        {
+            XmlNode rootServerNode;
+            XmlDocument settingsDocument;
+
+            settingsDocument = new XmlDocument();
+            settingsDocument.Load(settingsFile);
+
+            rootServerNode = settingsDocument.SelectSingleNode("descendant::uid");
+            String domain = rootServerNode.InnerText;
+
+            return domain;
+        }
+
+        public String GetDbPwd()
+        {
+            XmlNode rootServerNode;
+            XmlDocument settingsDocument;
+
+            settingsDocument = new XmlDocument();
+            settingsDocument.Load(settingsFile);
+
+            rootServerNode = settingsDocument.SelectSingleNode("descendant::pwd");
+            String domain = rootServerNode.InnerText;
+
+            return domain;
+        }
+
+        public String GetDbName()
+        {
+            XmlNode rootServerNode;
+            XmlDocument settingsDocument;
+
+            settingsDocument = new XmlDocument();
+            settingsDocument.Load(settingsFile);
+
+            rootServerNode = settingsDocument.SelectSingleNode("descendant::dbase");
             String domain = rootServerNode.InnerText;
 
             return domain;

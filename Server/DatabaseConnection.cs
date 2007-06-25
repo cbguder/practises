@@ -7,10 +7,10 @@ namespace PractiSES
     public class DatabaseConnection
     {
         private string connectionstring;
-        private const string server = "pgp.sabanciuniv.edu";
-        private const string uid = "practises";
-        private const string pwd = "bilkent";
-        private const string dbase = "practises";
+        //private const string server = "pgp.sabanciuniv.edu";
+        //private const string uid = "practises";
+        //private const string pwd = "bilkent";
+        //private const string dbase = "practises";
         private MySqlConnection conn;
         private MySqlCommand cmd;
         private MySqlDataReader read;
@@ -19,7 +19,9 @@ namespace PractiSES
         {
             try
             {
-                connectionstring = String.Format("server={0};uid={1};pwd={2};database={3}", server, uid, pwd, dbase);
+                Core core = new Core(Server.passphrase, false);
+
+                connectionstring = String.Format("server={0};uid={1};pwd={2};database={3}", core.GetDbAddress(), core.GetDbUid(), core.GetDbPwd(), core.GetDbName());
                 conn = new MySqlConnection(connectionstring);
                 conn.Open();
             }
