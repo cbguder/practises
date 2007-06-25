@@ -1,7 +1,7 @@
 #psesVerifyIcon {
-  list-style-image: none;
+  list-style-image: url("chrome://practises/skin/ok.png");
   visibility: visible;
-  margin-right: 50px;
+  margin-right: 10px;
 }
 
 #psesVerifyIcon[signed="ok"] {

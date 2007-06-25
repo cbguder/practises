@@ -8,3 +8,4 @@
 <!ENTITY practises.finalizeInitialize "Finalize Initialization...">
 <!ENTITY practises.finalizeUpdate "Finalize Key Update...">
 <!ENTITY practises.finalizeRemove "Finalize Key Removal...">
+<!ENTITY practises.statusUnknown "Signature status unknown">

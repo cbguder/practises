@@ -303,11 +303,7 @@ namespace PractiSES
 
         private bool Verify(Message message, String sender, bool includeComments)
         {
-            // String publicKey = FetchPublicKey(sender);
-
-            core = new Core(null);
-
-            String publicKey = core.PublicKey;
+            String publicKey = FetchPublicKey(sender);
 
             if (publicKey == null)
                 return false;

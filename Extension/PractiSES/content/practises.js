@@ -79,10 +79,13 @@ var practises = {
 
 		if(result == 0) {
 			icon.setAttribute("signed", "ok");
+			icon.setAttribute("tooltiptext", this.strings.getString("statusOk"));
 		} else if(result == 1) {
 			icon.setAttribute("signed", "notok");
+			icon.setAttribute("tooltiptext", this.strings.getString("statusNotok"));
 		} else {
 			icon.setAttribute("signed", "unknown");
+			icon.setAttribute("tooltiptext", this.strings.getString("statusUnknown"));
 		}
 		
 		psesBox.collapsed = false;
@@ -149,6 +152,7 @@ var practises = {
 		var composing = false;
 		var needsRecipient = false;
 		var needsPassphrase = false;
+		var psesEditor = null;
 		
 		if(command == "-s" || command == "-d" || command == "--finalize-initialize" || command == "--finalize-update" || command == "--finalize-remove")
 			needsPassphrase = true;
@@ -166,25 +170,28 @@ var practises = {
 		tmp_file.append("message.tmp");
 		tmp_file.createUnique(Components.interfaces.nsIFile.NORMAL_FILE_TYPE, 0664);
 
+		var message = "";
 		if(composing) {
-			SetDocumentCharacterSet(CHARSET);
-			OutputFileWithPersistAPI(GetCurrentEditor().document, tmp_file, null, "text/plain");
+			psesEditor = gMsgCompose.editor.QueryInterface(Components.interfaces.nsIPlaintextEditor);
+			message = psesEditor.outputToString("text/plain", 2 | 1024);
 			/*
+			SetDocumentCharacterSet(CHARSET);
 			if(gMsgCompose.bodyConvertible() == nsIMsgCompConvertible.Plain)
 				OutputFileWithPersistAPI(GetCurrentEditor().document, tmp_file, null, "text/plain");
 			else
 				OutputFileWithPersistAPI(GetCurrentEditor().document, tmp_file, null, "text/html");
 			*/
 		} else {
-			var message = practises.readMessage();
-			var ostream = Components.classes["@mozilla.org/network/file-output-stream;1"].createInstance(Components.interfaces.nsIFileOutputStream);
-			ostream.init(tmp_file, 0x02 | 0x08 | 0x20, 0664, 0);
-			var os = Components.classes["@mozilla.org/intl/converter-output-stream;1"].createInstance(Components.interfaces.nsIConverterOutputStream);
-			os.init(ostream, CHARSET, 1024, REPLACEMENTCHAR);
-			os.writeString(message);
-			os.close();
-			ostream.close();
+			message = practises.readMessage();
 		}
+		
+		var ostream = Components.classes["@mozilla.org/network/file-output-stream;1"].createInstance(Components.interfaces.nsIFileOutputStream);
+		ostream.init(tmp_file, 0x02 | 0x08 | 0x20, 0664, 0);
+		var os = Components.classes["@mozilla.org/intl/converter-output-stream;1"].createInstance(Components.interfaces.nsIConverterOutputStream);
+		os.init(ostream, CHARSET, 1024, REPLACEMENTCHAR);
+		os.writeString(message);
+		os.close();
+		ostream.close();
 			
 		var args;
 		if(needsPassphrase) {
@@ -199,11 +206,8 @@ var practises = {
 			var data = practises.readFile(outputPath);
 
 			if(composing) {
-				var domndEditor = document.getElementById("content-frame");
-				var htmlEditor = domndEditor.getHTMLEditor(domndEditor.contentWindow);
-				htmlEditor = htmlEditor.QueryInterface(Components.interfaces.nsIPlaintextEditor);
-				htmlEditor.selectAll();
-				htmlEditor.insertText(data);
+				psesEditor.selectAll();
+				psesEditor.insertText(data);
 			} else {
 				var msgPaneDocChildren = this.messagePane.contentDocument.childNodes;
 				var ndHTML = msgPaneDocChildren.item(0);
@@ -263,10 +267,37 @@ var practises = {
 	},
 	
 	readMessage: function() {
-		var ndHTML = document.getElementById("messagepane").contentDocument.childNodes[0];
-		var ndBODY = ndHTML.childNodes[1];
-		var ndDIV = ndBODY.childNodes[1];
-		return ndDIV.textContent;
+		var offset = new Object();
+		var messageSize = new Object();
+		var is = null;
+		
+		var url = document.getElementById("messagepane").currentURI.spec;
+		var hdr = GetDBView().hdrForFirstSelectedMessage;
+
+		try {
+			is = hdr.folder.getOfflineFileStream(hdr.messageKey, offset, messageSize);
+		} catch(e) {
+			alert("message: " + e.message);
+		}
+		
+		try {
+			var sis = Components.classes["@mozilla.org/scriptableinputstream;1"].createInstance(Components.interfaces.nsIScriptableInputStream);
+			sis.init(is);
+			bodyAndHdr = sis.read(hdr.messageSize);
+		} catch(e) {
+			alert("message: " + e.message);
+		}
+		
+		var hdrstr = bodyAndHdr.indexOf("\r\n\r\n");
+		
+		var body = bodyAndHdr.substring(hdrstr + 4, bodyAndHdr.length);
+		body = body.replace(/(\r\n|\r|\n)/g, '\n');
+		
+		var psesStart = body.indexOf("-----BEGIN PRACTISES");
+		var psesEnd = body.indexOf("-----END PRACTISES");
+		psesEnd = body.indexOf("\n", psesEnd);
+		
+		return body.substring(psesStart, psesEnd + 1);
 	},
 	
 	run: function(args) {

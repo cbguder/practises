@@ -91,7 +91,7 @@ namespace PractiSES
                 endIndex = i;
 
                 cleartext =
-                    Encoding.UTF8.GetBytes(String.Join(Environment.NewLine, lines, startIndex, endIndex - startIndex));
+                    Encoding.UTF8.GetBytes(String.Join("\n", lines, startIndex, endIndex - startIndex));
 
                 startIndex = endIndex + 1;
                 while (lines[i] != Crypto.EndSignature)
@@ -165,7 +165,7 @@ namespace PractiSES
             {
                 toSign = cleartext;
             }
-
+                        
             signature = Crypto.Sign(toSign, privateKey);
         }
 
@@ -194,6 +194,7 @@ namespace PractiSES
         public override String ToString()
         {
             StringWriter result = new StringWriter();
+            result.NewLine = "\n";
 
             if (ciphertext != null)
             {
@@ -221,9 +222,9 @@ namespace PractiSES
         public String getSignature()
         {
             String result = Crypto.BeginSignature;
-            result += Environment.NewLine;
+            result += "\n";
             result += Util.Wrap(Convert.ToBase64String(signature), wrap);
-            result += Environment.NewLine;
+            result += "\n";
             result += Crypto.EndSignature;
             return result;
         }
@@ -234,7 +235,7 @@ namespace PractiSES
             foreach (Comment c in comments)
             {
                 result += c.name + ": " + c.content;
-                result += Environment.NewLine;
+                result += "\n";
             }
             return result;
         }
