@@ -121,19 +121,19 @@ namespace PractiSES
                     client.Initialize(passphrase);
                     break;
                 case "finalizeInitialize":
-                    client.FinalizeInitialize(file, passphrase);
+                    return client.FinalizeInitialize(file, passphrase);
                     break;
                 case "update":
                     client.Update(passphrase);
                     break;
                 case "finalizeUpdate":
-                    client.FinalizeUpdate(file, passphrase);
+                    return client.FinalizeUpdate(file, passphrase);
                     break;
                 case "remove":
                     client.Remove(passphrase);
                     break;
                 case "finalizeRemove":
-                    client.FinalizeRemove(file, passphrase);
+                    return client.FinalizeRemove(file, passphrase);
                     break;
                 case "strip":
                     Strip(file);
@@ -403,7 +403,7 @@ namespace PractiSES
             Console.Error.WriteLine("Answers sent. Please check your email to finalize PractiSES initialization.");
         }
 
-        private void FinalizeInitialize(String filename, String passphrase)
+        private int FinalizeInitialize(String filename, String passphrase)
         {
             try
             {
@@ -412,7 +412,7 @@ namespace PractiSES
             catch
             {
                 Console.Error.WriteLine("Invalid passphrase");
-                return;
+                return 1;
             }
 
             StreamReader sr = new StreamReader(Path.Combine(core.ApplicationDataFolder, "identity"));
@@ -457,6 +457,8 @@ namespace PractiSES
             }
 
             File.Delete(Path.Combine(core.ApplicationDataFolder, "answers.key"));
+
+            return 0;
         }
 
         private void Update(String passphrase)
@@ -509,7 +511,7 @@ namespace PractiSES
             }
         }
 
-        private void FinalizeUpdate(String filename, String passphrase)
+        private int FinalizeUpdate(String filename, String passphrase)
         {
             try
             {
@@ -518,7 +520,7 @@ namespace PractiSES
             catch
             {
                 Console.Error.WriteLine("Invalid passphrase");
-                return;
+                return 1;
             }
 
             StreamReader sr = new StreamReader(Path.Combine(core.ApplicationDataFolder, "identity"));
@@ -559,6 +561,8 @@ namespace PractiSES
             }
 
             File.Delete(Path.Combine(core.ApplicationDataFolder, "answers.key"));
+
+            return 0;
         }
 
         private void Remove(String passphrase)
@@ -618,7 +622,7 @@ namespace PractiSES
             }
         }
 
-        private void FinalizeRemove(String filename, String passphrase)
+        private int FinalizeRemove(String filename, String passphrase)
         {
             try
             {
@@ -627,7 +631,7 @@ namespace PractiSES
             catch
             {
                 Console.Error.WriteLine("Invalid passphrase");
-                return;
+                return 1;
             }
 
             StreamReader sr = new StreamReader(Path.Combine(core.ApplicationDataFolder, "identity"));
@@ -671,6 +675,8 @@ namespace PractiSES
             }
 
             File.Delete(Path.Combine(core.ApplicationDataFolder, "answers.key"));
+
+            return 0;
         }
 
         private static void Strip(String filename)
