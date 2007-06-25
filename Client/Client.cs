@@ -115,7 +115,7 @@ namespace PractiSES
                     client.Encrypt(file, recipient, outfile);
                     break;
                 case "decrypt":
-                    client.Decrypt(file, passphrase);
+                    client.Decrypt(file, passphrase, outfile);
                     break;
                 case "sign":
                     client.Sign(file, passphrase);
@@ -197,7 +197,7 @@ namespace PractiSES
             }
         }
 
-        private void Decrypt(String filename, String passphrase)
+        private void Decrypt(String filename, String passphrase, String outfile)
         {
             try
             {
@@ -212,11 +212,9 @@ namespace PractiSES
             Message message = new Message(File.ReadAllText(filename));
             message.Decrypt(core.PrivateKey);
 
-            String outFile = filename + ".pses";
-
-            if (Util.Write(outFile, message.Cleartext))
+            if (Util.Write(outfile, message.Cleartext))
             {
-                Console.Error.WriteLine("Output written to {0}", outFile);
+                Console.Error.WriteLine("Output written to {0}", outfile);
             }
         }
 

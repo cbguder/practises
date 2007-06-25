@@ -10,8 +10,6 @@
 	<menupopup id="taskPopup">
 		<menu id="practises-menu" label="&practises.practises;">
 			<menupopup id="practises-popup">
-				<menuitem id="practises-decrypt" label="&practises.decrypt;" oncommand="practises.decrypt(event);"/>
-				<menuitem id="practises-verify" label="&practises.verify;" oncommand="practises.verify(event);"/>
 				<menuitem id="practises-finalizeInitialize" label="&practises.finalizeInitialize;" oncommand="practises.finalizeInitialize(event);"/>
 				<menuitem id="practises-finalizeUpdate" label="&practises.finalizeUpdate;" oncommand="practises.finalizeUpdate(event);"/>
 				<menuitem id="practises-finalizeRemove" label="&practises.finalizeRemove;" oncommand="practises.finalizeRemove(event);"/>
@@ -19,6 +17,11 @@
 		</menu>
 	</menupopup>
 	<hbox id="expandedHeaderView">
+		<vbox id="psesBox2" insertbefore="psesBox" collapsed="true">
+			<spacer flex="1"/>
+			<button label="&practises.decrypt;" oncommand="practises.decrypt(event);" />
+			<spacer flex="1"/>
+		</vbox>
 		<vbox id="psesBox" insertbefore="smimebox" collapsed="true">
 			<spacer flex="1"/>
 			<image id="psesVerifyIcon" signed="unknown" tooltiptext="&practises.statusUnknown;" />

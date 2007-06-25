@@ -68,25 +68,30 @@ var practises = {
 	decrypt: function(e) {
 		var passphrase = practises.prompt("PractiSES", "Enter passphrase:");
 		practises.call("-d", passphrase);
-		practises.decryptAttachments(passphrase);
+		var files = practises.saveViewAttachments();
+		this.timeoutID = window.setTimeout(practises.decryptAttachments, 1000, this, files, passphrase);
+		document.getElementById("psesBox2").collapsed = true;
 	},
 	
-	decryptAttachments: function(passphrase) {
-		var host = this.prefs.getCharPref("server");
+	decryptAttachments: function(that, files, passphrase) {
+		var host = that.prefs.getCharPref("server");
 		var returnVals = Array();
 		var paths = Array();
 		var args;
 		
-		var files = practises.saveViewAttachments();
-		
+		var attachmentList = document.getElementById('attachmentList');
+		while(attachmentList.childNodes.length > 0)
+			attachmentList.removeChild(attachmentList.childNodes[0]);
+
 		var count = 0;				
-		for (index in files)	{
+		for (index in files) {
 			var file = files[index];
 			var psesIndex = file.path.indexOf(".pses");
 			if((psesIndex != -1) && (psesIndex == file.path.length - 5)) {
-				args = ["-d", "-H", host, "-p", passphrase, file.path];
+				var decryptedPath = file.path.substring(0, psesIndex);
+				args = ["-d", "-H", host, "-p", passphrase, "-O", decryptedPath, file.path];
 				practises.run(args);
-				paths[count++] = file.path.substring(0, psesIndex);
+				paths[count++] = decryptedPath;
 			}
 		}
 		
@@ -113,39 +118,24 @@ var practises = {
 		}
 	},
 	
-	verify: function(author) {
-		var psesBox = document.getElementById("psesBox");
-		var icon = document.getElementById("psesVerifyIcon");
-		var result = practises.call("-v", author);
-		var attachmentsResult = practises.verifyAttachments(author);
-		
-		if(attachmentsResult) {
-			if(result == 0) {
-				icon.setAttribute("signed", "ok");
-				icon.setAttribute("tooltiptext", this.strings.getString("statusOk"));
-			} else if(result == 1) {
-				icon.setAttribute("signed", "notok");
-				icon.setAttribute("tooltiptext", this.strings.getString("statusNotok"));
-			} else {
-				icon.setAttribute("signed", "unknown");
-				icon.setAttribute("tooltiptext", this.strings.getString("statusUnknown"));
-			}
+	verify: function(author, message) {
+		var result = practises.call("-v", author, message);
+
+		if(currentAttachments.length > 0) {
+			var files = practises.saveViewAttachments();
+			this.timeoutID = window.setTimeout(practises.verifyAttachments, 1000, this, files, author, result);
 		} else {
-			icon.setAttribute("signed", "notok");
-			icon.setAttribute("tooltiptext", this.strings.getString("statusNotok"));
+			practises.setVerifyIcon(result);
 		}
-		
-		psesBox.collapsed = false;
 	},
 	
-	verifyAttachments: function(author) {
-		var host = this.prefs.getCharPref("server");
+	verifyAttachments: function(that, files, author, messageResult) {
+		var host = that.prefs.getCharPref("server");
 		var returnVals = Array();
 		var paths = Array();
+		var result = false;
 		var args;
-		
-		var files = practises.saveViewAttachments();
-		
+				
 		for (index in files) {
 			paths[index] = files[index].path;
 		}
@@ -169,12 +159,17 @@ var practises = {
 		
 		for (index in returnVals) {
 			if(returnVals[index] == 1) {
-				return false;
+				result = false;
 			}
-			alert(returnVals(index));
 		}
 		
-		return true;
+		result = true;
+		
+		if(result) {
+			practises.setVerifyIcon(messageResult);
+		} else {
+			practises.setVerifyIcon(-1);
+		}
 	},
 	
 	/*
@@ -290,8 +285,12 @@ var practises = {
 			gMsgCompose.compFields.addAttachment(attachment);
 		}
   	},
-
+	
 	call: function(command, argument) {
+		return practises.call(command, argument, null);
+	},
+	
+	call: function(command, argument, message) {
 		var host = this.prefs.getCharPref("server");
 		var hasOutput = false;
 		var composing = false;
@@ -315,19 +314,20 @@ var practises = {
 		tmp_file.append("message.tmp");
 		tmp_file.createUnique(Components.interfaces.nsIFile.NORMAL_FILE_TYPE, 0664);
 
-		var message = "";
-		if(composing) {
-			psesEditor = gMsgCompose.editor.QueryInterface(Components.interfaces.nsIPlaintextEditor);
-			message = psesEditor.outputToString("text/plain", 2 | 1024);
-			/*
-			SetDocumentCharacterSet(CHARSET);
-			if(gMsgCompose.bodyConvertible() == nsIMsgCompConvertible.Plain)
-				OutputFileWithPersistAPI(GetCurrentEditor().document, tmp_file, null, "text/plain");
-			else
-				OutputFileWithPersistAPI(GetCurrentEditor().document, tmp_file, null, "text/html");
-			*/
-		} else {
-			message = practises.readMessage();
+		if(message == null) {
+			if(composing) {
+				psesEditor = gMsgCompose.editor.QueryInterface(Components.interfaces.nsIPlaintextEditor);
+				message = psesEditor.outputToString("text/plain", 2 | 1024);
+				/*
+				SetDocumentCharacterSet(CHARSET);
+				if(gMsgCompose.bodyConvertible() == nsIMsgCompConvertible.Plain)
+					OutputFileWithPersistAPI(GetCurrentEditor().document, tmp_file, null, "text/plain");
+				else
+					OutputFileWithPersistAPI(GetCurrentEditor().document, tmp_file, null, "text/html");
+				*/
+			} else {
+				message = practises.readMessage();
+			}
 		}
 		
 		var ostream = Components.classes["@mozilla.org/network/file-output-stream;1"].createInstance(Components.interfaces.nsIFileOutputStream);
@@ -357,8 +357,14 @@ var practises = {
 				var msgPaneDocChildren = this.messagePane.contentDocument.childNodes;
 				var ndHTML = msgPaneDocChildren.item(0);
 				var ndBODY = ndHTML.childNodes.item(1);
-				var ndDIV = ndHTML.childNodes.item(1);
-				ndDIV.innerHTML = data;
+				var ndDIV = ndBODY.childNodes.item(1);
+				ndDIV.innerHTML = data.replace(/\n/g, "<br/>");
+				while(ndBODY.childNodes.length > 2)
+					ndBODY.removeChild(ndBODY.childNodes[2]);
+				if(data.indexOf("-----BEGIN PRACTISES SIGNED MESSAGE-----") == 0) {
+					var hdr = GetDBView().hdrForFirstSelectedMessage;
+					practises.verify(practises.stripEmail(hdr.mime2DecodedAuthor), data);
+				}
 			}
 			
 			practises.deleteFile(outputPath);
@@ -479,6 +485,24 @@ var practises = {
 		}
 		
 		return files;
+	},
+	
+	setVerifyIcon: function(status) {
+		var psesBox = document.getElementById("psesBox");
+		var icon = document.getElementById("psesVerifyIcon");
+
+		if(status == 0) {
+			icon.setAttribute("signed", "ok");
+			icon.setAttribute("tooltiptext", this.strings.getString("statusOk"));
+		} else if(status == 1) {
+			icon.setAttribute("signed", "notok");
+			icon.setAttribute("tooltiptext", this.strings.getString("statusNotok"));
+		} else {
+			icon.setAttribute("signed", "unknown");
+			icon.setAttribute("tooltiptext", this.strings.getString("statusUnknown"));
+		}
+
+		psesBox.collapsed = false;
 	},
 
 	stripEmail: function(recipient) {

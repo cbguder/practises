@@ -4,7 +4,6 @@
 <!ENTITY practises.nothing "Do Nothing">
 <!ENTITY practises.signAndEncrypt "Sign and Encrypt">
 <!ENTITY practises.decrypt "Decrypt...">
-<!ENTITY practises.verify "Verify">
 <!ENTITY practises.finalizeInitialize "Finalize Initialization...">
 <!ENTITY practises.finalizeUpdate "Finalize Key Update...">
 <!ENTITY practises.finalizeRemove "Finalize Key Removal...">
