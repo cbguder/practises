@@ -1,5 +1,6 @@
 function browse() {
 	var textbox = document.getElementById("textclientpath");
+	var cpPref = document.getElementById("clientpath");
 	netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
 	var nsIFilePicker = Components.interfaces.nsIFilePicker;
 	var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
@@ -9,5 +10,6 @@ function browse() {
 	if (res == nsIFilePicker.returnOK) {
 		textbox.thefile = fp.file;
 		textbox.value = textbox.thefile.path;
+		cpPref.value = textbox.thefile.path;
 	}
 }

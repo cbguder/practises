@@ -122,19 +122,16 @@ namespace PractiSES
                     break;
                 case "finalizeInitialize":
                     return client.FinalizeInitialize(file, passphrase);
-                    break;
                 case "update":
                     client.Update(passphrase);
                     break;
                 case "finalizeUpdate":
                     return client.FinalizeUpdate(file, passphrase);
-                    break;
                 case "remove":
                     client.Remove(passphrase);
                     break;
                 case "finalizeRemove":
                     return client.FinalizeRemove(file, passphrase);
-                    break;
                 case "strip":
                     Strip(file);
                     break;

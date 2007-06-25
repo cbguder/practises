@@ -1,9 +1,4 @@
-﻿var prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService);
-prefs = prefs.getBranch("extensions.practises.");
-
-var clientpath			= prefs.getCharPref("clientpath");
-var host				= prefs.getCharPref("server");
-const CHARSET			= "UTF-8";
+﻿const CHARSET			= "UTF-8";
 const REPLACEMENTCHAR	= Components.interfaces.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER;
 
 var practises = {
@@ -14,6 +9,8 @@ var practises = {
 		this.initialized = true;
 		this.strings = document.getElementById("practises-strings");
 		this.messagePane = document.getElementById("messagepane");
+		this.prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService);
+		this.prefs = this.prefs.getBranch("extensions.practises.");
 	},
 	
 	onComposerSendMessage: function(e) {
@@ -124,6 +121,7 @@ var practises = {
 	 */
 
 	addDetachedSignature: function(passphrase, url) {
+		var host = this.prefs.getCharPref("server");
 		url = practises.URItoWindows(url);
 		var filename = url.substring(url.lastIndexOf("\\") + 1, url.length);
 		
@@ -148,6 +146,7 @@ var practises = {
   	},
 	
 	call: function(command, argument) {
+		var host = this.prefs.getCharPref("server");
 		var hasOutput = false;
 		var composing = false;
 		var needsRecipient = false;
@@ -301,6 +300,7 @@ var practises = {
 	},
 	
 	run: function(args) {
+		var clientpath	= this.prefs.getCharPref("clientpath");
 		var clientFile = Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces.nsILocalFile);
 		var clientProcess = Components.classes["@mozilla.org/process/util;1"].createInstance(Components.interfaces.nsIProcess);
 		
