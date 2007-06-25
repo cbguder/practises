@@ -49,11 +49,55 @@ var practises = {
 		var recipients = gMsgCompose.compFields.to.split(",");
 		var recipient = practises.stripEmail(recipients[0]);
 		practises.call("-e", recipient);
+		
+		var attachments = gMsgCompose.compFields.attachmentsArray;
+		var attachmentCount = attachments.Count();
+		
+		var toEncrypt = Array();
+		for(var i = 0; i < attachmentCount; i++) {
+			toEncrypt[i] = attachments.GetElementAt(i);
+		}
+
+		for(index in toEncrypt) {
+			var attachment = toEncrypt[index];
+			practises.addEncryptedAttachment(recipient, attachment.url);
+			gMsgCompose.compFields.removeAttachment(attachment);
+		}
 	},
 	
 	decrypt: function(e) {
 		var passphrase = practises.prompt("PractiSES", "Enter passphrase:");
 		practises.call("-d", passphrase);
+		practises.decryptAttachments(passphrase);
+	},
+	
+	decryptAttachments: function(passphrase) {
+		var host = this.prefs.getCharPref("server");
+		var returnVals = Array();
+		var paths = Array();
+		var args;
+		
+		var files = practises.saveViewAttachments();
+		
+		var count = 0;				
+		for (index in files)	{
+			var file = files[index];
+			var psesIndex = file.path.indexOf(".pses");
+			if((psesIndex != -1) && (psesIndex == file.path.length - 5)) {
+				args = ["-d", "-H", host, "-p", passphrase, file.path];
+				practises.run(args);
+				paths[count++] = file.path.substring(0, psesIndex);
+			}
+		}
+		
+		for (index in paths) {
+			practises.addViewAttachment(paths[index]);
+		}
+		
+		for (index in files) {
+			if(files[index].exists())
+				files[index].remove(false);
+		}
 	},
 	
 	sign: function() {
@@ -73,19 +117,64 @@ var practises = {
 		var psesBox = document.getElementById("psesBox");
 		var icon = document.getElementById("psesVerifyIcon");
 		var result = practises.call("-v", author);
-
-		if(result == 0) {
-			icon.setAttribute("signed", "ok");
-			icon.setAttribute("tooltiptext", this.strings.getString("statusOk"));
-		} else if(result == 1) {
+		var attachmentsResult = practises.verifyAttachments(author);
+		
+		if(attachmentsResult) {
+			if(result == 0) {
+				icon.setAttribute("signed", "ok");
+				icon.setAttribute("tooltiptext", this.strings.getString("statusOk"));
+			} else if(result == 1) {
+				icon.setAttribute("signed", "notok");
+				icon.setAttribute("tooltiptext", this.strings.getString("statusNotok"));
+			} else {
+				icon.setAttribute("signed", "unknown");
+				icon.setAttribute("tooltiptext", this.strings.getString("statusUnknown"));
+			}
+		} else {
 			icon.setAttribute("signed", "notok");
 			icon.setAttribute("tooltiptext", this.strings.getString("statusNotok"));
-		} else {
-			icon.setAttribute("signed", "unknown");
-			icon.setAttribute("tooltiptext", this.strings.getString("statusUnknown"));
 		}
 		
 		psesBox.collapsed = false;
+	},
+	
+	verifyAttachments: function(author) {
+		var host = this.prefs.getCharPref("server");
+		var returnVals = Array();
+		var paths = Array();
+		var args;
+		
+		var files = practises.saveViewAttachments();
+		
+		for (index in files) {
+			paths[index] = files[index].path;
+		}
+
+		var count = 0;				
+		for (index in files)	{
+			var file = files[index];
+			var psesIndex = file.path.indexOf(".pses");
+			if((psesIndex == -1) || (psesIndex != file.path.length - 5)) {
+				if(paths.indexOf(file.path + ".pses") != -1) {
+					args = ["--verify-detached", "-H", host, "-r", author, file.path];
+					returnVals[count++] = practises.run(args);
+				}
+			}
+		}
+		
+		for (index in files) {
+			if(files[index].exists())
+				files[index].remove(false);
+		}
+		
+		for (index in returnVals) {
+			if(returnVals[index] == 1) {
+				return false;
+			}
+			alert(returnVals(index));
+		}
+		
+		return true;
 	},
 	
 	/*
@@ -121,12 +210,15 @@ var practises = {
 	 */
 
 	addDetachedSignature: function(passphrase, url) {
+		var result = Array();
 		var host = this.prefs.getCharPref("server");
 		url = practises.URItoWindows(url);
-		var filename = url.substring(url.lastIndexOf("\\") + 1, url.length);
+		var filename = practises.getFilename(url);
 		
 		var tmp_file = Components.classes["@mozilla.org/file/directory_service;1"].getService(Components.interfaces.nsIProperties).get("TmpD", Components.interfaces.nsIFile);
 		tmp_file.append(filename + ".pses");
+		if(tmp_file.exists())
+			tmp_file.remove(false);
 		
 		var args = ["--sign-detached", "-H", host, "-p", passphrase, "-O", tmp_file.path, url];
 		var returnVal = practises.run(args);
@@ -145,6 +237,60 @@ var practises = {
 		}
   	},
 	
+	addViewAttachment: function(url) {
+		var mimeService = Components.classes["@mozilla.org/mime;1"].getService(Components.interfaces.nsIMIMEService);
+		
+		var file = Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces.nsILocalFile);
+		file.initWithPath(url);
+		var contentType = mimeService.getTypeFromFile(file);
+		
+		var attachment = new createNewAttachmentInfo(contentType, url, practises.getFilename(url), document.getElementById("messagepane").currentURI.spec, true);
+		var attachmentList = document.getElementById('attachmentList');
+		var attachmentView = attachmentList.appendItem(attachment.displayName);
+		attachmentView.setAttribute("class", "descriptionitem-iconic");
+
+		if (gShowLargeAttachmentView)
+		attachmentView.setAttribute("largeView", "true");
+
+		setApplicationIconForAttachment(attachment, attachmentView, gShowLargeAttachmentView);
+		attachmentView.setAttribute("tooltip", "attachmentListTooltip");
+		attachmentView.setAttribute("context", "attachmentListContext");
+
+		attachmentView.attachment = cloneAttachment(attachment);
+		attachmentView.setAttribute("attachmentUrl", attachment.url);
+		attachmentView.setAttribute("attachmentContentType", attachment.contentType);
+		attachmentView.setAttribute("attachmentUri", attachment.uri);
+
+		var item = attachmentList.appendChild(attachmentView);		
+	},
+	
+	addEncryptedAttachment: function(recipient, url) {
+		var host = this.prefs.getCharPref("server");
+		url = practises.URItoWindows(url);
+		var filename = url.substring(url.lastIndexOf("\\") + 1, url.length);
+		
+		var tmp_file = Components.classes["@mozilla.org/file/directory_service;1"].getService(Components.interfaces.nsIProperties).get("TmpD", Components.interfaces.nsIFile);
+		tmp_file.append(filename + ".pses");
+		if(tmp_file.exists())
+			tmp_file.remove(false);
+		
+		var args = ["-e", "-H", host, "-r", recipient, "-O", tmp_file.path, url];
+		var returnVal = practises.run(args);
+		
+		var protocolhandler = Components.classes["@mozilla.org/network/protocol;1?name=file"].createInstance(Components.interfaces.nsIFileProtocolHandler);			
+		var attachmentURL = protocolhandler.getURLSpecFromFile(tmp_file);
+
+		var attachment = Components.classes["@mozilla.org/messengercompose/attachment;1"].createInstance(Components.interfaces.nsIMsgAttachment);
+		attachment.url = attachmentURL;
+
+		if(attachment && attachment.url) {
+			if (!attachment.name)
+				attachment.name = filename + ".pses";
+			
+			gMsgCompose.compFields.addAttachment(attachment);
+		}
+  	},
+
 	call: function(command, argument) {
 		var host = this.prefs.getCharPref("server");
 		var hasOutput = false;
@@ -228,6 +374,10 @@ var practises = {
 		file.initWithPath(path);
 		file.remove(false);
 	},
+	
+	getFilename: function(url) {
+		return url.substring(url.lastIndexOf("\\") + 1, url.length);
+	},
 
 	prompt: function(title, message) {
 		var prompts = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
@@ -309,6 +459,26 @@ var practises = {
 		clientProcess.run(true, args, args.length);
 		
 		return clientProcess.exitValue;
+	},
+	
+	saveViewAttachments: function() {
+		var tempFolder = Components.classes["@mozilla.org/file/directory_service;1"].getService(Components.interfaces.nsIProperties).get("TmpD", Components.interfaces.nsILocalFile);
+		var files = Array();
+		var count = 0;
+
+		try	{
+			for (index in currentAttachments) {
+				// exclude all attachments already deleted
+				var attachment = currentAttachments[index];
+				if (attachment.contentType != 'text/x-moz-deleted') {
+					files[count++] = messenger.saveAttachmentToFolder(attachment.contentType, attachment.url, encodeURI(attachment.displayName), attachment.uri, tempFolder);
+				}
+			}
+		} catch(e) {
+			dump ("** failed to handle all attachments **\n");
+		}
+		
+		return files;
 	},
 
 	stripEmail: function(recipient) {

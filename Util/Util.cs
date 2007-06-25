@@ -21,7 +21,7 @@ namespace PractiSES
                 if (maxLength < input.Length - index)
                 {
                     result += input.Substring(index, maxLength);
-                    result += Environment.NewLine;
+                    result += "\n";
                     index += maxLength;
                 }
                 else

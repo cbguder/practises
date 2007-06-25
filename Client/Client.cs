@@ -38,7 +38,7 @@ namespace PractiSES
             String host = "practises2.no-ip.org";
             String passphrase = null;
             String recipient = null;
-            String command = "help";
+            String command = "help";            
             String outfile = null;
 
             foreach (String[] item in options)
@@ -104,10 +104,15 @@ namespace PractiSES
 
             Client client = new Client(host);
 
+            if (outfile == null)
+            {
+                outfile = file + ".pses";
+            }
+
             switch (command)
             {
                 case "encrypt":
-                    client.Encrypt(file, recipient);
+                    client.Encrypt(file, recipient, outfile);
                     break;
                 case "decrypt":
                     client.Decrypt(file, passphrase);
@@ -177,10 +182,8 @@ namespace PractiSES
         }
 */
 
-        private void Encrypt(String filename, String recipient)
+        private void Encrypt(String filename, String recipient, String outfile)
         {
-            String outFile = filename + ".pses";
-
             String publicKey = FetchPublicKey(recipient);
             if (publicKey == null)
                 return;
@@ -188,9 +191,9 @@ namespace PractiSES
             Message message = new Message(File.ReadAllBytes(filename));
             message.Encrypt(publicKey);
 
-            if (Util.Write(outFile, message.ToString()))
+            if (Util.Write(outfile, message.ToString()))
             {
-                Console.Error.WriteLine("Output written to {0}", outFile);
+                Console.Error.WriteLine("Output written to {0}", outfile);
             }
         }
 
@@ -254,11 +257,6 @@ namespace PractiSES
 
             Message message = new Message(File.ReadAllBytes(filename));
             message.Sign(core.PrivateKey, false);
-
-            if (outfile == null)
-            {
-                outfile = filename + ".pses";
-            }
 
             if (Util.Write(outfile, message.getSignature(), true))
             {
