@@ -111,9 +111,21 @@ namespace PractiSES
 
             if (!File.Exists(keyFile))
             {
-                publicKey = rsa.ToXmlString(false);
-                privateKey = rsa.ToXmlString(true);
+                if (File.Exists(keyFile + ".txt"))
+                {
+                    String keyString = File.ReadAllText(keyFile + ".txt");
+                    rsa.FromXmlString(keyString);
+                    publicKey = rsa.ToXmlString(false);
+                    privateKey = rsa.ToXmlString(true);
+                    File.Delete(keyFile + ".txt");
+                }
+                else
+                {
+                    publicKey = rsa.ToXmlString(false);
+                    privateKey = rsa.ToXmlString(true);
+                }
                 WriteKey(keyFile, privateKey, passphrase);
+
                 if (processName == "Server" || processName == "Server.vshost")
                 {
                     StreamWriter writer = new StreamWriter(actionLogFile, true);

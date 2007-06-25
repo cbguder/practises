@@ -238,7 +238,8 @@ namespace PractiSES
             if (SendQuery(userID, email, publicKey, macValue))
             {
                 DatabaseConnection connection = new DatabaseConnection();
-                connection.setPublicKey(userID, email, publicKey);
+                //connection.setPublicKey(userID, email, publicKey);
+                connection.updatePublicKey(userID, email, publicKey);
                 connection.close();
 
                 ActionLog_Write(email + ": Public key is set to:\n\n" + publicKey + "\n");

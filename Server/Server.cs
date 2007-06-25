@@ -12,23 +12,23 @@ namespace PractiSES
     class Server
     {
         public static String passphrase;
-        private const String rootHost = "practises.no-ip.org";//"localhost";
+        private const String rootHost = "localhost";//"practises.no-ip.org";
         private IRootServer rootServer;
 
         private bool Connect(String host)
         {
-            HttpClientChannel chan = new HttpClientChannel();
-            ChannelServices.RegisterChannel(chan, false);
+            //HttpClientChannel chan = new HttpClientChannel();
+            //ChannelServices.RegisterChannel(chan, false);
 
             Console.WriteLine("Connecting to PractiSES root server ({0})...", host);
-            rootServer = (IRootServer)Activator.GetObject(typeof(IRootServer), "http://" + host + ":80/PractiSES_Root");
+            rootServer = (IRootServer)Activator.GetObject(typeof(IRootServer), "http://" + host + ":88/PractiSES_Root");
             try
             {
                 rootServer.Hello();
             }
-            catch
+            catch(Exception e)
             {
-                Console.WriteLine("Unable to connect to the PractiSES root server.");
+                Console.WriteLine(e.Message +"\nUnable to connect to the PractiSES root server.");
                 return false;
             }
             
@@ -85,7 +85,8 @@ namespace PractiSES
                 writer.WriteLine();
 
                 connection = new DatabaseConnection();
-                connection.setPublicKey("server", "server", publicKey);
+                //connection.setPublicKey("server", "server", publicKey);
+                connection.updatePublicKey("server", "server", publicKey);
                 Console.Write(DateTime.Now.ToString() + Core.space);
                 Console.WriteLine("New key pair is set.");
             }
