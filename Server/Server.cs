@@ -12,7 +12,7 @@ namespace PractiSES
     class Server
     {
         public static String passphrase;
-        private const String rootHost = "localhost";//"practises.no-ip.org";
+        //private const String rootHost = "practises3.no-ip.org";//"localhost";
         private IRootServer rootServer;
 
         private bool Connect(String host)
@@ -24,11 +24,14 @@ namespace PractiSES
             rootServer = (IRootServer)Activator.GetObject(typeof(IRootServer), "http://" + host + ":88/PractiSES_Root");
             try
             {
-                rootServer.Hello();
+                if (rootServer.Hello())
+                {
+                    Console.WriteLine("Connected to PractiSES root server.");
+                }
             }
             catch(Exception e)
             {
-                Console.WriteLine(e.Message +"\nUnable to connect to the PractiSES root server.");
+                Console.WriteLine(e.Message +"\nUnable to connect to PractiSES root server.");
                 return false;
             }
             
@@ -60,8 +63,8 @@ namespace PractiSES
         {
             RemotingConfiguration.Configure(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile, false);
 
-            Server server = new Server();
-            server.Connect(rootHost);
+            //Server server = new Server();
+            //server.Connect(rootHost);
             ServerObject serverobj = new ServerObject();
             //serverobj.KeyObt("cbguder@su.sabanciuniv.edu", DateTime.Now);
             
@@ -71,6 +74,10 @@ namespace PractiSES
             passphrase.Trim();
             Core core = new Core(passphrase);
             core.ReadSettingsFile();
+
+            Server server = new Server();
+            server.Connect(core.GetRootHost());
+
             DatabaseConnection connection = new DatabaseConnection();
             String publicKey = core.PublicKey;
             String dbPublicKey = connection.getPublicKey("server");

@@ -205,6 +205,27 @@ namespace PractiSES
                     XmlElement settingsElement = settingsDocument.CreateElement("", "settings", "");
                     settingsDocument.AppendChild(settingsElement);
 
+
+                    XmlElement rootServerElement;
+                    rootServerElement = settingsDocument.CreateElement("", "root_server", "");
+                    Console.WriteLine("Please enter address of PractiSES root server:");
+                    String rootAddr = Console.ReadLine();
+                    Console.WriteLine("Thank you!");
+                    rootServerElement.InnerText = rootAddr;
+                    settingsDocument.ChildNodes.Item(1).AppendChild(rootServerElement);
+
+                    XmlElement domainElement;
+                    domainElement = settingsDocument.CreateElement("", "domain", "");
+                    Console.WriteLine("Please enter domain name of PractiSES server:");
+                    String domainName = Console.ReadLine();
+                    Console.WriteLine("Thank you again!");
+                    if (domainName[0] != '@')
+                    {
+                        domainName = "@" + domainName;
+                    }
+                    domainElement.InnerText = domainName;
+                    settingsDocument.ChildNodes.Item(1).AppendChild(domainElement);
+
                     XmlElement questionElement = settingsDocument.CreateElement("", "question", "");
                     XmlAttribute questionNumber;
                     questionNumber = settingsDocument.CreateAttribute("one");
@@ -215,17 +236,43 @@ namespace PractiSES
                     questionElement.Attributes.Append(questionNumber);
                     settingsDocument.ChildNodes.Item(1).AppendChild(questionElement);
 
-                    XmlElement domainElement;
-                    domainElement = settingsDocument.CreateElement("", "domain", "");
-                    Console.WriteLine("Please enter domain name of the server:");
-                    String domainName = Console.ReadLine();
-                    Console.WriteLine("Thank you again!");
-                    if (domainName[1] != '@')
-                    {
-                        domainName = "@" + domainName;
-                    }
-                    domainElement.InnerText = domainName;
-                    settingsDocument.ChildNodes.Item(1).AppendChild(domainElement);
+
+                    XmlElement databaseElement;
+                    databaseElement = settingsDocument.CreateElement("", "database", "");                 
+
+                    XmlElement dbServerElement;
+                    dbServerElement = settingsDocument.CreateElement("", "server", "");
+                    Console.WriteLine("Please enter address of PractiSES database:");
+                    String dbServer = Console.ReadLine();
+                    Console.WriteLine("Thank you!");
+                    dbServerElement.InnerText = dbServer;
+                    databaseElement.AppendChild(dbServerElement);
+
+                    XmlElement userIDElement;
+                    userIDElement = settingsDocument.CreateElement("", "uid", "");
+                    Console.WriteLine("Please enter user id of PractiSES database:");
+                    String userID = Console.ReadLine();
+                    Console.WriteLine("Thank you!");
+                    userIDElement.InnerText = userID;
+                    databaseElement.AppendChild(userIDElement);
+
+                    XmlElement pwdElement;
+                    pwdElement = settingsDocument.CreateElement("", "pwd", "");
+                    Console.WriteLine("Please enter password of PractiSES database:");
+                    String pwd = Console.ReadLine();
+                    Console.WriteLine("Thank you!");
+                    pwdElement.InnerText = pwd;
+                    databaseElement.AppendChild(pwdElement);
+
+                    XmlElement dbNameElement;
+                    dbNameElement = settingsDocument.CreateElement("", "dbase", "");
+                    Console.WriteLine("Please enter name of PractiSES database:");
+                    String dbName = Console.ReadLine();
+                    Console.WriteLine("Thank you!");
+                    dbNameElement.InnerText = dbName;
+                    databaseElement.AppendChild(dbNameElement);
+
+                    settingsDocument.ChildNodes.Item(1).AppendChild(databaseElement);
 
 
                     settingsDocument.Save(settingsFile);
@@ -269,6 +316,34 @@ namespace PractiSES
 
             domainNode = settingsDocument.SelectSingleNode("descendant::domain");
             String domain = domainNode.InnerText;
+
+            return domain;
+        }
+
+        public String GetRootHost()
+        {
+            XmlNode rootServerNode;
+            XmlDocument settingsDocument;
+
+            settingsDocument = new XmlDocument();
+            settingsDocument.Load(settingsFile);
+
+            rootServerNode = settingsDocument.SelectSingleNode("descendant::root_server");
+            String domain = rootServerNode.InnerText;
+
+            return domain;
+        }
+
+        public String GetRootHost()
+        {
+            XmlNode rootServerNode;
+            XmlDocument settingsDocument;
+
+            settingsDocument = new XmlDocument();
+            settingsDocument.Load(settingsFile);
+
+            rootServerNode = settingsDocument.SelectSingleNode("descendant::root_server");
+            String domain = rootServerNode.InnerText;
 
             return domain;
         }

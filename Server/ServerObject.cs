@@ -14,7 +14,7 @@ namespace PractiSES
 {
     public class ServerObject : MarshalByRefObject, IServer
     {
-        private const String rootHost = "practises.no-ip.org";
+        //private const String rootHost = "practises3.no-ip.org";
         private const String beginProtocol = "--------------------";
         private IRootServer rootServer;
        
@@ -292,7 +292,7 @@ namespace PractiSES
                 byte[] rawCertData = Certificate.SearchCertificate(domainName);
                 if (rawCertData == null)
                 {         
-                    if (ConnectRootServer(rootHost))
+                    if (ConnectRootServer(core.GetRootHost()))
                     {
                         if (GetCertificate(domainName))
                         {
@@ -482,7 +482,7 @@ namespace PractiSES
             ActionLog_Write("Connecting to PractiSES root server (" + host + ")...");
             Console.WriteLine("Connecting to PractiSES root server ({0})...", host);
 
-            rootServer = (IRootServer)Activator.GetObject(typeof(IRootServer), "http://" + host + ":80/PractiSES_Root");
+            rootServer = (IRootServer)Activator.GetObject(typeof(IRootServer), "http://" + host + ":88/PractiSES_Root");
 
             ActionLog_Write("Connected.");
             Console.WriteLine("Connected.");
