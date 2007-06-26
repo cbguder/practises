@@ -12,14 +12,10 @@ namespace PractiSES
     class Server
     {
         public static String passphrase;
-        //private const String rootHost = "practises3.no-ip.org";//"localhost";
         private IRootServer rootServer;
 
         private bool Connect(String host)
         {
-            //HttpClientChannel chan = new HttpClientChannel();
-            //ChannelServices.RegisterChannel(chan, false);
-
             Console.WriteLine("Connecting to PractiSES root server ({0})...", host);
             rootServer = (IRootServer)Activator.GetObject(typeof(IRootServer), "http://" + host + ":88/PractiSES_Root");
             try
@@ -34,8 +30,6 @@ namespace PractiSES
                 Console.WriteLine(e.Message +"\nUnable to connect to PractiSES root server.");
                 return false;
             }
-            
-            //Console.WriteLine("Connected.");
 
             /*Console.Write("Domain Name: ");
             String domainName = Console.ReadLine();
@@ -63,8 +57,6 @@ namespace PractiSES
         {
             RemotingConfiguration.Configure(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile, false);
 
-            //Server server = new Server();
-            //server.Connect(rootHost);
             ServerObject serverobj = new ServerObject();
             //serverobj.KeyObt("cbguder@su.sabanciuniv.edu", DateTime.Now);
             
@@ -76,7 +68,7 @@ namespace PractiSES
             core.ReadSettingsFile();
 
             Server server = new Server();
-            server.Connect(core.GetRootHost());
+            server.Connect(core.GetXmlNodeInnerText("root_server"));
 
             DatabaseConnection connection = new DatabaseConnection();
             String publicKey = core.PublicKey;
@@ -91,7 +83,7 @@ namespace PractiSES
                 writer.WriteLine(dbPublicKey);
                 writer.WriteLine();
 
-                connection = new DatabaseConnection();
+                //connection = new DatabaseConnection();
                 //connection.setPublicKey("server", "server", publicKey);
                 connection.updatePublicKey("server", "server", publicKey);
                 Console.Write(DateTime.Now.ToString() + Core.space);
@@ -109,7 +101,7 @@ namespace PractiSES
             writer.Close();
 
             Console.Write(DateTime.Now.ToString() + Core.space);
-            Console.WriteLine("Server started.");
+            Console.WriteLine("PractiSES Server started.");
 
             HttpServerChannel channel = new HttpServerChannel(80);
             ChannelServices.RegisterChannel(channel,false);

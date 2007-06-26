@@ -189,6 +189,17 @@ namespace PractiSES
             return Encoding.ASCII.GetString(Crypto.AESDecrypt(rest, passphrase, salt));
         }
 
+        private void AppendChild(XmlDocument settingsDocument, XmlNode xmlNode, String elementName, String output)
+        {
+            XmlElement xmlElement;
+            xmlElement = settingsDocument.CreateElement("", elementName, "");
+            Console.WriteLine("Please enter " + output + ":");
+            String input = Console.ReadLine();
+            Console.WriteLine("Thank you!");
+            xmlElement.InnerText = input;
+            xmlNode.AppendChild(xmlElement);
+        }
+
         public String ReadSettingsFile()
         {
             if (!File.Exists(settingsFile))
@@ -206,13 +217,7 @@ namespace PractiSES
                     settingsDocument.AppendChild(settingsElement);
 
 
-                    XmlElement rootServerElement;
-                    rootServerElement = settingsDocument.CreateElement("", "root_server", "");
-                    Console.WriteLine("Please enter address of PractiSES root server:");
-                    String rootAddr = Console.ReadLine();
-                    Console.WriteLine("Thank you!");
-                    rootServerElement.InnerText = rootAddr;
-                    settingsDocument.ChildNodes.Item(1).AppendChild(rootServerElement);
+                    AppendChild(settingsDocument, settingsDocument.ChildNodes.Item(1), "root_server", "address of PractiSES root server");
 
                     XmlElement domainElement;
                     domainElement = settingsDocument.CreateElement("", "domain", "");
@@ -240,37 +245,13 @@ namespace PractiSES
                     XmlElement databaseElement;
                     databaseElement = settingsDocument.CreateElement("", "database", "");                 
 
-                    XmlElement dbServerElement;
-                    dbServerElement = settingsDocument.CreateElement("", "server", "");
-                    Console.WriteLine("Please enter address of PractiSES database:");
-                    String dbServer = Console.ReadLine();
-                    Console.WriteLine("Thank you!");
-                    dbServerElement.InnerText = dbServer;
-                    databaseElement.AppendChild(dbServerElement);
+                    AppendChild(settingsDocument, databaseElement, "server", "address of PractiSES database");
 
-                    XmlElement userIDElement;
-                    userIDElement = settingsDocument.CreateElement("", "uid", "");
-                    Console.WriteLine("Please enter user id of PractiSES database:");
-                    String userID = Console.ReadLine();
-                    Console.WriteLine("Thank you!");
-                    userIDElement.InnerText = userID;
-                    databaseElement.AppendChild(userIDElement);
+                    AppendChild(settingsDocument, databaseElement, "uid", "user id of PractiSES database");
 
-                    XmlElement pwdElement;
-                    pwdElement = settingsDocument.CreateElement("", "pwd", "");
-                    Console.WriteLine("Please enter password of PractiSES database:");
-                    String pwd = Console.ReadLine();
-                    Console.WriteLine("Thank you!");
-                    pwdElement.InnerText = pwd;
-                    databaseElement.AppendChild(pwdElement);
+                    AppendChild(settingsDocument, databaseElement, "pwd", "password of PractiSES database");
 
-                    XmlElement dbNameElement;
-                    dbNameElement = settingsDocument.CreateElement("", "dbase", "");
-                    Console.WriteLine("Please enter name of PractiSES database:");
-                    String dbName = Console.ReadLine();
-                    Console.WriteLine("Thank you!");
-                    dbNameElement.InnerText = dbName;
-                    databaseElement.AppendChild(dbNameElement);
+                    AppendChild(settingsDocument, databaseElement, "dbase", "name of PractiSES database");
 
                     settingsDocument.ChildNodes.Item(1).AppendChild(databaseElement);
 
@@ -306,6 +287,20 @@ namespace PractiSES
             }
         }
 
+        public String GetXmlNodeInnerText(String elementName)
+        {
+            XmlNode domainNode;
+            XmlDocument settingsDocument;
+
+            settingsDocument = new XmlDocument();
+            settingsDocument.Load(settingsFile);
+
+            domainNode = settingsDocument.SelectSingleNode("descendant::" + elementName);
+            String domain = domainNode.InnerText;
+
+            return domain;
+        }
+        /*
         public String GetDomainName()
         {
             XmlNode domainNode;
@@ -388,6 +383,6 @@ namespace PractiSES
             String domain = rootServerNode.InnerText;
 
             return domain;
-        }
+        }*/
     }
 }

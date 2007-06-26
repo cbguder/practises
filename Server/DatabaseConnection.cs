@@ -21,7 +21,7 @@ namespace PractiSES
             {
                 Core core = new Core(Server.passphrase, false);
 
-                connectionstring = String.Format("server={0};uid={1};pwd={2};database={3}", core.GetDbAddress(), core.GetDbUid(), core.GetDbPwd(), core.GetDbName());
+                connectionstring = String.Format("server={0};uid={1};pwd={2};database={3}", core.GetXmlNodeInnerText("server"), core.GetXmlNodeInnerText("uid"), core.GetXmlNodeInnerText("pwd"), core.GetXmlNodeInnerText("dbase"));
                 conn = new MySqlConnection(connectionstring);
                 conn.Open();
             }

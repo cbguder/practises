@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using MySql.Data.MySqlClient;
 using PractiSES;
 using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
 using System.IO;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
@@ -14,7 +12,6 @@ namespace PractiSES
 {
     public class ServerObject : MarshalByRefObject, IServer
     {
-        //private const String rootHost = "practises3.no-ip.org";
         private const String beginProtocol = "--------------------";
         private IRootServer rootServer;
        
@@ -190,8 +187,6 @@ namespace PractiSES
             HMAC hmac = HMACSHA1.Create();
             hmac.Key = Convert.FromBase64String(dbMACPass);
             byte[] hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(message));
-            //Hash hash = new Hash(dbMACPass);
-            //if (hash.ValidateMAC(publicKey, macValue))
             if (Util.Compare(hash, Convert.FromBase64String(macValue)))
             {
                 connection.removeMACPass(email);
@@ -281,7 +276,7 @@ namespace PractiSES
             String domainName = email.Substring(index, email.Length - index); 
             String publicKey = null;
             Core core = new Core(Server.passphrase);
-            if (core.GetDomainName() == domainName)
+            if (core.GetXmlNodeInnerText("domain") == domainName)
             {
                 DatabaseConnection connection = new DatabaseConnection();
                 publicKey = connection.getPublicKey(email, date);
@@ -292,11 +287,10 @@ namespace PractiSES
                 byte[] rawCertData = Certificate.SearchCertificate(domainName);
                 if (rawCertData == null)
                 {         
-                    if (ConnectRootServer(core.GetRootHost()))
+                    if (ConnectRootServer(core.GetXmlNodeInnerText("root_server")))
                     {
                         if (GetCertificate(domainName))
                         {
-                           // DatabaseConnection connection = new DatabaseConnection();
                             rawCertData = Certificate.SearchCertificate(domainName);                   
                         }
                     }
@@ -304,9 +298,6 @@ namespace PractiSES
                 String foreignServerPublicKey = Certificate.GetPublicKey(rawCertData);
                 Console.WriteLine(foreignServerPublicKey);
                 String foreignServerHost = Certificate.GetHostName(rawCertData);
-
-                //HttpClientChannel chan = new HttpClientChannel();
-                //ChannelServices.RegisterChannel(chan, false);
 
                 ActionLog_Write("Connecting to foreign PractiSES server (" + foreignServerHost + ")...");
                 Console.WriteLine("Connecting to foreign PractiSES server ({0})...", foreignServerHost);
@@ -317,11 +308,11 @@ namespace PractiSES
                 {
                     Message foreignmessage = new Message(signedPublicKey);
                     //****************
-                    //if (foreignmessage.Verify(foreignServerPublicKey))
-                    //{
+                    if (foreignmessage.Verify(foreignServerPublicKey))
+                    {
                         publicKey = foreignmessage.getCleartext();
-                    //}
-                        //****************
+                    }
+                    //****************
                 } 
             }
             if (publicKey == null)
@@ -467,7 +458,6 @@ namespace PractiSES
             return false;
         }
         
-        /***************************************************************************/
 
         /*private X509Certificate2 GetCertificate(String domainName)
         {
@@ -476,9 +466,6 @@ namespace PractiSES
 
         private bool ConnectRootServer(String host)
         {
-            //HttpClientChannel chan = new HttpClientChannel();
-            //ChannelServices.RegisterChannel(chan, false);
-
             ActionLog_Write("Connecting to PractiSES root server (" + host + ")...");
             Console.WriteLine("Connecting to PractiSES root server ({0})...", host);
 
