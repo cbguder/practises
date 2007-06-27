@@ -37,6 +37,80 @@ namespace PractiSES
             return rsa;
         }
 
+        public static String CertToXMLKey(byte[] rsakey)
+        {
+            String xmlpublickey = null;
+            byte[] modulus, exponent;
+
+            // ---------  Set up stream to read the asn.1 encoded SubjectPublicKeyInfo blob  ------
+            MemoryStream mem = new MemoryStream(rsakey);
+            BinaryReader reader = new BinaryReader(mem);
+            ushort twobytes = 0;
+
+            try
+            {
+                twobytes = reader.ReadUInt16();
+                if (twobytes == 0x8130)	//data read as little endian order (actual data order for Sequence is 30 81)
+                    reader.ReadByte();	//advance 1 byte
+                else if (twobytes == 0x8230)
+                    reader.ReadInt16();	//advance 2 bytes
+                else
+                    return null;
+
+                twobytes = reader.ReadUInt16();
+                byte lowbyte = 0x00;
+                byte highbyte = 0x00;
+
+                if (twobytes == 0x8102)	//data read as little endian order (actual data order for Integer is 02 81)
+                    lowbyte = reader.ReadByte();	// read next bytes which is bytes in modulus
+                else if (twobytes == 0x8202)
+                {
+                    highbyte = reader.ReadByte();	//advance 2 bytes
+                    lowbyte = reader.ReadByte();
+                }
+                else
+                    return null;
+                byte[] modint = { lowbyte, highbyte, 0x00, 0x00 };   //reverse byte order since asn.1 key uses big endian
+                int modsize = BitConverter.ToInt32(modint, 0);
+
+                int firstbyte = reader.PeekChar();
+                if (firstbyte == 0x00)
+                {	//if first byte (highest order) of modulus is zero, don't include it
+                    reader.ReadByte();	//skip this null byte
+                    modsize -= 1;	//reduce modulus buffer size by 1
+                }
+
+                modulus = reader.ReadBytes(modsize);	//read the modulus bytes
+
+                if (reader.ReadByte() != 0x02)			//expect an Integer for the exponent data
+                    return null;
+                int expbytes = (int)reader.ReadByte();		// should only need one byte for actual exponent data
+                exponent = reader.ReadBytes(expbytes);
+
+
+                if (reader.PeekChar() != -1)	// if there is unexpected more data, then this is not a valid asn.1 RSAPublicKey
+                    return null;
+
+
+                // ------- create RSACryptoServiceProvider instance and initialize with public key   -----
+                RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
+                RSAParameters RSAKeyInfo = new RSAParameters();
+                RSAKeyInfo.Modulus = modulus;
+                RSAKeyInfo.Exponent = exponent;
+                rsa.ImportParameters(RSAKeyInfo);
+                xmlpublickey = rsa.ToXmlString(false);
+                return xmlpublickey;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+            finally
+            {
+                reader.Close();
+            }
+        }
+
         public static String Sign(String clearText, String privateKey)
         {
             StringWriter sw = new StringWriter();

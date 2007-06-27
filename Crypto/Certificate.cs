@@ -74,11 +74,19 @@ namespace PractiSES
             return true;
         }
 
-        public static String GetPublicKey(byte[] data)
+        /*public static String GetPublicKey(byte[] data)
         {
             OpenCertificate();
             X509Certificate2 myCert = new X509Certificate2(data);
             String publicKey = myCert.GetPublicKeyString();
+            return publicKey;
+        }*/
+
+        public static byte[] GetPublicKey(byte[] data)
+        {
+            OpenCertificate();
+            X509Certificate2 myCert = new X509Certificate2(data);
+            byte[] publicKey = myCert.GetPublicKey();
             return publicKey;
         }
 

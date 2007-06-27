@@ -27,7 +27,7 @@ namespace PractiSES
             }
             catch(Exception e)
             {
-                Console.WriteLine(e.Message +"\nUnable to connect to PractiSES root server.");
+                Console.WriteLine("Unable to connect to PractiSES root server.");
                 return false;
             }
 
@@ -102,6 +102,7 @@ namespace PractiSES
 
             Console.Write(DateTime.Now.ToString() + Core.space);
             Console.WriteLine("PractiSES Server started.");
+
 
             HttpServerChannel channel = new HttpServerChannel(80);
             ChannelServices.RegisterChannel(channel,false);

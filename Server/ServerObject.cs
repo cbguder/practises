@@ -295,8 +295,9 @@ namespace PractiSES
                         }
                     }
                 }
-                String foreignServerPublicKey = Certificate.GetPublicKey(rawCertData);
-                Console.WriteLine(foreignServerPublicKey);
+                byte[] foreignServerCertPK = Certificate.GetPublicKey(rawCertData);
+                String foreignServerXmlPK = Crypto.CertToXMLKey(foreignServerCertPK);
+                Console.WriteLine("Public key of " + domainName + ":\n" + foreignServerXmlPK);
                 String foreignServerHost = Certificate.GetHostName(rawCertData);
 
                 ActionLog_Write("Connecting to foreign PractiSES server (" + foreignServerHost + ")...");
@@ -308,7 +309,7 @@ namespace PractiSES
                 {
                     Message foreignmessage = new Message(signedPublicKey);
                     //****************
-                    if (foreignmessage.Verify(foreignServerPublicKey))
+                    if (foreignmessage.Verify(foreignServerXmlPK))
                     {
                         publicKey = foreignmessage.getCleartext();
                     }
